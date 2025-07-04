@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 30px; }
+    .header-buttons { display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px; }
+    button { padding: 6px 12px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: transform 0.1s ease-in-out; }
+    button:active { transform: scale(0.97); }
+    .logout-btn { background: #e74c3c; color: white; }
+    .admin-btn { background: #7f8c8d; color: white; }
+    #task-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .task-card { background: white; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); padding: 10px; width: 160px; font-size: 13px; min-height: 160px; display: flex; flex-direction: column; justify-content: space-between; }
+    .task-card b { display: inline-block; margin-bottom: 2px; }
+    .claim-btn { background: #27ae60; color: white; width: 100%; margin-top: 6px; }
+    .claim-btn.open-task { background: #3498db; }
+    .claim-btn[disabled] { background: #ccc; color: #666; cursor: not-allowed; }
+    select, .finish-btn { width: 100%; margin-top: 6px; font-size: 13px; font-weight: bold; padding: 4px; }
+    .finish-btn { background: #f1c40f; }
+    .task-card.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+    #modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; display: none;
+    }
+    #modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      position: relative;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 1rem auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-buttons">
+    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+  <h1>Task Dashboard</h1>
+  <div id="task-container"></div>
+  <div id="pagination" style="text-align: center; margin-top: 20px;"></div>
+
+  <div id="modal">
+    <div id="modal-content">
+      <div id="modal-message">Espera, reservando tu tarea...</div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "AIzaSyBMcsGdA-u-9tDq75KV2MEVPU96q2mEylE";
+    const SHEET_ID = "1wK__pk0DshyiCICHPzetK-STNKCb0RE8yMiIVYdi1RQ";
+    const CLAIM_URL = "http://localhost:3000/api/claim";
+    const FINISH_URL = "http://localhost:3000/api/mark-finished";
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const taskContainer = document.getElementById("task-container");
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modal-message");
+
+    let currentPage = 1;
+    const TASKS_PER_PAGE = 36;
+    let allTasks = [];
+
+    function showModal(message) {
+      modalMessage.textContent = message;
+      modal.style.display = "flex";
+    }
+
+    function hideModal() {
+      modal.style.display = "none";
+    }
+
+    function goToAdmin() { window.location.href = "admin.html"; }
+    function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
+
+    async function loadTasks() {
+      const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Tareas!A1:F1000?alt=json&key=${API_KEY}`);
+      const json = await res.json();
+      const rows = json.values;
+      const headers = rows[0];
+      const data = rows.slice(1);
+      allTasks = data.map(row => {
+        const task = {};
+        headers.forEach((h, i) => task[h] = row[i] || "");
+        return task;
+      }).filter(task => task.Status === "pending");
+
+      const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+      const stillValid = allTasks.some(t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username);
+      if (!stillValid) localStorage.removeItem("lastClaimedTask");
+
+      renderPage(currentPage);
+    }
+
+    function renderPage(page) {
+  const start = (page - 1) * TASKS_PER_PAGE;
+  const end = start + TASKS_PER_PAGE;
+  const tasksToShow = allTasks.slice(start, end);
+  taskContainer.innerHTML = "";
+  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+
+  tasksToShow.forEach(task => {
+    const isMine = task.ClaimedBy === currentUser.username;
+    const isClaimedByOther = task.ClaimedBy && !isMine;
+    const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
+
+    const card = document.createElement("div");
+    card.className = "task-card";
+    if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
+
+    card.innerHTML = `
+      <div style="display: flex; align-items: center;">
+  <b style="margin-right: 4px;">Subtask:</b>
+  <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
+    ${truncate(task.Subtask)}
+  </span>
+  <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy"
+    style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  </button>
+</div>
+      <br/>
+      <b>Batch:</b> ${truncate(task.Batch)}<br/>
+      <b>Level:</b> ${truncate(task.Level)}<br/>
+      <div class="actions"></div>
+    `;
+
+    const actions = card.querySelector(".actions");
+
+    const claimBtn = document.createElement("button");
+    claimBtn.className = "claim-btn";
+
+    if (isMine) {
+      claimBtn.textContent = "Open Task";
+      claimBtn.classList.add("open-task");
+      claimBtn.onclick = () => {
+        window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
+      };
+    } else {
+      claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
+      claimBtn.disabled = isClaimedByOther || isOtherBlocked;
+
+      claimBtn.onclick = async () => {
+        const already = localStorage.getItem("lastClaimedTask");
+        if (already && already !== task.Subtask) {
+          alert("You already claimed another task.");
+          return;
+        }
+        localStorage.setItem("lastClaimedTask", task.Subtask);
+        showModal("Espera, reservando tu tarea...");
+
+        const res = await fetch(CLAIM_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          modalMessage.textContent = "Reclama tu tarea en Open Task";
+          setTimeout(() => {
+            hideModal();
+            loadTasks();
+          }, 1200);
+        } else {
+          alert("Claim failed.");
+          localStorage.removeItem("lastClaimedTask");
+          hideModal();
+          loadTasks();
+        }
+      };
+    }
+
+    const select = document.createElement("select");
+    select.disabled = !isMine;
+    select.innerHTML = `
+      <option value="">Review option</option>
+      <option value="Good Task">Good Task</option>
+      <option value="Bad Task">Bad Task</option>
+      <option value="Attribute Error">Attribute Error</option>
+      <option value="Geometry Error">Geometry Error</option>
+      <option value="Spammer Task">Spammer Task</option>
+    `;
+
+    const finishBtn = document.createElement("button");
+    finishBtn.textContent = "Finish";
+    finishBtn.className = "finish-btn";
+    finishBtn.disabled = true;
+
+    select.onchange = () => finishBtn.disabled = !select.value;
+
+    finishBtn.onclick = async () => {
+      const res = await fetch(FINISH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtask: task.Subtask })
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        localStorage.removeItem("lastClaimedTask");
+        loadTasks();
+      }
+    };
+
+    actions.appendChild(claimBtn);
+    actions.appendChild(select);
+    actions.appendChild(finishBtn);
+    taskContainer.appendChild(card);
+  });
+
+  renderPagination();
+
+  // Click en el texto del Subtask
+  document.querySelectorAll(".subtask-text").forEach(span => {
+    span.addEventListener("click", () => {
+      const fullValue = span.dataset.full;
+      navigator.clipboard.writeText(fullValue).then(() => {
+        span.textContent = "Copied!";
+        setTimeout(() => {
+          span.textContent = truncate(fullValue);
+        }, 1000);
+      });
+    });
+  });
+
+  // Click en el ícono 🔗
+  document.querySelectorAll(".copy-icon").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const subtask = btn.dataset.subtask;
+      navigator.clipboard.writeText(subtask).then(() => {
+        btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>`;
+        setTimeout(() => {
+        btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>`;
+        }, 1000);
+
+      });
+    });
+  });
+}
+
+
+
+    function renderPagination() {
+      const pagination = document.getElementById("pagination");
+      const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
+      pagination.innerHTML = "";
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.disabled = i === currentPage;
+        btn.style.margin = "0 5px";
+        btn.onclick = () => {
+          currentPage = i;
+          renderPage(currentPage);
+        };
+        pagination.appendChild(btn);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadTasks);
+  </script>
+
+  <script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on("taskClaimed", ({ subtask, username }) => {
+    console.log(`⚡ Tarea reclamada: ${subtask} por ${username}`);
+    loadTasks();
+  });
+
+  socket.on("taskFinished", ({ subtask }) => {
+    console.log(`✅ Tarea finalizada: ${subtask}`);
+    loadTasks();
+  });
+</script>
+
+</body>
+</html>
