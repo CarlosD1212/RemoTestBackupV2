@@ -98,6 +98,12 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
+// Ruta raíz
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "app.html"));
+});
+
+
 // Inicia el servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
