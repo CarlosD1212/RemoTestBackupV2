@@ -115,7 +115,8 @@
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/tasks", {
+      const res = await fetch("https://remo-task-manager.up.railway.app/api/tasks", {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tasks }),
@@ -144,7 +145,8 @@
       }
 
       try {
-        const res = await fetch("http://localhost:3000/api/register-users", {
+        const res = await fetch("https://remo-task-manager.up.railway.app/api/register-users", {
+
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ users }),
