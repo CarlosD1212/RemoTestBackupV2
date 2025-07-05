@@ -1,18 +1,4 @@
 const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const http = require("http");
-const { Server } = require("socket.io");
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  user: "postgres",
-  host: "yamanote.proxy.rlwy.net",
-  database: "railway",
-  password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
-  port: 57774,
-  ssl: { rejectUnauthorized: false }
-});
 
 app.post("/api/projects", async (req, res) => {
   const { name } = req.body;
@@ -29,6 +15,22 @@ app.post("/api/projects", async (req, res) => {
     res.status(500).json({ status: "error", message: "Could not add project" });
   }
 });
+const cors = require("cors");
+const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
+const { Pool } = require("pg");
+
+const pool = new Pool({
+  user: "postgres",
+  host: "yamanote.proxy.rlwy.net",
+  database: "railway",
+  password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
+  port: 57774,
+  ssl: { rejectUnauthorized: false }
+});
+
+
 
 
 const app = express();
