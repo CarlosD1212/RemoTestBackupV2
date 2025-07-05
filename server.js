@@ -99,10 +99,10 @@ app.post("/api/tasks", async (req, res) => {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
       await pool.query(
-        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, 'pending', $4)`,
-        [subtask, batch, level, project]
-      );
-    }
+  `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, $4, $5)`,
+  [subtask, batch, level, 'pending', project]
+);
+
     res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
   } catch (err) {
     console.error("❌ Error en /api/tasks:", err);
