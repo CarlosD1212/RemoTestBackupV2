@@ -12,43 +12,45 @@ const pool = new Pool({
   database: "railway",
   password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
   port: 57774,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 const app = express();
 
-// ✅ Configuración de CORS
+// ✅ CORS correctamente configurado una sola vez
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 
-// 🔌 Servidor HTTP + Socket.IO
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
-// 🌍 Puerto
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// 📦 Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// 📄 Página principal
+// Ruta por defecto al acceder a "/"
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// 🔄 WebSocket
+// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// ✅ Reclamar tarea
+// Reclamar tarea
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
   try {
@@ -68,7 +70,7 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// ✅ Marcar tarea como finalizada
+// Marcar tarea como finalizada
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
   try {
@@ -88,16 +90,21 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// ✅ Registrar tareas nuevas
+// Registrar tareas nuevas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
+
+  console.log("📩 Tareas recibidas:", tasks);
+
+
   try {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
       await pool.query(
-        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, $4, $5)`,
-        [subtask, batch, level, 'pending', project]
-      );
+  `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, $4, $5)`,
+  [subtask, batch, level, 'pending', project]
+);
+
     }
     res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
   } catch (err) {
@@ -106,7 +113,7 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// ✅ Registrar usuarios nuevos
+// Registrar usuarios nuevos
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
   try {
@@ -124,9 +131,7 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
-// 🚀 Iniciar servidor solo si se ejecuta directamente
-if (require.main === module) {
-  server.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  });
-}
+// Inicia el servidor
+server.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+});
