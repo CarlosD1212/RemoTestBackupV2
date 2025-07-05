@@ -31,7 +31,7 @@ const io = new Server(server, {
 });
 
 // 🌍 Puerto
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 // 📦 Middlewares
 app.use(express.urlencoded({ extended: true }));
