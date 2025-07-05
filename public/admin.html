@@ -68,12 +68,12 @@
   <div class="section">
     <h2>Load Tasks</h2>
     <label for="projectName">Project:</label>
-<select id="projectName" required>
-  <option value="">-- Select Project --</option>
-  <option value="Proyecto A">Proyecto A</option>
-  <option value="Proyecto B">Proyecto B</option>
-  <option value="Proyecto C">Proyecto C</option>
-</select>
+    <select id="projectName" required>
+      <option value="">-- Select Project --</option>
+      <option value="Proyecto A">Proyecto A</option>
+      <option value="Proyecto B">Proyecto B</option>
+      <option value="Proyecto C">Proyecto C</option>
+    </select>
 
     <textarea id="taskInput" placeholder="Paste tasks here: subtask batch level (one per line)"></textarea>
     <div class="button-group">
@@ -93,45 +93,36 @@
 
   <script>
     async function submitTasks() {
-    const rawText = document.getElementById("taskInput").value.trim();
-    const project = document.getElementById("projectName").value;
+      const rawText = document.getElementById("taskInput").value.trim();
+      const project = document.getElementById("projectName").value;
 
-    if (!rawText) return alert("Please enter tasks");
-    if (!project) return alert("Please select a project");
+      if (!rawText) return alert("Please enter tasks");
+      if (!project) return alert("Please select a project");
 
-    const lines = rawText.split("\n");
-    const tasks = [];
+      const lines = rawText.split("\n");
+      const tasks = [];
 
-    for (let line of lines) {
-      const [subtask, batch, level] = line.trim().split(/\s+/);
-      if (subtask && batch && level) {
-        tasks.push({
-          subtask,
-          batch,
-          level,
-          project // 👈 se incluye el nombre del proyecto
+      for (let line of lines) {
+        const [subtask, batch, level] = line.trim().split(/\s+/);
+        if (subtask && batch && level) {
+          tasks.push({ subtask, batch, level, project });
+        }
+      }
+
+      try {
+        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tasks }),
         });
+
+        const json = await res.json();
+        alert(json.message || "Tasks submitted successfully");
+      } catch (err) {
+        console.error("❌ Error al enviar tareas:", err);
+        alert("Failed to submit tasks");
       }
     }
-
-    try {
-      const res = await fetch("https://remo-task-manager-production.up.railway.app/api/register-users", {
-
-
-
-
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tasks }),
-      });
-
-      const json = await res.json();
-      alert(json.message || "Tasks submitted successfully");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit tasks");
-    }
-  }
 
     async function submitUsers() {
       const rawText = document.getElementById("userInput").value.trim();
@@ -147,9 +138,10 @@
         }
       }
 
-      try {
-        const res = await fetch("https://remo-task-manager.up.railway.app/api/register-users", {
+      console.log("Enviando usuarios:", users);
 
+      try {
+        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/register-users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ users }),
@@ -158,7 +150,7 @@
         const json = await res.json();
         document.getElementById("response").textContent = json.message || "Users submitted successfully";
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error al registrar usuarios:", err);
         document.getElementById("response").textContent = "❌ Failed to submit users.";
       }
     }
