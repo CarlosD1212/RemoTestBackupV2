@@ -91,6 +91,10 @@ app.post("/api/mark-finished", async (req, res) => {
 // Registrar tareas nuevas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
+
+  console.log("📩 Tareas recibidas:", tasks);
+
+
   try {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
