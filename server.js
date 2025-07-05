@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -5,52 +6,44 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
-// 📦 Configuración PostgreSQL Railway
 const pool = new Pool({
   user: "postgres",
   host: "yamanote.proxy.rlwy.net",
   database: "railway",
   password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
   port: 57774,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 const app = express();
-
-// ✅ CORS correctamente configurado una sola vez
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
+app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
 
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
 
-const PORT = 3000;
-
+const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Ruta por defecto al acceder a "/"
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// Reclamar tarea
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM tasks WHERE status = 'pending'");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error en /api/tasks:", err);
+    res.status(500).json({ error: "Error cargando tareas" });
+  }
+});
+
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
   try {
@@ -70,7 +63,6 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// Marcar tarea como finalizada
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
   try {
@@ -90,21 +82,15 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// Registrar tareas nuevas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
-
-  console.log("📩 Tareas recibidas:", tasks);
-
-
   try {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
       await pool.query(
-  `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, $4, $5)`,
-  [subtask, batch, level, 'pending', project]
-);
-
+        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, 'pending', $4)`,
+        [subtask, batch, level, project]
+      );
     }
     res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
   } catch (err) {
@@ -113,7 +99,6 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Registrar usuarios nuevos
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
   try {
@@ -131,7 +116,6 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
-// Inicia el servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
