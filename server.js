@@ -73,15 +73,36 @@ app.post("/api/claim", async (req, res) => {
 });
 
 // ✅ Nueva ruta: obtener tareas desde PostgreSQL
-app.get("/api/tasks", async (req, res) => {
+app.post("/api/tasks", async (req, res) => {
+  const { username } = req.body;
+
   try {
-    const result = await pool.query(`SELECT * FROM tasks WHERE status != 'finished'`);
-    res.json(result.rows);
+    // Obtener info del usuario
+    const userResult = await pool.query(`SELECT role, project FROM users WHERE username = $1`, [username]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+
+    let query = `SELECT * FROM tasks WHERE status != 'finished'`;
+    let values = [];
+
+    if (user.role !== 'admin') {
+      query += ` AND project = $1 AND level = $2`;
+      values = [user.project, user.role];
+    }
+
+    const tasks = await pool.query(query, values);
+    res.json(tasks.rows);
+
   } catch (err) {
-    console.error("❌ Error al obtener tareas:", err);
-    res.status(500).json({ status: "error", message: "No se pudieron cargar las tareas" });
+    console.error("❌ Error al filtrar tareas:", err);
+    res.status(500).json({ status: "error", message: "Error loading tasks" });
   }
 });
+
 
 
 // Finalizar tarea

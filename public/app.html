@@ -120,8 +120,12 @@
 
     async function loadTasks() {
   try {
-    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
-    const data = await res.json();
+    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ username: currentUser.username })
+});
+
 
     // No filtrar por status aquí
     allTasks = data.map(task => ({
