@@ -5,12 +5,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
-});
-
+// 📦 Configuración PostgreSQL Railway
 const pool = new Pool({
   user: "postgres",
   host: "yamanote.proxy.rlwy.net",
@@ -20,169 +15,144 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-app.use(cors());
-app.use(express.json());
+const app = express();
+app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*", methods: ["GET", "POST"] }
+});
+
+const PORT = 3000;
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// ✅ LOGIN
-app.post("/api/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const result = await pool.query(
-      `SELECT * FROM users WHERE LOWER(username) = LOWER($1) AND password = $2`,
-      [username.toLowerCase(), password]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({ status: "error", message: "Invalid credentials" });
-    }
-
-    const user = result.rows[0];
-    res.json({ status: "success", user });
-  } catch (err) {
-    console.error("❌ Error en login:", err);
-    res.status(500).json({ status: "error", message: "Internal login error" });
-  }
-});
-
-// ✅ OBTENER TAREAS
-app.get("/api/tasks", async (req, res) => {
-  const username = req.query.username;
-
-  if (!username) {
-    return res.status(400).json({ status: "error", message: "Username is required" });
-  }
-
-  try {
-    const userResult = await pool.query("SELECT * FROM users WHERE LOWER(username) = LOWER($1)", [username.toLowerCase()]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ status: "error", message: "User not found" });
-    }
-
-    const user = userResult.rows[0];
-    let tasksResult;
-
-    if (user.role === "admin") {
-      tasksResult = await pool.query("SELECT * FROM tasks WHERE status != 'finished'");
-    } else {
-      tasksResult = await pool.query(
-        "SELECT * FROM tasks WHERE status != 'finished' AND project = $1 AND level = $2",
-        [user.project, user.role]
-      );
-    }
-
-    res.json(tasksResult.rows);
-  } catch (err) {
-    console.error("❌ Error fetching tasks:", err);
-    res.status(500).json({ status: "error", message: "Internal server error" });
-  }
-});
-
-// ✅ CLAIM TAREA
+// ✅ Reclamar tarea (con restricción de una por usuario)
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
 
   try {
-    const userResult = await pool.query("SELECT * FROM users WHERE LOWER(username) = LOWER($1)", [username.toLowerCase()]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ status: "error", message: "User not found" });
+    const check = await pool.query(
+      `SELECT * FROM tasks WHERE claimed_by = $1 AND status = 'claimed'`,
+      [username]
+    );
+
+    if (check.rows.length > 0) {
+      return res.json({
+        status: "error",
+        message: "Ya tienes una tarea reclamada"
+      });
     }
 
-    const taskResult = await pool.query("SELECT * FROM tasks WHERE subtask = $1", [subtask]);
-    if (taskResult.rows.length === 0) {
-      return res.status(404).json({ status: "error", message: "Task not found" });
-    }
-
-    const task = taskResult.rows[0];
-
-    if (task.status === "finished") {
-      return res.status(400).json({ status: "error", message: "Task already finished" });
-    }
-
-    if (task.claimed_by && task.claimed_by !== username) {
-      return res.status(400).json({ status: "error", message: "Task already claimed" });
-    }
-
-    await pool.query(
-      "UPDATE tasks SET claimed_by = $1 WHERE subtask = $2",
+    const result = await pool.query(
+      `UPDATE tasks SET claimed_by = $1, status = 'claimed' WHERE subtask = $2 AND status = 'pending' RETURNING *`,
       [username, subtask]
     );
 
-    io.emit("taskClaimed", { subtask, username });
+    if (result.rowCount > 0) {
+      io.emit("taskClaimed", { subtask, username });
+      return res.json({ status: "success", message: "Tarea reclamada" });
+    } else {
+      return res.json({ status: "error", message: "Tarea no encontrada o ya reclamada" });
+    }
 
-    res.json({ status: "success", message: "Task claimed" });
   } catch (err) {
-    console.error("❌ Error claiming task:", err);
-    res.status(500).json({ status: "error", message: "Error claiming task" });
+    console.error("❌ Error en /api/claim:", err);
+    res.status(500).json({ status: "error", message: "Internal error in claim" });
   }
 });
 
-// ✅ FINALIZAR TAREA
+// ✅ Nueva ruta: obtener tareas desde PostgreSQL
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM tasks WHERE status != 'finished'`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error al obtener tareas:", err);
+    res.status(500).json({ status: "error", message: "No se pudieron cargar las tareas" });
+  }
+});
+
+
+// Finalizar tarea
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
 
   try {
-    await pool.query(
-      "UPDATE tasks SET status = 'finished' WHERE subtask = $1",
+    const result = await pool.query(
+      `UPDATE tasks SET status = 'finished' WHERE subtask = $1 RETURNING *`,
       [subtask]
     );
 
-    io.emit("taskFinished", { subtask });
-    res.json({ status: "success", message: "Task marked as finished" });
+    if (result.rowCount > 0) {
+      io.emit("taskFinished", { subtask });
+      return res.json({ status: "success", message: "Tarea finalizada" });
+    } else {
+      return res.json({ status: "error", message: "Tarea no encontrada" });
+    }
+
   } catch (err) {
-    console.error("❌ Error marking task finished:", err);
-    res.status(500).json({ status: "error", message: "Error marking task finished" });
+    console.error("❌ Error en /api/mark-finished:", err);
+    res.status(500).json({ status: "error", message: "Internal error in finish" });
   }
 });
 
-// ✅ CARGA MASIVA DE TAREAS
+// Registrar tareas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
 
   try {
-    const values = tasks.map(t =>
-      `('${t.subtask}', '${t.batch}', '${t.level}', 'pending', '', '${t.project}')`
-    ).join(",");
+    for (const task of tasks) {
+      const { subtask, batch, level, project } = task;
+      await pool.query(
+        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, $4, $5)`,
+        [subtask, batch, level, 'pending', project]
+      );
+    }
 
-    const query = `INSERT INTO tasks (subtask, batch, level, status, claimed_by, project) VALUES ${values}`;
-    await pool.query(query);
-    res.json({ status: "success", message: "Tasks inserted" });
+    res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
+
   } catch (err) {
-    console.error("❌ Error inserting tasks:", err);
-    res.status(500).json({ status: "error", message: "Error inserting tasks" });
+    console.error("❌ Error al guardar tareas:", err);
+    res.status(500).json({ status: "error", message: "No se pudieron guardar las tareas" });
   }
 });
 
-// ✅ REGISTRO DE USUARIOS
+// Registrar usuarios
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
 
   try {
-    const values = users.map(u =>
-      `('${u.username.toLowerCase()}', '${u.password}', '${u.role}', '${u.project}')`
-    ).join(",");
+    for (const user of users) {
+      const { username, password, role, project } = user;
 
-    const query = `INSERT INTO users (username, password, role, project) VALUES ${values}`;
-    await pool.query(query);
-    res.json({ status: "success", message: "Users inserted" });
+      await pool.query(
+        `INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)`,
+        [username, password, role, project]
+      );
+    }
+
+    res.json({ status: "success", message: "Users registered" });
+
   } catch (err) {
     console.error("❌ Error registering users:", err);
-    res.status(500).json({ status: "error", message: "Error registering users" });
+    res.status(500).json({ status: "error", message: "Could not register users" });
   }
 });
 
+
+
+// Iniciar servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });

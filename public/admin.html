@@ -2,110 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel - Task Manager</title>
+  <title>Admin Panel</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f0f2f5;
+      background: #f4f4f4;
       padding: 2rem;
-      max-width: 900px;
+      max-width: 800px;
       margin: auto;
     }
 
-    h1, h2 {
-      color: #2c3e50;
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
     }
 
-    .section {
+    form {
       background: white;
-      padding: 1.5rem 2rem;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       margin-bottom: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     }
 
     label {
-      font-weight: bold;
       display: block;
-      margin-top: 1rem;
+      font-weight: bold;
+      margin: 12px 0 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
     }
 
     textarea {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1rem;
-      margin-top: 0.5rem;
+      height: 120px;
       resize: vertical;
     }
 
-    select, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
     button {
-      padding: 0.8rem 1.5rem;
-      margin-top: 1rem;
-      background: #3498db;
-      color: white;
+      margin-top: 16px;
+      padding: 10px 16px;
       font-weight: bold;
+      background-color: #2ecc71;
+      color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #2980b9;
+    button:active {
+      transform: scale(0.98);
     }
 
-    .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 1rem;
-    }
-
-    #response {
-      margin-top: 1rem;
-      font-weight: bold;
-      color: green;
+    .section-title {
+      margin-top: 40px;
+      font-size: 18px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 6px;
     }
   </style>
 </head>
 <body>
-  <h1>Admin Panel</h1>
+  <h1>Admin Control Panel</h1>
 
-  <!-- 📌 Load Tasks Section -->
-  <div class="section">
-    <h2>Load Tasks</h2>
-    <label for="projectName">Project:</label>
-    <select id="projectName" required>
-      <option value="">-- Select Project --</option>
-      <option value="Gemini">Gemini</option>
-      <option value="Orion">Orion</option>
-      <option value="Pluto">Pluto</option>
-    </select>
+  <!-- User Registration -->
+  <form id="userForm">
+    <div class="section-title">Register New User</div>
 
-    <label for="taskInput">Tasks (subtask batch level):</label>
-    <textarea id="taskInput" placeholder="Paste tasks here (one per line)"></textarea>
+    <label for="username">Username:</label>
+    <input type="text" id="username" required />
 
-    <div class="button-group">
-      <button onclick="submitTasks()">Submit Tasks</button>
-      <button onclick="goToApp()">Go to App</button>
-      <button onclick="downloadHistory()">Download History (CSV)</button>
-    </div>
-  </div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" required />
 
-  <!-- 📌 Register Users Section -->
-  <div class="section">
-    <h2>Register Users</h2>
-    <label for="roleSelect">Role:</label>
-    <select id="roleSelect" required>
-      <option value="">-- Select Role --</option>
+    <label for="role">Role:</label>
+    <select id="role" required>
+      <option value="">Select Role</option>
       <option value="admin">admin</option>
       <option value="-1">-1</option>
       <option value="0">0</option>
@@ -113,115 +90,105 @@
       <option value="10">10</option>
     </select>
 
-    <label for="projectSelect">Project:</label>
-    <select id="projectSelect" required>
-      <option value="">-- Select Project --</option>
+    <label for="project">Project:</label>
+    <select id="project" required>
+      <option value="">Select Project</option>
+      <option value="Gemini">Gemini</option>
+      <option value="Orion">Orion</option>
+      <option value="Pluto">Pluto</option>
+      <!-- Puedes agregar más proyectos aquí -->
+    </select>
+
+    <button type="submit">Register User</button>
+  </form>
+
+  <!-- Task Upload -->
+  <form id="taskForm">
+    <div class="section-title">Upload Tasks</div>
+
+    <label for="projectName">Select Project:</label>
+    <select id="projectName" required>
+      <option value="">Select Project</option>
       <option value="Gemini">Gemini</option>
       <option value="Orion">Orion</option>
       <option value="Pluto">Pluto</option>
     </select>
 
-    <label for="userInput">Users (username password):</label>
-    <textarea id="userInput" placeholder="Example:\njohn123 secret123\nmaria456 password456"></textarea>
+    <label for="tasks">Paste tasks below (Subtask Batch Level):</label>
+    <textarea id="tasks" placeholder="e.g. 123456 batchA 1" required></textarea>
 
-    <button onclick="submitUsers()">Submit Users</button>
-    <div id="response"></div>
-  </div>
+    <button type="submit">Upload Tasks</button>
+  </form>
 
   <script>
-    function goToApp() {
-      window.location.href = "app.html";
-    }
+    const USER_URL = "https://remo-task-manager-production.up.railway.app/api/register-users";
+    const TASK_URL = "https://remo-task-manager-production.up.railway.app/api/tasks";
 
-    async function submitTasks() {
-      const rawText = document.getElementById("taskInput").value.trim();
+    document.getElementById("userForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
+      const project = document.getElementById("project").value;
+
+      if (!username || !password || !role || !project) {
+        alert("Please fill in all user fields.");
+        return;
+      }
+
+      const users = [{ username, password, role, project }];
+
+      const res = await fetch(USER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users })
+      });
+
+      const json = await res.json();
+      if (json.status === "success") {
+        alert("User registered successfully!");
+        document.getElementById("userForm").reset();
+      } else {
+        alert("Error registering user.");
+      }
+    });
+
+    document.getElementById("taskForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
       const project = document.getElementById("projectName").value;
+      const taskLines = document.getElementById("tasks").value.trim().split("\n");
 
-      if (!rawText || !project) return alert("Please enter tasks and select a project.");
+      const tasks = taskLines
+        .map(line => line.trim().split(/\s+/))
+        .filter(parts => parts.length === 3)
+        .map(([subtask, batch, level]) => ({
+          subtask,
+          batch,
+          level,
+          project
+        }));
 
-      const lines = rawText.split("\n");
-      const tasks = [];
-
-      for (let line of lines) {
-        const [subtask, batch, level] = line.trim().split(/\s+/);
-        if (subtask && batch && level) {
-          tasks.push({ subtask, batch, level, project });
-        }
+      if (tasks.length === 0) {
+        alert("Please paste valid task data.");
+        return;
       }
 
-      try {
-        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tasks }),
-        });
-        const json = await res.json();
-        alert(json.message || "✅ Tasks submitted successfully.");
-      } catch (err) {
-        console.error(err);
-        alert("❌ Failed to submit tasks.");
+      const res = await fetch(TASK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks })
+      });
+
+      const json = await res.json();
+      if (json.status === "success") {
+        alert("Tasks uploaded successfully!");
+        document.getElementById("taskForm").reset();
+      } else {
+        alert("Error uploading tasks.");
       }
-    }
-
-    async function submitUsers() {
-      const rawText = document.getElementById("userInput").value.trim();
-      const role = document.getElementById("roleSelect").value;
-      const project = document.getElementById("projectSelect").value;
-
-      if (!rawText || !role || !project) {
-        return alert("Please fill all fields including role and project.");
-      }
-
-      const lines = rawText.split("\n");
-      const users = [];
-
-      for (let line of lines) {
-        const [username, password] = line.trim().split(/\s+/);
-        if (username && password) {
-          users.push({ username: username.toLowerCase(), password, role, project });
-        }
-      }
-
-      try {
-        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/register-users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ users }),
-        });
-        const json = await res.json();
-        document.getElementById("response").textContent = json.message || "✅ Users registered successfully.";
-      } catch (err) {
-        console.error(err);
-        document.getElementById("response").textContent = "❌ Failed to register users.";
-      }
-    }
-
-    async function downloadHistory() {
-      const sheetId = "1wK__pk0DshyiCICHPzetK-STNKCb0RE8yMiIVYdi1RQ";
-      const apiKey = "AIzaSyBMcsGdA-u-9tDq75KV2MEVPU96q2mEylE";
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Historial!A1:C1000?alt=json&key=${apiKey}`;
-
-      try {
-        const res = await fetch(url);
-        const json = await res.json();
-        const rows = json.values;
-        if (!rows || rows.length === 0) return alert("No history data found.");
-
-        const csv = rows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const urlBlob = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.setAttribute("href", urlBlob);
-        link.setAttribute("download", "task_history.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        console.error("❌ Error downloading history:", err);
-        alert("❌ Failed to download history.");
-      }
-    }
+    });
   </script>
 </body>
 </html>
