@@ -14,6 +14,23 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+app.post("/api/projects", async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ status: "error", message: "Project name is required" });
+  }
+
+  try {
+    await pool.query("INSERT INTO projects (name) VALUES ($1)", [name]);
+    res.json({ status: "success", message: "Project added" });
+  } catch (err) {
+    console.error("❌ Error adding project:", err);
+    res.status(500).json({ status: "error", message: "Could not add project" });
+  }
+});
+
+
 const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
 app.use(express.urlencoded({ extended: true }));
