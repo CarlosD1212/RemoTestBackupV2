@@ -35,14 +35,14 @@ io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// ✅ LOGIN
+// 🔐 LOGIN
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const result = await pool.query(
       `SELECT * FROM users WHERE LOWER(username) = LOWER($1) AND password = $2`,
-      [username, password]
+      [username.toLowerCase(), password]
     );
 
     if (result.rows.length === 0) {
@@ -57,17 +57,18 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// (… el resto de tus endpoints va aquí: /api/tasks, /api/claim, etc.)
-
+// 📋 GET TASKS
 app.get("/api/tasks", async (req, res) => {
   const username = req.query.username;
-
   if (!username) {
     return res.status(400).json({ status: "error", message: "Username is required" });
   }
 
   try {
-    const userResult = await pool.query("SELECT * FROM users WHERE LOWER(username) = LOWER($1)", [username]);
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE LOWER(username) = LOWER($1)",
+      [username.toLowerCase()]
+    );
     if (userResult.rows.length === 0) {
       return res.status(404).json({ status: "error", message: "User not found" });
     }
@@ -75,12 +76,9 @@ app.get("/api/tasks", async (req, res) => {
     const user = userResult.rows[0];
 
     let tasksResult;
-
     if (user.role === "admin") {
-      // Admins see all tasks except finished
       tasksResult = await pool.query("SELECT * FROM tasks WHERE status != 'finished'");
     } else {
-      // Non-admins see only their project and level
       tasksResult = await pool.query(
         "SELECT * FROM tasks WHERE status != 'finished' AND project = $1 AND level = $2",
         [user.project, user.role]
@@ -93,7 +91,6 @@ app.get("/api/tasks", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
-
 
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
