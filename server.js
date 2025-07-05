@@ -75,13 +75,14 @@ app.post("/api/claim", async (req, res) => {
 // ✅ Nueva ruta: obtener tareas desde PostgreSQL
 app.get("/api/tasks", async (req, res) => {
   try {
-    const result = await pool.query(`SELECT * FROM tasks`);
+    const result = await pool.query(`SELECT * FROM tasks WHERE status != 'finished'`);
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error al obtener tareas:", err);
     res.status(500).json({ status: "error", message: "No se pudieron cargar las tareas" });
   }
 });
+
 
 // Finalizar tarea
 app.post("/api/mark-finished", async (req, res) => {
