@@ -1,20 +1,4 @@
 const express = require("express");
-
-app.post("/api/projects", async (req, res) => {
-  const { name } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ status: "error", message: "Project name is required" });
-  }
-
-  try {
-    await pool.query("INSERT INTO projects (name) VALUES ($1)", [name]);
-    res.json({ status: "success", message: "Project added" });
-  } catch (err) {
-    console.error("❌ Error adding project:", err);
-    res.status(500).json({ status: "error", message: "Could not add project" });
-  }
-});
 const cors = require("cors");
 const path = require("path");
 const http = require("http");
@@ -38,6 +22,23 @@ app.use(cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.post("/api/projects", async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ status: "error", message: "Project name is required" });
+  }
+
+  try {
+    await pool.query("INSERT INTO projects (name) VALUES ($1)", [name]);
+    res.json({ status: "success", message: "Project added" });
+  } catch (err) {
+    console.error("❌ Error adding project:", err);
+    res.status(500).json({ status: "error", message: "Could not add project" });
+  }
+});
+
 
 const server = http.createServer(app);
 const io = new Server(server, {
