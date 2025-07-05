@@ -3,93 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login - Task App</title>
+  <title>Login</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-
     .login-box {
       background: white;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       width: 300px;
-      text-align: center;
     }
-
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
     input {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 1rem;
+      padding: 10px;
+      margin: 0.5rem 0;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
     button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
       width: 100%;
-      border: none;
-      background: #007bff;
+      padding: 10px;
+      margin-top: 1rem;
+      background: #3498db;
       color: white;
+      font-weight: bold;
+      border: none;
       border-radius: 6px;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #0056b3;
+    button:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>Sign In</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Enter</button>
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
   </div>
 
   <script>
-    const SHEET_ID = "1wK__pk0DshyiCICHPzetK-STNKCb0RE8yMiIVYdi1RQ";
-    const API_KEY = "AIzaSyBMcsGdA-u-9tDq75KV2MEVPU96q2mEylE";
-    const USERS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Usuarios!A2:C1000?key=${API_KEY}`;
-
-    async function login() {
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
       const username = document.getElementById("username").value.trim().toLowerCase();
-      const password = document.getElementById("password").value.trim();
+      const password = document.getElementById("password").value;
 
-      try {
-        const res = await fetch(USERS_URL);
-        const data = await res.json();
+      const res = await fetch("https://remo-task-manager-production.up.railway.app/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-        const rows = data.values || [];
-        const user = rows.find(row =>
-          row[0]?.trim().toLowerCase() === username &&
-          row[1]?.trim() === password
-        );
+      const json = await res.json();
 
-        if (!user) {
-          alert("Invalid username or password");
-          return;
-        }
-
-        localStorage.setItem("currentUser", JSON.stringify({
-          username: user[0],
-          role: user[2]
-        }));
-
+      if (json.status === "success") {
+        localStorage.setItem("currentUser", JSON.stringify(json.user));
         window.location.href = "app.html";
-      } catch (err) {
-        console.error("Login error:", err);
-        alert("Error checking credentials");
+      } else {
+        alert("Invalid username or password.");
       }
-    }
+    });
   </script>
 </body>
 </html>
