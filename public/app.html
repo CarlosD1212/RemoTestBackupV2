@@ -147,24 +147,26 @@
     if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
     card.innerHTML = `
-      <div style="display: flex; align-items: center;">
-  <b style="margin-right: 4px;">Subtask:</b>
-  <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
-    ${truncate(task.Subtask)}
-  </span>
-  <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy"
-    style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-    </svg>
-  </button>
-</div>
-      <br/>
-      <b>Batch:</b> ${truncate(task.Batch)}<br/>
-      <b>Level:</b> ${truncate(task.Level)}<br/>
-      <div class="actions"></div>
-    `;
+  <div style="display: flex; align-items: center;">
+    <b style="margin-right: 4px;">Subtask:</b>
+    <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
+      ${truncate(task.Subtask)}
+    </span>
+    <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy"
+      style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </button>
+  </div>
+  <br/>
+  <b>Batch:</b> ${truncate(task.Batch)}<br/>
+  <b>Level:</b> ${truncate(task.Level)}<br/>
+  <b>Project:</b> ${truncate(task.Project)}<br/>
+  <div class="actions"></div>
+`;
+
 
     const actions = card.querySelector(".actions");
 
