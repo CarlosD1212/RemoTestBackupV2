@@ -56,6 +56,23 @@
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
+
+    .project-badge {
+  display: inline-block;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  text-align: center;
+  color: white;
+}
+
+.project-gemini { background-color: #8e44ad; }
+.project-orion  { background-color: #2980b9; }
+.project-pluto  { background-color: #e67e22; }
+.project-default { background-color: #95a5a6; }
+
   </style>
 </head>
 <body>
@@ -163,7 +180,7 @@
   <br/>
   <b>Batch:</b> ${truncate(task.Batch)}<br/>
   <b>Level:</b> ${truncate(task.Level)}<br/>
-  <b>Project:</b> ${truncate(task.Project)}<br/>
+  <div class="project-badge ${getProjectClass(task.Project)}">${truncate(task.Project)}</div>
   <div class="actions"></div>
 `;
 
@@ -305,6 +322,15 @@
         pagination.appendChild(btn);
       }
     }
+
+    function getProjectClass(project) {
+  if (!project) return "project-default";
+  const name = project.toLowerCase();
+  if (name.includes("gemini")) return "project-gemini";
+  if (name.includes("orion")) return "project-orion";
+  if (name.includes("pluto")) return "project-pluto";
+  return "project-default";
+}
 
     window.addEventListener("DOMContentLoaded", loadTasks);
   </script>
