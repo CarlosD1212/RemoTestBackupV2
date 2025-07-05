@@ -12,9 +12,7 @@ const pool = new Pool({
   database: "railway",
   password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
   port: 57774,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 const app = express();
@@ -25,10 +23,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+  cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
 const PORT = 3000;
@@ -42,12 +37,11 @@ io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// ✅ Endpoint mejorado: reclamar tarea (solo una por usuario)
+// ✅ Reclamar tarea (con restricción de una por usuario)
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
 
   try {
-    // Verificar si ya tiene otra tarea reclamada
     const check = await pool.query(
       `SELECT * FROM tasks WHERE claimed_by = $1 AND status = 'claimed'`,
       [username]
@@ -60,7 +54,6 @@ app.post("/api/claim", async (req, res) => {
       });
     }
 
-    // Reclamar la tarea si está pendiente
     const result = await pool.query(
       `UPDATE tasks SET claimed_by = $1, status = 'claimed' WHERE subtask = $2 AND status = 'pending' RETURNING *`,
       [username, subtask]
@@ -79,7 +72,18 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// Marcar tarea como finalizada
+// ✅ Nueva ruta: obtener tareas desde PostgreSQL
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM tasks WHERE status = 'pending'`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error al obtener tareas:", err);
+    res.status(500).json({ status: "error", message: "No se pudieron cargar las tareas" });
+  }
+});
+
+// Finalizar tarea
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
 
@@ -102,7 +106,7 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// Guardar tareas nuevas
+// Registrar tareas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
 
@@ -123,7 +127,7 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Guardar usuarios nuevos
+// Registrar usuarios
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
 

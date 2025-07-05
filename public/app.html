@@ -102,23 +102,28 @@
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
     async function loadTasks() {
-      const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Tareas!A1:F1000?alt=json&key=${API_KEY}`);
-      const json = await res.json();
-      const rows = json.values;
-      const headers = rows[0];
-      const data = rows.slice(1);
-      allTasks = data.map(row => {
-        const task = {};
-        headers.forEach((h, i) => task[h] = row[i] || "");
-        return task;
-      }).filter(task => task.Status === "pending");
+    try {
+      const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
+      const data = await res.json();
+
+      allTasks = data.map(task => ({
+        Subtask: task.subtask,
+        Batch: task.batch,
+        Level: task.level,
+        Status: task.status,
+        ClaimedBy: task.claimed_by,
+        Project: task.project
+      })).filter(task => task.Status === "pending");
 
       const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
       const stillValid = allTasks.some(t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username);
       if (!stillValid) localStorage.removeItem("lastClaimedTask");
 
       renderPage(currentPage);
+    } catch (err) {
+      console.error("Error al cargar tareas desde PostgreSQL:", err);
     }
+  }
 
     function renderPage(page) {
   const start = (page - 1) * TASKS_PER_PAGE;
