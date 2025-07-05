@@ -93,67 +93,67 @@
 
   <script>
     async function submitTasks() {
-      const rawText = document.getElementById("taskInput").value.trim();
-      const project = document.getElementById("projectName").value;
+  const rawText = document.getElementById("taskInput").value.trim();
+  const project = document.getElementById("projectName").value;
 
-      if (!rawText) return alert("Please enter tasks");
-      if (!project) return alert("Please select a project");
+  if (!rawText) return alert("Please enter tasks");
+  if (!project) return alert("Please select a project");
 
-      const lines = rawText.split("\n");
-      const tasks = [];
+  const lines = rawText.split("\n");
+  const tasks = [];
 
-      for (let line of lines) {
-        const [subtask, batch, level] = line.trim().split(/\s+/);
-        if (subtask && batch && level) {
-          tasks.push({ subtask, batch, level, project });
-        }
-      }
-
-      try {
-        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tasks }),
-        });
-
-        const json = await res.json();
-        alert(json.message || "Tasks submitted successfully");
-      } catch (err) {
-        console.error("❌ Error al enviar tareas:", err);
-        alert("Failed to submit tasks");
-      }
+  for (let line of lines) {
+    const [subtask, batch, level] = line.trim().split(/\s+/);
+    if (subtask && batch && level) {
+      tasks.push({ subtask, batch, level, project });
     }
+  }
 
-    async function submitUsers() {
-      const rawText = document.getElementById("userInput").value.trim();
-      if (!rawText) return alert("Please enter users");
+  try {
+    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tasks }),
+    });
 
-      const lines = rawText.split("\n");
-      const users = [];
+    const json = await res.json();
+    alert(json.message || "Tasks submitted successfully");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to submit tasks");
+  }
+}
 
-      for (let line of lines) {
-        const [username, password, role] = line.trim().split(/\s+/);
-        if (username && password && role) {
-          users.push({ username, password, role });
-        }
-      }
 
-      console.log("Enviando usuarios:", users);
+   async function submitUsers() {
+  const rawText = document.getElementById("userInput").value.trim();
+  if (!rawText) return alert("Please enter users");
 
-      try {
-        const res = await fetch("https://remo-task-manager-production.up.railway.app/api/register-users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ users }),
-        });
+  const lines = rawText.split("\n");
+  const users = [];
 
-        const json = await res.json();
-        document.getElementById("response").textContent = json.message || "Users submitted successfully";
-      } catch (err) {
-        console.error("❌ Error al registrar usuarios:", err);
-        document.getElementById("response").textContent = "❌ Failed to submit users.";
-      }
+  for (let line of lines) {
+    const [username, password, role] = line.trim().split(/\s+/);
+    if (username && password && role) {
+      users.push({ username, password, role });
     }
+  }
+
+  try {
+    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/register-users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ users }),
+    });
+
+    const json = await res.json();
+    document.getElementById("response").textContent = json.message || "Users submitted successfully";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("response").textContent = "❌ Failed to submit users.";
+  }
+}
+
 
     function goToApp() {
       window.location.href = "app.html";
