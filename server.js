@@ -1,12 +1,26 @@
-
 const express = require("express");
 const cors = require("cors");
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
+const { Pool } = require("pg");
+
+// 📦 Configuración PostgreSQL Railway
+const pool = new Pool({
+  user: "postgres",
+  host: "yamanote.proxy.rlwy.net",
+  database: "railway",
+  password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
+  port: 57774,
+  ssl: true
+});
 
 const app = express();
+app.use(cors({
+  origin: "*", // permite todas las URLs — para producción puedes restringir esto
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -16,7 +30,6 @@ const io = new Server(server, {
 });
 
 const PORT = 3000;
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6wUQo9N5Kg69Tw3NtwWIVPaWfiaYIUfPPoN-_6CDPum1a-VaivvHnbbVEop2hyCLU4g/exec";
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -27,95 +40,79 @@ io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
+// Reclamar tarea
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "claim",
-        subtask,
-        username
-      })
-    });
-    const json = await response.json();
-    if (json.status === "success") {
+    const result = await pool.query(
+      `UPDATE tasks SET claimed_by = $1, status = 'claimed' WHERE subtask = $2 RETURNING *`,
+      [username, subtask]
+    );
+    if (result.rowCount > 0) {
       io.emit("taskClaimed", { subtask, username });
+      return res.json({ status: "success", message: "Tarea reclamada" });
+    } else {
+      return res.json({ status: "error", message: "Tarea no encontrada" });
     }
-    res.json(json);
   } catch (err) {
     console.error("❌ Error en /api/claim:", err);
     res.status(500).json({ status: "error", message: "Internal error in claim" });
   }
 });
 
+// Marcar tarea como finalizada
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "mark_finished",
-        subtask
-      })
-    });
-    const json = await response.json();
-    if (json.status === "success") {
+    const result = await pool.query(
+      `UPDATE tasks SET status = 'finished' WHERE subtask = $1 RETURNING *`,
+      [subtask]
+    );
+    if (result.rowCount > 0) {
       io.emit("taskFinished", { subtask });
+      return res.json({ status: "success", message: "Tarea finalizada" });
+    } else {
+      return res.json({ status: "error", message: "Tarea no encontrada" });
     }
-    res.json(json);
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
     res.status(500).json({ status: "error", message: "Internal error in finish" });
   }
 });
 
+// Registrar tareas nuevas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
   try {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          action: "add",
-          subtask,
-          batch,
-          level,
-          project
-        })
-      });
+      await pool.query(
+        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, 'pending', $4)`,
+        [subtask, batch, level, project]
+      );
     }
-    res.json({ status: "success", message: "Tasks sent to Google Sheets" });
+    res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
   } catch (err) {
     console.error("❌ Error en /api/tasks:", err);
-    res.status(500).json({ status: "error", message: "Error submitting tasks" });
+    res.status(500).json({ status: "error", message: "Error guardando tareas" });
   }
 });
 
+// Registrar usuarios nuevos
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
   try {
     for (const user of users) {
       const { username, password, role } = user;
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          action: "add_user",
-          username,
-          password,
-          role
-        })
-      });
+      await pool.query(
+        `INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`,
+        [username, password, role]
+      );
     }
-    res.json({ status: "success", message: "Users registered successfully" });
+    res.json({ status: "success", message: "Usuarios registrados" });
   } catch (err) {
     console.error("❌ Error en /api/register-users:", err);
-    res.status(500).json({ status: "error", message: "Error registering users" });
+    res.status(500).json({ status: "error", message: "Error registrando usuarios" });
   }
 });
 
