@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -26,10 +27,8 @@ io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// CLAIM endpoint
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
-
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
@@ -40,13 +39,10 @@ app.post("/api/claim", async (req, res) => {
         username
       })
     });
-
     const json = await response.json();
-
     if (json.status === "success") {
       io.emit("taskClaimed", { subtask, username });
     }
-
     res.json(json);
   } catch (err) {
     console.error("❌ Error en /api/claim:", err);
@@ -54,10 +50,8 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// FINISH endpoint
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
-
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
@@ -67,13 +61,10 @@ app.post("/api/mark-finished", async (req, res) => {
         subtask
       })
     });
-
     const json = await response.json();
-
     if (json.status === "success") {
       io.emit("taskFinished", { subtask });
     }
-
     res.json(json);
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
@@ -81,7 +72,6 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// LOAD tasks from admin panel
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
   try {
@@ -106,7 +96,6 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// REGISTER users
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
   try {
@@ -130,7 +119,6 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
-// Inicia el servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
