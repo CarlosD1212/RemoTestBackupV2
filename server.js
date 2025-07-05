@@ -12,7 +12,9 @@ const pool = new Pool({
   database: "railway",
   password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
   port: 57774,
-  ssl: true
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 const app = express();
