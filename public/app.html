@@ -102,28 +102,33 @@
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
     async function loadTasks() {
-    try {
-      const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
-      const data = await res.json();
+  try {
+    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
+    const data = await res.json();
 
-      allTasks = data.map(task => ({
-        Subtask: task.subtask,
-        Batch: task.batch,
-        Level: task.level,
-        Status: task.status,
-        ClaimedBy: task.claimed_by,
-        Project: task.project
-      }))
+    // No filtrar por status aquí
+    allTasks = data.map(task => ({
+      Subtask: task.subtask,
+      Batch: task.batch,
+      Level: task.level,
+      Status: task.status,
+      ClaimedBy: task.claimed_by,
+      Project: task.project
+    }));
 
-      const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-      const stillValid = allTasks.some(t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username);
-      if (!stillValid) localStorage.removeItem("lastClaimedTask");
+    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+    const stillValid = allTasks.some(
+      t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
+    );
 
-      renderPage(currentPage);
-    } catch (err) {
-      console.error("Error al cargar tareas desde PostgreSQL:", err);
-    }
+    if (!stillValid) localStorage.removeItem("lastClaimedTask");
+
+    renderPage(currentPage);
+  } catch (err) {
+    console.error("Error al cargar tareas desde PostgreSQL:", err);
   }
+}
+
 
     function renderPage(page) {
   const start = (page - 1) * TASKS_PER_PAGE;
