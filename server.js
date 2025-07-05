@@ -12,45 +12,43 @@ const pool = new Pool({
   database: "railway",
   password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
   port: 57774,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 const app = express();
 
-// ✅ CORS correctamente configurado
+// ✅ Configuración de CORS
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 
+// 🔌 Servidor HTTP + Socket.IO
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+  cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-const PORT = process.env.PORT || 3000;
+// 🌍 Puerto
+const PORT = process.env.PORT || 8080;
 
+// 📦 Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Ruta por defecto al acceder a "/"
+// 📄 Página principal
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// WebSocket
+// 🔄 WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// Reclamar tarea
+// ✅ Reclamar tarea
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
   try {
@@ -70,7 +68,7 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// Marcar tarea como finalizada
+// ✅ Marcar tarea como finalizada
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
   try {
@@ -90,11 +88,9 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// Registrar tareas nuevas
+// ✅ Registrar tareas nuevas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
-  console.log("📩 Tareas recibidas:", tasks);
-
   try {
     for (const task of tasks) {
       const { subtask, batch, level, project } = task;
@@ -110,7 +106,7 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Registrar usuarios nuevos
+// ✅ Registrar usuarios nuevos
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
   try {
@@ -128,7 +124,7 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
-// Inicia el servidor (solo si es ejecutado directamente)
+// 🚀 Iniciar servidor solo si se ejecuta directamente
 if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
