@@ -5,47 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - Task App</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #3498db, #2ecc71);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
 
-    .login-box {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: center;
-    }
+  .login-box {
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 320px;
+    text-align: center;
+    animation: slideIn 0.4s ease;
+  }
 
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
+  .login-box h2 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+  }
 
-    button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      width: 100%;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s ease;
+  }
 
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
+  input:focus {
+    border-color: #3498db;
+    outline: none;
+  }
+
+  button {
+    margin-top: 20px;
+    padding: 10px;
+    width: 100%;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    background: #2980b9;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
 </head>
 <body>
   <div class="login-box">
