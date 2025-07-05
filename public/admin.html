@@ -206,7 +206,30 @@
 
     window.addEventListener("DOMContentLoaded", loadProjects);
 
-    
+    document.getElementById("projectForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("newProject").value.trim();
+
+  if (!name) {
+    alert("Project name is required.");
+    return;
+  }
+
+  const res = await fetch(`${BASE_URL}/api/projects`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name })
+  });
+
+  const json = await res.json();
+  if (json.status === "success") {
+    alert("Project added successfully.");
+    document.getElementById("projectForm").reset();
+    loadProjects(); // recarga los selects
+  } else {
+    alert("Error adding project.");
+  }
+});
   </script>
 </body>
 </html>
