@@ -119,19 +119,20 @@
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
     async function loadTasks() {
-  try {
-    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
-    const data = await res.json();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const res = await fetch(`https://remo-task-manager-production.up.railway.app/api/tasks?username=${currentUser.username}`);
+  const data = await res.json();
+  allTasks = data.map(task => ({
+    Subtask: task.subtask,
+    Batch: task.batch,
+    Level: task.level,
+    Status: task.status,
+    ClaimedBy: task.claimed_by,
+    Project: task.project
+  }));
+  renderPage(currentPage);
+}
 
-    // No filtrar por status aquí
-    allTasks = data.map(task => ({
-      Subtask: task.subtask,
-      Batch: task.batch,
-      Level: task.level,
-      Status: task.status,
-      ClaimedBy: task.claimed_by,
-      Project: task.project
-    }));
 
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
     const stillValid = allTasks.some(

@@ -59,6 +59,42 @@ app.post("/api/login", async (req, res) => {
 
 // (… el resto de tus endpoints va aquí: /api/tasks, /api/claim, etc.)
 
+app.get("/api/tasks", async (req, res) => {
+  const username = req.query.username;
+
+  if (!username) {
+    return res.status(400).json({ status: "error", message: "Username is required" });
+  }
+
+  try {
+    const userResult = await pool.query("SELECT * FROM users WHERE LOWER(username) = LOWER($1)", [username]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+
+    let tasksResult;
+
+    if (user.role === "admin") {
+      // Admins see all tasks except finished
+      tasksResult = await pool.query("SELECT * FROM tasks WHERE status != 'finished'");
+    } else {
+      // Non-admins see only their project and level
+      tasksResult = await pool.query(
+        "SELECT * FROM tasks WHERE status != 'finished' AND project = $1 AND level = $2",
+        [user.project, user.role]
+      );
+    }
+
+    res.json(tasksResult.rows);
+  } catch (err) {
+    console.error("❌ Error fetching tasks:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
+
+
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
