@@ -91,13 +91,7 @@
     </select>
 
     <label for="project">Project:</label>
-    <select id="project" required>
-      <option value="">Select Project</option>
-      <option value="Gemini">Gemini</option>
-      <option value="Orion">Orion</option>
-      <option value="Pluto">Pluto</option>
-      <!-- Puedes agregar más proyectos aquí -->
-    </select>
+    <select id="project" required></select>
 
     <button type="submit">Register User</button>
   </form>
@@ -107,12 +101,7 @@
     <div class="section-title">Upload Tasks</div>
 
     <label for="projectName">Select Project:</label>
-    <select id="projectName" required>
-      <option value="">Select Project</option>
-      <option value="Gemini">Gemini</option>
-      <option value="Orion">Orion</option>
-      <option value="Pluto">Pluto</option>
-    </select>
+    <select id="projectName" required></select>
 
     <label for="tasks">Paste tasks below (Subtask Batch Level):</label>
     <textarea id="tasks" placeholder="e.g. 123456 batchA 1" required></textarea>
@@ -121,8 +110,26 @@
   </form>
 
   <script>
-    const USER_URL = "https://remo-task-manager-production.up.railway.app/api/register-users";
-    const TASK_URL = "https://remo-task-manager-production.up.railway.app/api/tasks";
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    const USER_URL = BASE_URL + "/api/register-users";
+    const TASK_URL = BASE_URL + "/api/tasks";
+    const PROJECT_URL = BASE_URL + "/api/projects";
+
+    async function loadProjects() {
+      const res = await fetch(PROJECT_URL);
+      const projects = await res.json();
+      const selects = [document.getElementById("project"), document.getElementById("projectName")];
+
+      selects.forEach(select => {
+        select.innerHTML = `<option value="">Select Project</option>`;
+        projects.forEach(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          select.appendChild(option);
+        });
+      });
+    }
 
     document.getElementById("userForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -163,12 +170,7 @@
       const tasks = taskLines
         .map(line => line.trim().split(/\s+/))
         .filter(parts => parts.length === 3)
-        .map(([subtask, batch, level]) => ({
-          subtask,
-          batch,
-          level,
-          project
-        }));
+        .map(([subtask, batch, level]) => ({ subtask, batch, level, project }));
 
       if (tasks.length === 0) {
         alert("Please paste valid task data.");
@@ -189,6 +191,8 @@
         alert("Error uploading tasks.");
       }
     });
+
+    window.addEventListener("DOMContentLoaded", loadProjects);
   </script>
 </body>
 </html>

@@ -56,38 +56,22 @@
   </div>
 
   <script>
-    const SHEET_ID = "1wK__pk0DshyiCICHPzetK-STNKCb0RE8yMiIVYdi1RQ";
-    const API_KEY = "AIzaSyBMcsGdA-u-9tDq75KV2MEVPU96q2mEylE";
-    const USERS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Usuarios!A2:C1000?key=${API_KEY}`;
-
     async function login() {
       const username = document.getElementById("username").value.trim().toLowerCase();
       const password = document.getElementById("password").value.trim();
 
-      try {
-        const res = await fetch(USERS_URL);
-        const data = await res.json();
+      const res = await fetch("https://remo-task-manager-production.up.railway.app/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-        const rows = data.values || [];
-        const user = rows.find(row =>
-          row[0]?.trim().toLowerCase() === username &&
-          row[1]?.trim() === password
-        );
-
-        if (!user) {
-          alert("Invalid username or password");
-          return;
-        }
-
-        localStorage.setItem("currentUser", JSON.stringify({
-          username: user[0],
-          role: user[2]
-        }));
-
+      const json = await res.json();
+      if (json.status === "success") {
+        localStorage.setItem("currentUser", JSON.stringify(json.user));
         window.location.href = "app.html";
-      } catch (err) {
-        console.error("Login error:", err);
-        alert("Error checking credentials");
+      } else {
+        alert("Invalid username or password");
       }
     }
   </script>

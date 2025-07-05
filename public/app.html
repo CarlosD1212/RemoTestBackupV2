@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,10 +74,9 @@
   </div>
 
   <script>
-    const API_KEY = "AIzaSyBMcsGdA-u-9tDq75KV2MEVPU96q2mEylE";
-    const SHEET_ID = "1wK__pk0DshyiCICHPzetK-STNKCb0RE8yMiIVYdi1RQ";
-    const CLAIM_URL = "https://remo-task-manager-production.up.railway.app/api/claim";
-    const FINISH_URL = "https://remo-task-manager-production.up.railway.app/api/mark-finished";
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    const CLAIM_URL = BASE_URL + "/api/claim";
+    const FINISH_URL = BASE_URL + "/api/mark-finished";
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     const taskContainer = document.getElementById("task-container");
     const modal = document.getElementById("modal");
@@ -102,192 +100,177 @@
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
     async function loadTasks() {
-  try {
-    const res = await fetch("https://remo-task-manager-production.up.railway.app/api/tasks");
-    const data = await res.json();
+      try {
+        const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+        const data = await res.json();
 
-    // No filtrar por status aquí
-    allTasks = data.map(task => ({
-      Subtask: task.subtask,
-      Batch: task.batch,
-      Level: task.level,
-      Status: task.status,
-      ClaimedBy: task.claimed_by,
-      Project: task.project
-    }));
+        allTasks = data.map(task => ({
+          Subtask: task.subtask,
+          Batch: task.batch,
+          Level: task.level,
+          Status: task.status,
+          ClaimedBy: task.claimed_by,
+          Project: task.project
+        }));
 
-    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-    const stillValid = allTasks.some(
-      t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
-    );
+        const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+        const stillValid = allTasks.some(
+          t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
+        );
 
-    if (!stillValid) localStorage.removeItem("lastClaimedTask");
+        if (!stillValid) localStorage.removeItem("lastClaimedTask");
 
-    renderPage(currentPage);
-  } catch (err) {
-    console.error("Error al cargar tareas desde PostgreSQL:", err);
-  }
-}
-
-
-    function renderPage(page) {
-  const start = (page - 1) * TASKS_PER_PAGE;
-  const end = start + TASKS_PER_PAGE;
-  const tasksToShow = allTasks.slice(start, end);
-  taskContainer.innerHTML = "";
-  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-
-  tasksToShow.forEach(task => {
-    const isMine = task.ClaimedBy === currentUser.username;
-    const isClaimedByOther = task.ClaimedBy && !isMine;
-    const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
-
-    const card = document.createElement("div");
-    card.className = "task-card";
-    if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
-
-    card.innerHTML = `
-  <div style="display: flex; align-items: center;">
-    <b style="margin-right: 4px;">Subtask:</b>
-    <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
-      ${truncate(task.Subtask)}
-    </span>
-    <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy"
-      style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-    </button>
-  </div>
-  <br/>
-  <b>Batch:</b> ${truncate(task.Batch)}<br/>
-  <b>Level:</b> ${truncate(task.Level)}<br/>
-  <b>Project:</b> ${truncate(task.Project)}<br/>
-  <div class="actions"></div>
-`;
-
-
-    const actions = card.querySelector(".actions");
-
-    const claimBtn = document.createElement("button");
-    claimBtn.className = "claim-btn";
-
-    if (isMine) {
-      claimBtn.textContent = "Open Task";
-      claimBtn.classList.add("open-task");
-      claimBtn.onclick = () => {
-        window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-      };
-    } else {
-      claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
-      claimBtn.disabled = isClaimedByOther || isOtherBlocked;
-
-      claimBtn.onclick = async () => {
-        const already = localStorage.getItem("lastClaimedTask");
-        if (already && already !== task.Subtask) {
-          alert("You already claimed another task.");
-          return;
-        }
-        localStorage.setItem("lastClaimedTask", task.Subtask);
-        showModal("Espera, reservando tu tarea...");
-
-        const res = await fetch(CLAIM_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-        });
-        const result = await res.json();
-        if (result.status === "success") {
-          modalMessage.textContent = "Reclama tu tarea en Open Task";
-          setTimeout(() => {
-            hideModal();
-            loadTasks();
-          }, 1200);
-        } else {
-          alert("Claim failed.");
-          localStorage.removeItem("lastClaimedTask");
-          hideModal();
-          loadTasks();
-        }
-      };
+        renderPage(currentPage);
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+      }
     }
 
-    const select = document.createElement("select");
-    select.disabled = !isMine;
-    select.innerHTML = `
-      <option value="">Review option</option>
-      <option value="Good Task">Good Task</option>
-      <option value="Bad Task">Bad Task</option>
-      <option value="Attribute Error">Attribute Error</option>
-      <option value="Geometry Error">Geometry Error</option>
-      <option value="Spammer Task">Spammer Task</option>
-    `;
+    function renderPage(page) {
+      const start = (page - 1) * TASKS_PER_PAGE;
+      const end = start + TASKS_PER_PAGE;
+      const tasksToShow = allTasks.slice(start, end);
+      taskContainer.innerHTML = "";
+      const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
 
-    const finishBtn = document.createElement("button");
-    finishBtn.textContent = "Finish";
-    finishBtn.className = "finish-btn";
-    finishBtn.disabled = true;
+      tasksToShow.forEach(task => {
+        const isMine = task.ClaimedBy === currentUser.username;
+        const isClaimedByOther = task.ClaimedBy && !isMine;
+        const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
 
-    select.onchange = () => finishBtn.disabled = !select.value;
+        const card = document.createElement("div");
+        card.className = "task-card";
+        if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
-    finishBtn.onclick = async () => {
-      const res = await fetch(FINISH_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask: task.Subtask })
+        card.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            <b style="margin-right: 4px;">Subtask:</b>
+            <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
+              ${truncate(task.Subtask)}
+            </span>
+            <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy" style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+          <br/>
+          <b>Batch:</b> ${truncate(task.Batch)}<br/>
+          <b>Level:</b> ${truncate(task.Level)}<br/>
+          <b>Project:</b> ${truncate(task.Project)}<br/>
+          <div class="actions"></div>
+        `;
+
+        const actions = card.querySelector(".actions");
+
+        const claimBtn = document.createElement("button");
+        claimBtn.className = "claim-btn";
+
+        if (isMine) {
+          claimBtn.textContent = "Open Task";
+          claimBtn.classList.add("open-task");
+          claimBtn.onclick = () => {
+            window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
+          };
+        } else {
+          claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
+          claimBtn.disabled = isClaimedByOther || isOtherBlocked;
+
+          claimBtn.onclick = async () => {
+            const already = localStorage.getItem("lastClaimedTask");
+            if (already && already !== task.Subtask) {
+              alert("You already claimed another task.");
+              return;
+            }
+            localStorage.setItem("lastClaimedTask", task.Subtask);
+            showModal("Espera, reservando tu tarea...");
+
+            const res = await fetch(CLAIM_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+            });
+
+            const result = await res.json();
+            if (result.status === "success") {
+              modalMessage.textContent = "Reclama tu tarea en Open Task";
+              setTimeout(() => {
+                hideModal();
+                loadTasks();
+              }, 1200);
+            } else {
+              alert("Claim failed.");
+              localStorage.removeItem("lastClaimedTask");
+              hideModal();
+              loadTasks();
+            }
+          };
+        }
+
+        const select = document.createElement("select");
+        select.disabled = !isMine;
+        select.innerHTML = `
+          <option value="">Review option</option>
+          <option value="Good Task">Good Task</option>
+          <option value="Bad Task">Bad Task</option>
+          <option value="Attribute Error">Attribute Error</option>
+          <option value="Geometry Error">Geometry Error</option>
+          <option value="Spammer Task">Spammer Task</option>
+        `;
+
+        const finishBtn = document.createElement("button");
+        finishBtn.textContent = "Finish";
+        finishBtn.className = "finish-btn";
+        finishBtn.disabled = true;
+
+        select.onchange = () => finishBtn.disabled = !select.value;
+
+        finishBtn.onclick = async () => {
+          const res = await fetch(FINISH_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subtask: task.Subtask })
+          });
+          const result = await res.json();
+          if (result.status === "success") {
+            localStorage.removeItem("lastClaimedTask");
+            loadTasks();
+          }
+        };
+
+        actions.appendChild(claimBtn);
+        actions.appendChild(select);
+        actions.appendChild(finishBtn);
+        taskContainer.appendChild(card);
       });
-      const result = await res.json();
-      if (result.status === "success") {
-        localStorage.removeItem("lastClaimedTask");
-        loadTasks();
-      }
-    };
 
-    actions.appendChild(claimBtn);
-    actions.appendChild(select);
-    actions.appendChild(finishBtn);
-    taskContainer.appendChild(card);
-  });
+      renderPagination();
 
-  renderPagination();
-
-  // Click en el texto del Subtask
-  document.querySelectorAll(".subtask-text").forEach(span => {
-    span.addEventListener("click", () => {
-      const fullValue = span.dataset.full;
-      navigator.clipboard.writeText(fullValue).then(() => {
-        span.textContent = "Copied!";
-        setTimeout(() => {
-          span.textContent = truncate(fullValue);
-        }, 1000);
+      document.querySelectorAll(".subtask-text").forEach(span => {
+        span.addEventListener("click", () => {
+          const fullValue = span.dataset.full;
+          navigator.clipboard.writeText(fullValue).then(() => {
+            span.textContent = "Copied!";
+            setTimeout(() => {
+              span.textContent = truncate(fullValue);
+            }, 1000);
+          });
+        });
       });
-    });
-  });
 
-  // Click en el ícono 🔗
-  document.querySelectorAll(".copy-icon").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const subtask = btn.dataset.subtask;
-      navigator.clipboard.writeText(subtask).then(() => {
-        btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>`;
-        setTimeout(() => {
-        btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>`;
-        }, 1000);
-
+      document.querySelectorAll(".copy-icon").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const subtask = btn.dataset.subtask;
+          navigator.clipboard.writeText(subtask).then(() => {
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+            setTimeout(() => {
+              btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+            }, 1000);
+          });
+        });
       });
-    });
-  });
-}
-
-
+    }
 
     function renderPagination() {
       const pagination = document.getElementById("pagination");
@@ -310,19 +293,14 @@
   </script>
 
   <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-
-  socket.on("taskClaimed", ({ subtask, username }) => {
-    console.log(`⚡ Tarea reclamada: ${subtask} por ${username}`);
-    loadTasks();
-  });
-
-  socket.on("taskFinished", ({ subtask }) => {
-    console.log(`✅ Tarea finalizada: ${subtask}`);
-    loadTasks();
-  });
-</script>
-
+  <script>
+    const socket = io();
+    socket.on("taskClaimed", ({ subtask, username }) => {
+      loadTasks();
+    });
+    socket.on("taskFinished", ({ subtask }) => {
+      loadTasks();
+    });
+  </script>
 </body>
 </html>

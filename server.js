@@ -5,7 +5,6 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
-// 📦 Configuración PostgreSQL Railway
 const pool = new Pool({
   user: "postgres",
   host: "yamanote.proxy.rlwy.net",
@@ -32,12 +31,64 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
 
-// ✅ Reclamar tarea (con restricción de una por usuario)
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const result = await pool.query(
+      "SELECT username, role, project FROM users WHERE LOWER(username) = $1 AND password = $2",
+      [username.toLowerCase(), password]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ status: "error", message: "Invalid credentials" });
+    }
+
+    res.json({ status: "success", user: result.rows[0] });
+  } catch (err) {
+    console.error("❌ Error login:", err);
+    res.status(500).json({ status: "error", message: "Internal login error" });
+  }
+});
+
+app.get("/api/projects", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT name FROM projects");
+    const names = result.rows.map(r => r.name);
+    res.json(names);
+  } catch (err) {
+    console.error("❌ Error /api/projects:", err);
+    res.status(500).json({ status: "error", message: "Error loading projects" });
+  }
+});
+
+app.get("/api/tasks", async (req, res) => {
+  const username = req.query.username;
+
+  try {
+    const userRes = await pool.query("SELECT role, project FROM users WHERE LOWER(username) = $1", [username.toLowerCase()]);
+    if (userRes.rows.length === 0) return res.status(403).json({ status: "error", message: "User not found" });
+
+    const { role, project } = userRes.rows[0];
+    let query = "SELECT * FROM tasks WHERE status != 'finished'";
+    let params = [];
+
+    if (role !== "admin") {
+      query += " AND level = $1 AND project = $2";
+      params = [role, project];
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error /api/tasks:", err);
+    res.status(500).json({ status: "error", message: "Failed to load tasks" });
+  }
+});
+
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
 
@@ -48,10 +99,7 @@ app.post("/api/claim", async (req, res) => {
     );
 
     if (check.rows.length > 0) {
-      return res.json({
-        status: "error",
-        message: "Ya tienes una tarea reclamada"
-      });
+      return res.json({ status: "error", message: "Ya tienes una tarea reclamada" });
     }
 
     const result = await pool.query(
@@ -72,19 +120,6 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// ✅ Nueva ruta: obtener tareas desde PostgreSQL
-app.get("/api/tasks", async (req, res) => {
-  try {
-    const result = await pool.query(`SELECT * FROM tasks WHERE status != 'finished'`);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ Error al obtener tareas:", err);
-    res.status(500).json({ status: "error", message: "No se pudieron cargar las tareas" });
-  }
-});
-
-
-// Finalizar tarea
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
 
@@ -107,7 +142,6 @@ app.post("/api/mark-finished", async (req, res) => {
   }
 });
 
-// Registrar tareas
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
 
@@ -128,7 +162,6 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Registrar usuarios
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
 
@@ -138,7 +171,7 @@ app.post("/api/register-users", async (req, res) => {
 
       await pool.query(
         `INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)`,
-        [username, password, role, project]
+        [username.toLowerCase(), password, role, project]
       );
     }
 
@@ -150,9 +183,6 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
-
-
-// Iniciar servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
