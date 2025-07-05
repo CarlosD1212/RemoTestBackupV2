@@ -30,13 +30,21 @@ io.on("connection", (socket) => {
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
 
-  const url = `${GOOGLE_SCRIPT_URL}?action=claim&subtask=${subtask}&username=${username}`;
   try {
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "claim",
+        subtask,
+        username
+      })
+    });
+
     const json = await response.json();
 
     if (json.status === "success") {
-      io.emit("taskClaimed", { subtask, username }); // 🔔 Notifica a todos
+      io.emit("taskClaimed", { subtask, username });
     }
 
     res.json(json);
@@ -50,9 +58,16 @@ app.post("/api/claim", async (req, res) => {
 app.post("/api/mark-finished", async (req, res) => {
   const { subtask } = req.body;
 
-  const url = `${GOOGLE_SCRIPT_URL}?action=mark_finished&subtask=${subtask}`;
   try {
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "mark_finished",
+        subtask
+      })
+    });
+
     const json = await response.json();
 
     if (json.status === "success") {
@@ -71,9 +86,18 @@ app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
   try {
     for (const task of tasks) {
-      const { subtask, batch, level } = task;
-      const url = `${GOOGLE_SCRIPT_URL}?action=add&subtask=${subtask}&batch=${batch}&level=${level}`;
-      await fetch(url, { method: "POST" });
+      const { subtask, batch, level, project } = task;
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          action: "add",
+          subtask,
+          batch,
+          level,
+          project
+        })
+      });
     }
     res.json({ status: "success", message: "Tasks sent to Google Sheets" });
   } catch (err) {
@@ -88,8 +112,16 @@ app.post("/api/register-users", async (req, res) => {
   try {
     for (const user of users) {
       const { username, password, role } = user;
-      const url = `${GOOGLE_SCRIPT_URL}?action=add_user&username=${username}&password=${password}&role=${role}`;
-      await fetch(url, { method: "POST" });
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          action: "add_user",
+          username,
+          password,
+          role
+        })
+      });
     }
     res.json({ status: "success", message: "Users registered successfully" });
   } catch (err) {
@@ -97,12 +129,6 @@ app.post("/api/register-users", async (req, res) => {
     res.status(500).json({ status: "error", message: "Error registering users" });
   }
 });
-
-// Ruta raíz
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "app.html"));
-});
-
 
 // Inicia el servidor
 server.listen(PORT, () => {
