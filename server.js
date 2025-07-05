@@ -134,20 +134,23 @@ app.post("/api/register-users", async (req, res) => {
 
   try {
     for (const user of users) {
-      const { username, password, role } = user;
+      const { username, password, role, project } = user;
+
       await pool.query(
-        `INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`,
-        [username, password, role]
+        `INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)`,
+        [username, password, role, project]
       );
     }
 
-    res.json({ status: "success", message: "Usuarios registrados" });
+    res.json({ status: "success", message: "Users registered" });
 
   } catch (err) {
-    console.error("❌ Error al registrar usuarios:", err);
-    res.status(500).json({ status: "error", message: "No se pudieron registrar los usuarios" });
+    console.error("❌ Error registering users:", err);
+    res.status(500).json({ status: "error", message: "Could not register users" });
   }
 });
+
+
 
 // Iniciar servidor
 server.listen(PORT, () => {
