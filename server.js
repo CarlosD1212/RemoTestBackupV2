@@ -16,11 +16,14 @@ const pool = new Pool({
 });
 
 const app = express();
+
+// ✅ CORS correctamente configurado una sola vez
 app.use(cors({
-  origin: "*", // permite todas las URLs — para producción puedes restringir esto
+  origin: "*",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -31,14 +34,16 @@ const io = new Server(server, {
 
 const PORT = 3000;
 
-app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
 // Ruta por defecto al acceder a "/"
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
+
+// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
 });
@@ -119,6 +124,7 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
+// Inicia el servidor
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
