@@ -103,6 +103,7 @@ app.post("/api/tasks", async (req, res) => {
   [subtask, batch, level, 'pending', project]
 );
 
+    }
     res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
   } catch (err) {
     console.error("❌ Error en /api/tasks:", err);
