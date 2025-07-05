@@ -113,7 +113,7 @@
         Status: task.status,
         ClaimedBy: task.claimed_by,
         Project: task.project
-      })).filter(task => task.Status === "pending");
+      }))
 
       const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
       const stillValid = allTasks.some(t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username);
