@@ -5,245 +5,227 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Dashboard</title>
   <style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-  }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
 
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #2c3e50;
-  }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
 
-  .header-buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-    gap: 10px;
-  }
+    .header-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
 
-  button {
-    padding: 10px 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.1s ease-in-out, background 0.3s ease;
-  }
+    button {
+      padding: 10px 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s ease-in-out, background 0.3s ease;
+    }
 
-  button:active {
-    transform: scale(0.97);
-  }
+    button:active {
+      transform: scale(0.97);
+    }
 
-  .logout-btn {
-    background: #e74c3c;
-    color: white;
-  }
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+    }
 
-  .logout-btn:hover {
-    background: #c0392b;
-  }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
 
-  .admin-btn {
-    background: #7f8c8d;
-    color: white;
-  }
+    .admin-btn {
+      background: #7f8c8d;
+      color: white;
+    }
 
-  .admin-btn:hover {
-    background: #5d6d7e;
-  }
+    .admin-btn:hover {
+      background: #5d6d7e;
+    }
 
-  #task-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-  }
+    #task-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
 
-  .task-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    padding: 16px;
-    width: 180px;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s ease;
-  }
+    .task-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      padding: 16px;
+      width: 180px;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease;
+    }
 
-  .task-card:hover {
-    transform: translateY(-2px);
-  }
+    .task-card:hover {
+      transform: translateY(-2px);
+    }
 
-  .task-card.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    filter: grayscale(100%);
-  }
+    .task-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
 
-  .task-card b {
-    color: #2c3e50;
-    margin-bottom: 4px;
-    display: block;
-  }
+    .subtask-text {
+      cursor: pointer;
+      color: #3498db;
+      font-weight: bold;
+      flex-grow: 1;
+    }
 
-  .subtask-text {
-    cursor: pointer;
-    color: #3498db;
-    font-weight: bold;
-    flex-grow: 1;
-  }
+    .copy-icon {
+      margin-left: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
 
-  .copy-icon {
-    margin-left: 6px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-  }
+    .claim-btn {
+      background: #27ae60;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+    }
 
-  .claim-btn {
-    background: #27ae60;
-    color: white;
-    width: 100%;
-    margin-top: 10px;
-    padding: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 6px;
-  }
+    .claim-btn:hover {
+      background: #219150;
+    }
 
-  .claim-btn:hover {
-    background: #219150;
-  }
+    .claim-btn.open-task {
+      background: #3498db;
+    }
 
-  .claim-btn.open-task {
-    background: #3498db;
-  }
+    .claim-btn.open-task:hover {
+      background: #2980b9;
+    }
 
-  .claim-btn.open-task:hover {
-    background: #2980b9;
-  }
+    select, .finish-btn {
+      width: 100%;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fdfdfd;
+    }
 
-  .claim-btn[disabled] {
-    background: #ccc;
-    color: #666;
-    cursor: not-allowed;
-  }
+    .finish-btn {
+      background: #f1c40f;
+      color: white;
+      border: none;
+    }
 
-  select, .finish-btn {
-    width: 100%;
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: bold;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #fdfdfd;
-  }
+    .finish-btn:hover {
+      background: #d4ac0d;
+    }
 
-  select:disabled {
-    background: #eee;
-  }
+    #pagination {
+      text-align: center;
+      margin-top: 30px;
+    }
 
-  .finish-btn {
-    background: #f1c40f;
-    color: white;
-    border: none;
-  }
+    #pagination button {
+      margin: 0 4px;
+      background: #3498db;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
 
-  .finish-btn:hover {
-    background: #d4ac0d;
-  }
+    #pagination button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
 
-  #pagination {
-    text-align: center;
-    margin-top: 30px;
-  }
+    #modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
 
-  #pagination button {
-    margin: 0 4px;
-    background: #3498db;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: bold;
-  }
+    #modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 18px;
+      animation: fadeIn 0.3s ease-in-out;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
 
-  #pagination button:disabled {
-    background: #95a5a6;
-    cursor: not-allowed;
-  }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 1.5rem auto;
+    }
 
-  /* Modal */
-  #modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.4);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; display: none;
-  }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-  #modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 18px;
-    animation: fadeIn 0.3s ease-in-out;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
 
-  .spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 1.5rem auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .project-badge-inline {
-  display: inline-block;
-  background: #3498db;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 10px;
-  border-radius: 20px;
-  margin-top: 6px;
-}
-
-</style>
-
+    .project-badge-inline {
+      display: inline-block;
+      background: #3498db;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 <body>
   <div class="header-buttons">
-  <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
-  <button class="admin-btn" onclick="goToHistory()">View History</button>
-  <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
-
-</div>
+    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+    <button class="admin-btn" onclick="goToHistory()">View History</button>
+    <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
+  </div>
 
   <h1>Task Dashboard</h1>
   <div id="task-container"></div>
-  <div id="pagination" style="text-align: center; margin-top: 20px;"></div>
+  <div id="pagination"></div>
 
   <div id="modal">
     <div id="modal-content">
@@ -276,57 +258,59 @@
 
     function goToAdmin() { window.location.href = "admin.html"; }
     function goToHistory() {
-  if (currentUser.role === "admin") {
-    window.location.href = "historial.html";
-  } else {
-    alert("Access denied. Admin only.");
-  }
-}
+      if (currentUser.role === "admin") {
+        window.location.href = "historial.html";
+      } else {
+        alert("Access denied. Admin only.");
+      }
+    }
 
-    function logout() { localStorage.clear(); window.location.href = "login.html"; }
-    function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
+    function handleLoginLogout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
 
-async function loadTasks() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
-    const data = await res.json();
+    function truncate(text) {
+      return text?.length > 10 ? text.slice(0, 10) + "…" : text;
+    }
 
-    allTasks = data.map(task => ({
-      Subtask: task.subtask,
-      Batch: task.batch,
-      Level: task.level,
-      Status: task.status,
-      ClaimedBy: task.claimed_by,
-      Project: task.project
-    }));
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+        const data = await res.json();
 
-    // 🔸 Filtro para ocultar tareas terminadas, excepto las del usuario actual
-allTasks = allTasks.filter(task => {
-  const isMine = task.ClaimedBy === currentUser.username;
-  const isPendingOrClaimed = task.Status !== "finished" || isMine;
-  return isPendingOrClaimed;
-});
+        allTasks = data.map(task => ({
+          Subtask: task.subtask,
+          Batch: task.batch,
+          Level: task.level,
+          Status: task.status,
+          ClaimedBy: task.claimed_by,
+          Project: task.project
+        }));
 
+        allTasks = allTasks.filter(task => {
+          const isMine = task.ClaimedBy === currentUser.username;
+          return task.Status !== "finished" || isMine;
+        });
 
-    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-    const stillValid = allTasks.some(
-      t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
-    );
+        const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+        const stillValid = allTasks.some(
+          t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
+        );
+        if (!stillValid) localStorage.removeItem("lastClaimedTask");
 
-    if (!stillValid) localStorage.removeItem("lastClaimedTask");
-
-    renderPage(currentPage);
-  } catch (err) {
-    console.error("Error loading tasks:", err);
-  }
-}
-
+        renderPage(currentPage);
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+      }
+    }
 
     function renderPage(page) {
       const start = (page - 1) * TASKS_PER_PAGE;
       const end = start + TASKS_PER_PAGE;
       const tasksToShow = allTasks.slice(start, end);
       taskContainer.innerHTML = "";
+
       const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
 
       tasksToShow.forEach(task => {
@@ -340,26 +324,17 @@ allTasks = allTasks.filter(task => {
         if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
-  
-  <div style="display: flex; align-items: center;">
-    <b style="margin-right: 4px;">Subtask:</b>
-    <span class="subtask-text" data-full="${task.Subtask}" style="cursor: pointer; color: #2980b9; flex-grow: 1;" title="Click to copy">
-      ${truncate(task.Subtask)}
-    </span>
-    <button class="copy-icon" data-subtask="${task.Subtask}" title="Click to copy" style="border: none; background: transparent; cursor: pointer; padding: 0; margin-left: 4px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-    </button>
-  </div>
-  <br/>
-  <b>Batch:</b> ${truncate(task.Batch)}<br/>
-  <b>Level:</b> ${truncate(task.Level)}<br/>
-  <span class="project-badge-inline">${task.Project}</span><br/>
-  <div class="actions"></div>
-`;
-
+          <div style="display: flex; align-items: center;">
+            <b style="margin-right: 4px;">Subtask:</b>
+            <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
+            <button class="copy-icon" data-subtask="${task.Subtask}">📋</button>
+          </div>
+          <br/>
+          <b>Batch:</b> ${truncate(task.Batch)}<br/>
+          <b>Level:</b> ${task.Level}<br/>
+          <span class="project-badge-inline">${task.Project}</span><br/>
+          <div class="actions"></div>
+        `;
 
         const actions = card.querySelector(".actions");
 
@@ -369,9 +344,7 @@ allTasks = allTasks.filter(task => {
         if (isMine) {
           claimBtn.textContent = "Open Task";
           claimBtn.classList.add("open-task");
-          claimBtn.onclick = () => {
-            window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-          };
+          claimBtn.onclick = () => window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
         } else {
           claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
           claimBtn.disabled = isClaimedByOther || isOtherBlocked;
@@ -420,44 +393,38 @@ allTasks = allTasks.filter(task => {
         `;
 
         const finishBtn = document.createElement("button");
-        finishBtn.textContent = "Finish";
         finishBtn.className = "finish-btn";
+        finishBtn.textContent = "Finish";
         finishBtn.disabled = true;
 
         select.onchange = () => finishBtn.disabled = !select.value;
 
-finishBtn.onclick = async () => {
-  const review_option = select.value;
-  const claimedAt = localStorage.getItem("claimedAt");
-  const finishedAt = new Date().toISOString();
+        finishBtn.onclick = async () => {
+          const payload = {
+            subtask: task.Subtask,
+            level: task.Level,
+            review_option: select.value,
+            email: currentUser.email || "",
+            claimed_at: localStorage.getItem("claimedAt"),
+            finished_at: new Date().toISOString(),
+            data_type: ""
+          };
 
-  const payload = {
-    subtask: task.Subtask,
-    level: task.Level,
-    review_option,
-    email: currentUser.email || "",
-    claimed_at: claimedAt,
-    finished_at: finishedAt,
-    data_type: ""
-  };
+          const res = await fetch(FINISH_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-  const res = await fetch(`${BASE_URL}/api/mark-finished`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  const result = await res.json();
-  if (result.status === "success") {
-    localStorage.removeItem("lastClaimedTask");
-    localStorage.removeItem("claimedAt");
-    await loadTasks(); // 🔄 fuerza recarga desde backend
-  } else {
-    alert("Error finishing task");
-  }
-};
-
-
+          const result = await res.json();
+          if (result.status === "success") {
+            localStorage.removeItem("lastClaimedTask");
+            localStorage.removeItem("claimedAt");
+            loadTasks();
+          } else {
+            alert("Error finishing task");
+          }
+        };
 
         actions.appendChild(claimBtn);
         actions.appendChild(select);
@@ -469,12 +436,10 @@ finishBtn.onclick = async () => {
 
       document.querySelectorAll(".subtask-text").forEach(span => {
         span.addEventListener("click", () => {
-          const fullValue = span.dataset.full;
-          navigator.clipboard.writeText(fullValue).then(() => {
+          const full = span.dataset.full;
+          navigator.clipboard.writeText(full).then(() => {
             span.textContent = "Copied!";
-            setTimeout(() => {
-              span.textContent = truncate(fullValue);
-            }, 1000);
+            setTimeout(() => { span.textContent = truncate(full); }, 1000);
           });
         });
       });
@@ -482,25 +447,19 @@ finishBtn.onclick = async () => {
       document.querySelectorAll(".copy-icon").forEach(btn => {
         btn.addEventListener("click", () => {
           const subtask = btn.dataset.subtask;
-          navigator.clipboard.writeText(subtask).then(() => {
-            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-            setTimeout(() => {
-              btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-            }, 1000);
-          });
+          navigator.clipboard.writeText(subtask);
         });
       });
     }
 
     function renderPagination() {
-      const pagination = document.getElementById("pagination");
       const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
+      const pagination = document.getElementById("pagination");
       pagination.innerHTML = "";
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement("button");
         btn.textContent = i;
         btn.disabled = i === currentPage;
-        btn.style.margin = "0 5px";
         btn.onclick = () => {
           currentPage = i;
           renderPage(currentPage);
@@ -515,67 +474,24 @@ finishBtn.onclick = async () => {
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-  socket.on("taskClaimed", ({ subtask, username }) => {
-    loadTasks();
-  });
 
-  socket.on("taskFinished", ({ subtask }) => {
-    const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-    if (card) {
-      card.remove();
-      localStorage.removeItem("lastClaimedTask");
-      localStorage.removeItem("claimedAt");
-    } else {
+    socket.on("taskClaimed", ({ subtask }) => {
       loadTasks();
-    }
-  });
+    });
 
-  function handleLoginLogout() {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (currentUser) {
-      localStorage.clear();
-      window.location.href = "login.html";
-    } else {
-      window.location.href = "login.html";
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    const user = localStorage.getItem("currentUser");
-    const btn = document.getElementById("loginLogoutBtn");
-    if (btn) {
-      btn.textContent = user ? "Logout" : "Login";
-    }
-  });
-</script>
-
-
-
-
-
-    function handleLoginLogout() {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  if (currentUser) {
-    localStorage.clear();
-    window.location.href = "login.html";
-  } else {
-    window.location.href = "login.html";
-  }
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  const user = localStorage.getItem("currentUser");
-  const btn = document.getElementById("loginLogoutBtn");
-  if (btn) {
-    btn.textContent = user ? "Logout" : "Login";
-  }
-
-  // También puedes mantener otras inicializaciones como fetchTasks aquí
-});
-
+    socket.on("taskFinished", ({ subtask }) => {
+      const claimed = localStorage.getItem("lastClaimedTask");
+      if (claimed === subtask) {
+        localStorage.removeItem("lastClaimedTask");
+        localStorage.removeItem("claimedAt");
+      }
+      const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+      if (card) {
+        card.remove();
+      } else {
+        loadTasks();
+      }
+    });
   </script>
 </body>
 </html>
