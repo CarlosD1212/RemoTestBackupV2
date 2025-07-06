@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manage Tasks</title>
   <style>
     body {
-      background: #181a1b;
-      color: white;
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      max-width: 1000px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
       margin: auto;
     }
 
@@ -18,10 +23,20 @@
       margin-bottom: 30px;
     }
 
-    input {
+    .back-button {
+      margin-bottom: 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
+      padding: 10px;
+      margin-bottom: 20px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
@@ -29,197 +44,92 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 6px;
-      text-align: left;
-      border-bottom: 1px solid #444;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      border-radius: 6px;
+      overflow: hidden;
     }
 
     th {
       background-color: #3498db;
       color: white;
+      padding: 10px;
+      text-align: left;
     }
 
-    .btn-danger {
-      background: #e74c3c;
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .btn-delete {
+      background-color: #e74c3c;
       color: white;
       border: none;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      margin-right: 6px;
     }
 
     .btn-restore {
-      background: #27ae60;
+      background-color: #2ecc71;
       color: white;
       border: none;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
+      margin-left: 5px;
     }
 
     .pagination {
-      text-align: center;
-      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 10px;
     }
 
     .pagination button {
-      padding: 6px 12px;
-      margin: 0 3px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
       background: #3498db;
       color: white;
-    }
-
-    .back-button {
-      display: block;
-      margin-bottom: 20px;
-      padding: 8px 16px;
-      background: #27ae60;
-      color: white;
       border: none;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <button class="back-button" onclick="window.location.href='admin.html'">← Back to Admin</button>
-  <h1>Manage Tasks</h1>
+  <div class="container">
+    <button class="back-button" onclick="window.location.href='admin.html'">&larr; Back to Admin</button>
 
-  <input type="text" id="taskSearch" placeholder="Search tasks...">
+    <h1>Manage Tasks</h1>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Subtask</th>
-        <th>Batch</th>
-        <th>Level</th>
-        <th>Status</th>
-        <th>Claimed By</th>
-        <th>Project</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="taskTableBody"></tbody>
-  </table>
+    <input type="text" id="taskSearch" placeholder="Search tasks...">
 
-  <div class="pagination" id="paginationControls"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Subtask</th>
+          <th>Batch</th>
+          <th>Level</th>
+          <th>Status</th>
+          <th>Claimed By</th>
+          <th>Project</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="taskTableBody"></tbody>
+    </table>
 
-  <script>
-    const BASE_URL = "https://remo-task-manager-production.up.railway.app"; // tu backend
-    let allTasks = [];
-    let currentPage = 1;
-    const TASKS_PER_PAGE = 10;
+    <div class="pagination" id="pagination"></div>
+  </div>
 
-    async function loadTasks() {
-      const res = await fetch(`${BASE_URL}/api/tasks`);
-      const data = await res.json();
-      allTasks = data; // mostramos todas
-      renderTasks();
-    }
-
-    function renderTasks() {
-      const tbody = document.getElementById("taskTableBody");
-      const search = document.getElementById("taskSearch").value.toLowerCase();
-
-      const filtered = allTasks.filter(t =>
-        t.subtask.toLowerCase().includes(search) ||
-        t.batch.toLowerCase().includes(search) ||
-        t.level.toLowerCase().includes(search) ||
-        t.status.toLowerCase().includes(search) ||
-        (t.claimed_by || "").toLowerCase().includes(search) ||
-        (t.project || "").toLowerCase().includes(search)
-      );
-
-      const start = (currentPage - 1) * TASKS_PER_PAGE;
-      const end = start + TASKS_PER_PAGE;
-      const tasksToShow = filtered.slice(start, end);
-
-      tbody.innerHTML = "";
-      tasksToShow.forEach(t => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${t.subtask}</td>
-          <td>${t.batch}</td>
-          <td>${t.level}</td>
-          <td>${t.status}</td>
-          <td>${t.claimed_by || "-"}</td>
-          <td>${t.project}</td>
-          <td>
-            <button class="btn-danger" onclick="deleteTask('${t.subtask}')">Delete</button>
-            <button class="btn-restore" onclick="restoreTask('${t.subtask}')">Restore</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      renderPagination(filtered.length);
-    }
-
-    function renderPagination(total) {
-      const controls = document.getElementById("paginationControls");
-      const pages = Math.ceil(total / TASKS_PER_PAGE);
-      controls.innerHTML = "";
-
-      for (let i = 1; i <= pages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        if (i === currentPage) btn.disabled = true;
-        btn.onclick = () => {
-          currentPage = i;
-          renderTasks();
-        };
-        controls.appendChild(btn);
-      }
-    }
-
-    async function deleteTask(subtask) {
-      if (!confirm(`Are you sure you want to delete subtask "${subtask}"?`)) return;
-
-      const res = await fetch(`${BASE_URL}/api/delete-task`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask })
-      });
-
-      const result = await res.json();
-      if (result.status === "success") {
-        alert("Task deleted.");
-        await loadTasks();
-      } else {
-        alert("Error: " + result.message);
-      }
-    }
-
-    async function restoreTask(subtask) {
-      const res = await fetch(`${BASE_URL}/api/restore-task`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask })
-      });
-
-      const result = await res.json();
-      if (result.status === "success") {
-        alert("Task restored.");
-        await loadTasks();
-      } else {
-        alert("Error: " + result.message);
-      }
-    }
-
-    document.getElementById("taskSearch").addEventListener("input", () => {
-      currentPage = 1;
-      renderTasks();
-    });
-
-    window.addEventListener("DOMContentLoaded", loadTasks);
-  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="manage-tasks.js"></script>
 </body>
 </html>
