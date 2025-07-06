@@ -157,7 +157,7 @@
   <!-- Modal -->
   <div id="modal">
     <div id="modalContent">
-      <h2 id="modalTitle">Edit Roles</h2>
+      <h2 id="modalTitle">Edit</h2>
       <div id="modalList"></div>
       <select id="modalSelect"></select>
       <button onclick="addModalValue()">Add</button>
@@ -257,31 +257,30 @@
       }
     }
 
-async function updateUser(user) {
-  const original = users.find(u => u.username === currentEditUser);
-  const updatedUser = {
-    username: original.username.toLowerCase(), // corregido
-    password: original.password,
-    email: original.email, // asegúrate de mantenerlo
-    role: user.role,
-    project: user.project
-  };
+    async function updateUser(user) {
+      const original = users.find(u => u.username === user.username);
+      const updatedUser = {
+        username: original.username.toLowerCase(),
+        password: original.password,
+        email: original.email || "", // mantenemos el email
+        role: user.role,
+        project: user.project
+      };
 
-  const res = await fetch(`${BASE_URL}/api/register-users`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ users: [updatedUser] })
-  });
+      const res = await fetch(`${BASE_URL}/api/register-users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users: [updatedUser] })
+      });
 
-  const json = await res.json();
-  if (json.status === "success") {
-    closeModal();
-    loadUsers();
-  } else {
-    alert(json.message);
-  }
-}
-
+      const json = await res.json();
+      if (json.status === "success") {
+        closeModal();
+        loadUsers();
+      } else {
+        alert(json.message || "Error updating user.");
+      }
+    }
 
     window.addEventListener("DOMContentLoaded", loadUsers);
   </script>
