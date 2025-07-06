@@ -198,21 +198,33 @@ app.post("/api/restore-task", async (req, res) => {
 });
 
 app.post("/api/register-users", async (req, res) => {
-  const users = req.body.users;
   try {
+    const users = req.body.users;
+
     for (const user of users) {
-      const { username, password, role, project } = user;
-      await pool.query(
-        `INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)`,
-        [username.toLowerCase(), password, role, project]
-      );
+      const { username, password, role, project, email } = user;
+
+      const existing = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+      if (existing.rows.length > 0) {
+        await pool.query(
+          "UPDATE users SET password = $1, role = $2, project = $3, email = $4 WHERE username = $5",
+          [password, role, project, email, username]
+        );
+      } else {
+        await pool.query(
+          "INSERT INTO users (username, password, role, project, email) VALUES ($1, $2, $3, $4, $5)",
+          [username, password, role, project, email]
+        );
+      }
     }
-    res.json({ status: "success", message: "Users registered" });
+
+    res.json({ status: "success" });
   } catch (err) {
-    console.error("❌ Error registering users:", err);
-    res.status(500).json({ status: "error", message: "Could not register users" });
+    console.error("❌ Error en /api/register-users:", err);
+    res.status(500).json({ status: "error", message: "Failed to register users" });
   }
 });
+
 
 app.post("/api/delete-user", async (req, res) => {
   const { username } = req.body;

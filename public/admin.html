@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Panel</title>
-  <style>
+<style>
   body {
     font-family: 'Segoe UI', sans-serif;
     background: #eef2f7;
@@ -46,7 +46,7 @@
   input, select, textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #cccccc;
     border-radius: 8px;
     font-size: 15px;
     box-sizing: border-box;
@@ -64,33 +64,48 @@
   }
 
   button {
-    margin-top: 16px;
-    padding: 12px 20px;
+    padding: 10px 16px;
     font-weight: bold;
-    background: #2ecc71;
-    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s ease-in-out;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-right: 8px;
   }
 
   button:hover {
-    background: #27ae60;
-  }
-
-  button:active {
     transform: scale(0.98);
   }
 
-  button[type="submit"][style*="3498db"] {
-    background: #3498db;
+  button.green {
+    background-color: #2ecc71;
+    color: white;
   }
 
-  button[type="submit"][style*="3498db"]:hover {
-    background: #2980b9;
+  button.green:hover {
+    background-color: #27ae60;
+  }
+
+  button.blue {
+    background-color: #3498db;
+    color: white;
+  }
+
+  button.blue:hover {
+    background-color: #2980b9;
+  }
+
+  #userSearch {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
   }
 </style>
+
 
 </head>
 <body>
@@ -110,6 +125,9 @@
     <label for="password">Password:</label>
     <input type="password" id="password" required />
 
+    <label for="email">Email:</label>
+    <input type="email" id="email" required />
+
     <label for="role">Role:</label>
     <select id="role" required>
       <option value="">Select Role</option>
@@ -125,39 +143,15 @@
 
     <button type="submit">Register User</button>
   </form>
-   
-  <input
-  type="text"
-  id="userSearch"
-  placeholder="Search user..."
-  style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc;"
-/>
-
-  <div class="section-title">Manage Users</div>
-<div id="userTableContainer">
-  <table id="userTable" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
-
-  <thead>
-    <tr style="background: #3498db; color: white;">
-      <th style="padding: 6px;">Username</th>
-      <th style="padding: 6px;">Role</th>
-      <th style="padding: 6px;">Project</th>
-      <th style="padding: 6px;">Actions</th>
-    </tr>
-  </thead>
-  <tbody id="userTableBody" style="background: #fff;"></tbody>
-</table>
-</div>
-
 
   <form id="projectForm">
-  <div class="section-title">Add New Project</div>
+    <div class="section-title">Add New Project</div>
 
-  <label for="newProject">Project Name:</label>
-  <input type="text" id="newProject" required />
+    <label for="newProject">Project Name:</label>
+    <input type="text" id="newProject" required />
 
-  <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Add Project</button>
-</form>
+    <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Add Project</button>
+  </form>
 
   <!-- Task Upload -->
   <form id="taskForm">
@@ -166,20 +160,26 @@
     <label for="projectName">Select Project:</label>
     <select id="projectName" required></select>
 
-    <label for="tasks">Paste tasks below (Subtask Batch Level):</label>
-    <textarea id="tasks" placeholder="e.g. 123456 batchA 1" required></textarea>
+    <label for="taskLevel">Select Level:</label>
+<select id="taskLevel" required>
+  <option value="">Select Level</option>
+  <option value="-1">-1</option>
+  <option value="0">0</option>
+  <option value="1">1</option>
+  <option value="10">10</option>
+</select>
+
+<label for="tasks">Paste tasks below (Subtask and Batch only):</label>
+<textarea id="tasks" placeholder="e.g. 123456 batchA" required></textarea>
+
+
+
 
     <button type="submit">Upload Tasks</button>
     <button onclick="window.location.href='manage-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">
-  Manage Tasks
-</button>
-
+      Manage Tasks
+    </button>
   </form>
-
-
-
-
-
 
   <script>
     const BASE_URL = "https://remo-task-manager-production.up.railway.app";
@@ -203,243 +203,83 @@
       });
     }
 
-    document.getElementById("userForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const role = document.getElementById("role").value;
-      const project = document.getElementById("project").value;
-
-      if (!username || !password || !role || !project) {
-        alert("Please fill in all user fields.");
-        return;
-      }
-
-      const users = [{ username, password, role, project }];
-
-      const res = await fetch(USER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users })
-      });
-
-      const json = await res.json();
-      if (json.status === "success") {
-        alert("User registered successfully!");
-        document.getElementById("userForm").reset();
-      } else {
-        alert("Error registering user.");
-      }
-    });
-
-    document.getElementById("taskForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const project = document.getElementById("projectName").value;
-      const taskLines = document.getElementById("tasks").value.trim().split("\n");
-
-      const tasks = taskLines
-        .map(line => line.trim().split(/\s+/))
-        .filter(parts => parts.length === 3)
-        .map(([subtask, batch, level]) => ({ subtask, batch, level, project }));
-
-      if (tasks.length === 0) {
-        alert("Please paste valid task data.");
-        return;
-      }
-
-      const res = await fetch(TASK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tasks })
-      });
-
-      const json = await res.json();
-      if (json.status === "success") {
-        alert("Tasks uploaded successfully!");
-        document.getElementById("taskForm").reset();
-      } else {
-        alert("Error uploading tasks.");
-      }
-    });
-
-    window.addEventListener("DOMContentLoaded", () => {
-  loadProjects();
-  loadUsers();
-
-  document.getElementById("userSearch").addEventListener("input", () => {
-    currentPage = 1;
-    renderUserTable();
-  });
-});
-
-
-let allUsers = []; // global
-let currentPage = 1;
-const USERS_PER_PAGE = 10;
-
-async function loadUsers() {
-  const res = await fetch(`${BASE_URL}/api/users`);
-  allUsers = await res.json();
-  renderUserTable();
-}
-
-function renderUserTable() {
-  const tbody = document.getElementById("userTableBody");
-  const search = document.getElementById("userSearch").value.toLowerCase();
-
-  const filtered = allUsers.filter(user =>
-  user.username.toLowerCase().includes(search) ||
-  user.project.toLowerCase().includes(search) ||
-  user.role.toLowerCase().includes(search)
-);
-
-
-  const start = (currentPage - 1) * USERS_PER_PAGE;
-  const end = start + USERS_PER_PAGE;
-  const usersToShow = filtered.slice(start, end);
-
-  tbody.innerHTML = "";
-
-  usersToShow.forEach(user => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="padding: 6px;">${user.username}</td>
-      <td style="padding: 6px;">${user.role}</td>
-      <td style="padding: 6px;">${user.project}</td>
-      <td style="padding: 6px;">
-        <button onclick="deleteUser('${user.username}')" style="background: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  renderUserPagination(filtered.length);
-}
-
-
-async function deleteUser(username) {
-  if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
-
-  const res = await fetch(`${BASE_URL}/api/delete-user`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username })
-  });
-
-  const result = await res.json();
-  if (result.status === "success") {
-    alert("User deleted");
-    loadUsers();
-  } else {
-    alert("Error: " + result.message);
-  }
-}
-
-
-
-
-    document.getElementById("projectForm").addEventListener("submit", async (e) => {
+document.getElementById("userForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const name = document.getElementById("newProject").value.trim();
 
-  if (!name) {
-    alert("Project name is required.");
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const email = document.getElementById("email").value.trim(); // nuevo
+  const role = document.getElementById("role").value;
+  const project = document.getElementById("project").value;
+
+  if (!username || !password || !email || !role || !project) {
+    alert("Please fill in all user fields.");
     return;
   }
 
-  const res = await fetch(`${BASE_URL}/api/projects`, {
+  const users = [{ username, password, email, role, project }];
+
+  const res = await fetch(USER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ users })
   });
 
   const json = await res.json();
   if (json.status === "success") {
-    alert("Project added successfully.");
-    document.getElementById("projectForm").reset();
-    loadProjects(); // recarga los selects
+    alert("User registered successfully!");
+    document.getElementById("userForm").reset();
   } else {
-    alert("Error adding project.");
+    alert("Error registering user.");
   }
 });
 
-  function goToApp() {
-    window.location.href = "app.html";
+
+document.getElementById("taskForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const project = document.getElementById("projectName").value;
+  const level = document.getElementById("taskLevel").value;
+  const taskLines = document.getElementById("tasks").value.trim().split("\n");
+
+  if (!project || !level) {
+    alert("Please select both Project and Level.");
+    return;
   }
 
-  function renderUserPagination(totalFiltered) {
-  const pagination = document.getElementById("userPagination") || document.createElement("div");
-  pagination.id = "userPagination";
-  pagination.style.textAlign = "center";
-  pagination.style.marginTop = "12px";
+  const tasks = taskLines
+    .map(line => line.trim().split(/\s+/))
+    .filter(parts => parts.length === 2)
+    .map(([subtask, batch]) => ({ subtask, batch, level, project }));
 
-  const totalPages = Math.ceil(totalFiltered / USERS_PER_PAGE);
-  pagination.innerHTML = "";
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.style.margin = "0 4px";
-    btn.style.padding = "4px 10px";
-    btn.style.borderRadius = "6px";
-    btn.style.border = "none";
-    btn.style.cursor = "pointer";
-    btn.style.background = i === currentPage ? "#2980b9" : "#ccc";
-    btn.style.color = i === currentPage ? "white" : "black";
-
-    btn.onclick = () => {
-      currentPage = i;
-      renderUserTable();
-    };
-
-    pagination.appendChild(btn);
+  if (tasks.length === 0) {
+    alert("Please paste valid task data (Subtask and Batch only).");
+    return;
   }
 
-  // Insertar debajo de la tabla si no está ya
-  const table = document.getElementById("userTable");
-  if (!document.getElementById("userPagination")) {
-    table.parentNode.appendChild(pagination);
+  const res = await fetch(TASK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tasks })
+  });
+
+  const json = await res.json();
+  if (json.status === "success") {
+    alert("Tasks uploaded successfully!");
+    document.getElementById("taskForm").reset();
+  } else {
+    alert("Error uploading tasks.");
   }
-}
-
-function renderUserPagination(totalFiltered) {
-  const pagination = document.getElementById("userPagination") || document.createElement("div");
-  pagination.id = "userPagination";
-  pagination.style.textAlign = "center";
-  pagination.style.marginTop = "12px";
-
-  const totalPages = Math.ceil(totalFiltered / USERS_PER_PAGE);
-  pagination.innerHTML = "";
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.style.margin = "0 4px";
-    btn.style.padding = "4px 10px";
-    btn.style.borderRadius = "6px";
-    btn.style.border = "none";
-    btn.style.cursor = "pointer";
-    btn.style.background = i === currentPage ? "#2980b9" : "#ccc";
-    btn.style.color = i === currentPage ? "white" : "black";
-
-    btn.onclick = () => {
-      currentPage = i;
-      renderUserTable();
-    };
-
-    pagination.appendChild(btn);
-  }
-
-  // Insertar debajo de la tabla si no está ya
-  const table = document.getElementById("userTable");
-  if (!document.getElementById("userPagination")) {
-    table.parentNode.appendChild(pagination);
-  }
-}
+});
 
 
+    function goToApp() {
+      window.location.href = "app.html";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadProjects();
+    });
   </script>
 </body>
 </html>
