@@ -96,6 +96,10 @@
 <body>
   <h1>Admin Control Panel</h1>
 
+   <div style="text-align: right; margin-bottom: 10px;">
+  <button onclick="goToApp()" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold;">Go to Task App</button>
+</div>
+
   <!-- User Registration -->
   <form id="userForm">
     <div class="section-title">Register New User</div>
@@ -121,6 +125,20 @@
 
     <button type="submit">Register User</button>
   </form>
+
+  <div class="section-title">Manage Users</div>
+<table id="userTable" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+  <thead>
+    <tr style="background: #3498db; color: white;">
+      <th style="padding: 6px;">Username</th>
+      <th style="padding: 6px;">Role</th>
+      <th style="padding: 6px;">Project</th>
+      <th style="padding: 6px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody id="userTableBody" style="background: #fff;"></tbody>
+</table>
+
 
   <form id="projectForm">
   <div class="section-title">Add New Project</div>
@@ -232,7 +250,51 @@
       }
     });
 
-    window.addEventListener("DOMContentLoaded", loadProjects);
+    window.addEventListener("DOMContentLoaded", () => {
+  loadProjects();
+  loadUsers();
+});
+
+    async function loadUsers() {
+  const res = await fetch(`${BASE_URL}/api/users`);
+  const users = await res.json();
+  const tbody = document.getElementById("userTableBody");
+  tbody.innerHTML = "";
+
+  users.forEach(user => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="padding: 6px;">${user.username}</td>
+      <td style="padding: 6px;">${user.role}</td>
+      <td style="padding: 6px;">${user.project}</td>
+      <td style="padding: 6px;">
+        <button onclick="deleteUser('${user.username}')" style="background: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteUser(username) {
+  if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
+
+  const res = await fetch(`${BASE_URL}/api/delete-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username })
+  });
+
+  const result = await res.json();
+  if (result.status === "success") {
+    alert("User deleted");
+    loadUsers();
+  } else {
+    alert("Error: " + result.message);
+  }
+}
+
+
+
 
     document.getElementById("projectForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -258,6 +320,10 @@
     alert("Error adding project.");
   }
 });
+
+  function goToApp() {
+    window.location.href = "app.html";
+  }
   </script>
 </body>
 </html>

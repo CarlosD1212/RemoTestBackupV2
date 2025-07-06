@@ -56,10 +56,23 @@
     .logout-btn:hover {
       background: #c0392b;
     }
+
+    .admin-btn {
+  background: #7f8c8d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  float: right;
+  margin-right: 10px;
+}
   </style>
 </head>
 <body>
   <button class="logout-btn" onclick="logout()">Logout</button>
+  <button class="admin-btn" onclick="goToApp()">Go to Task App</button>
   <h1>Task History</h1>
 
   <table>
@@ -109,6 +122,10 @@
     function logout() {
       localStorage.clear();
       window.location.href = "login.html";
+    }
+
+    function goToApp() {
+      window.location.href = "app.html";
     }
 
     window.addEventListener("DOMContentLoaded", fetchHistory);

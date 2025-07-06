@@ -220,6 +220,34 @@ app.post("/api/register-users", async (req, res) => {
   }
 });
 
+// Eliminar usuario por username
+app.post("/api/delete-user", async (req, res) => {
+  const { username } = req.body;
+  try {
+    const result = await pool.query("DELETE FROM users WHERE LOWER(username) = $1", [username.toLowerCase()]);
+    if (result.rowCount > 0) {
+      res.json({ status: "success", message: "User deleted" });
+    } else {
+      res.json({ status: "error", message: "User not found" });
+    }
+  } catch (err) {
+    console.error("❌ Error deleting user:", err);
+    res.status(500).json({ status: "error", message: "Error deleting user" });
+  }
+});
+
+// Obtener lista de usuarios
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT username, role, project FROM users ORDER BY username ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching users:", err);
+    res.status(500).json({ status: "error", message: "Error loading users" });
+  }
+});
+
+
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
