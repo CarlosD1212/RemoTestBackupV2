@@ -86,28 +86,15 @@ app.get("/api/projects", async (req, res) => {
 });
 
 app.get("/api/tasks", async (req, res) => {
-  const username = req.query.username;
-
   try {
-    const userRes = await pool.query("SELECT role, project FROM users WHERE LOWER(username) = $1", [username.toLowerCase()]);
-    if (userRes.rows.length === 0) return res.status(403).json({ status: "error", message: "User not found" });
-
-    const { role, project } = userRes.rows[0];
-    let query = "SELECT * FROM tasks WHERE status != 'finished'";
-    let params = [];
-
-    if (role !== "admin") {
-      query += " AND level = $1 AND project = $2";
-      params = [role, project];
-    }
-
-    const result = await pool.query(query, params);
+    const result = await pool.query("SELECT * FROM tasks");
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error /api/tasks:", err);
+    console.error("❌ Error en /api/tasks:", err);
     res.status(500).json({ status: "error", message: "Failed to load tasks" });
   }
 });
+
 
 app.get("/api/history", async (req, res) => {
   try {
