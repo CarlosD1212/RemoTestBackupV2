@@ -286,32 +286,39 @@
     function logout() { localStorage.clear(); window.location.href = "login.html"; }
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
-    async function loadTasks() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
-        const data = await res.json();
+async function loadTasks() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+    const data = await res.json();
 
-        allTasks = data.map(task => ({
-          Subtask: task.subtask,
-          Batch: task.batch,
-          Level: task.level,
-          Status: task.status,
-          ClaimedBy: task.claimed_by,
-          Project: task.project
-        }));
+    allTasks = data.map(task => ({
+      Subtask: task.subtask,
+      Batch: task.batch,
+      Level: task.level,
+      Status: task.status,
+      ClaimedBy: task.claimed_by,
+      Project: task.project
+    }));
 
-        const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-        const stillValid = allTasks.some(
-          t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
-        );
+    // 🔸 Filtro para ocultar tareas terminadas, excepto las del usuario actual
+    allTasks = allTasks.filter(task => {
+      const isMine = task.ClaimedBy === currentUser.username;
+      return task.Status !== "finished" || isMine;
+    });
 
-        if (!stillValid) localStorage.removeItem("lastClaimedTask");
+    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+    const stillValid = allTasks.some(
+      t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
+    );
 
-        renderPage(currentPage);
-      } catch (err) {
-        console.error("Error loading tasks:", err);
-      }
-    }
+    if (!stillValid) localStorage.removeItem("lastClaimedTask");
+
+    renderPage(currentPage);
+  } catch (err) {
+    console.error("Error loading tasks:", err);
+  }
+}
+
 
     function renderPage(page) {
       const start = (page - 1) * TASKS_PER_PAGE;
@@ -327,7 +334,7 @@
 
         const card = document.createElement("div");
         card.className = "task-card";
-card.setAttribute("data-subtask", task.Subtask);
+        card.setAttribute("data-subtask", task.Subtask);
         if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
@@ -506,10 +513,15 @@ card.setAttribute("data-subtask", task.Subtask);
     socket.on("taskClaimed", ({ subtask, username }) => {
       loadTasks();
     });
-socket.on("taskFinished", ({ subtask }) => {
-  const card = document.querySelector(`[data-subtask="${subtask}"]`);
-  if (card) card.remove();
+   socket.on("taskFinished", ({ subtask }) => {
+   const cards = document.querySelectorAll(".task-card");
+   cards.forEach(card => {
+    if (card.getAttribute("data-subtask") === subtask) {
+      card.remove();
+    }
+  });
 });
+
 
     function handleLoginLogout() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
