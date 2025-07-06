@@ -125,9 +125,18 @@
 
     <button type="submit">Register User</button>
   </form>
+   
+  <input
+  type="text"
+  id="userSearch"
+  placeholder="Search user..."
+  style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc;"
+/>
 
   <div class="section-title">Manage Users</div>
-<table id="userTable" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+<div id="userTableContainer">
+  <table id="userTable" style="width: 100%; margin-top: 10px; border-collapse: collapse;">
+
   <thead>
     <tr style="background: #3498db; color: white;">
       <th style="padding: 6px;">Username</th>
@@ -138,6 +147,7 @@
   </thead>
   <tbody id="userTableBody" style="background: #fff;"></tbody>
 </table>
+</div>
 
 
   <form id="projectForm">
@@ -253,15 +263,42 @@
     window.addEventListener("DOMContentLoaded", () => {
   loadProjects();
   loadUsers();
+
+  document.getElementById("userSearch").addEventListener("input", () => {
+    currentPage = 1;
+    renderUserTable();
+  });
 });
 
-    async function loadUsers() {
+
+let allUsers = []; // global
+let currentPage = 1;
+const USERS_PER_PAGE = 10;
+
+async function loadUsers() {
   const res = await fetch(`${BASE_URL}/api/users`);
-  const users = await res.json();
+  allUsers = await res.json();
+  renderUserTable();
+}
+
+function renderUserTable() {
   const tbody = document.getElementById("userTableBody");
+  const search = document.getElementById("userSearch").value.toLowerCase();
+
+  const filtered = allUsers.filter(user =>
+  user.username.toLowerCase().includes(search) ||
+  user.project.toLowerCase().includes(search) ||
+  user.role.toLowerCase().includes(search)
+);
+
+
+  const start = (currentPage - 1) * USERS_PER_PAGE;
+  const end = start + USERS_PER_PAGE;
+  const usersToShow = filtered.slice(start, end);
+
   tbody.innerHTML = "";
 
-  users.forEach(user => {
+  usersToShow.forEach(user => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="padding: 6px;">${user.username}</td>
@@ -273,7 +310,10 @@
     `;
     tbody.appendChild(tr);
   });
+
+  renderUserPagination(filtered.length);
 }
+
 
 async function deleteUser(username) {
   if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
@@ -324,6 +364,78 @@ async function deleteUser(username) {
   function goToApp() {
     window.location.href = "app.html";
   }
+
+  function renderUserPagination(totalFiltered) {
+  const pagination = document.getElementById("userPagination") || document.createElement("div");
+  pagination.id = "userPagination";
+  pagination.style.textAlign = "center";
+  pagination.style.marginTop = "12px";
+
+  const totalPages = Math.ceil(totalFiltered / USERS_PER_PAGE);
+  pagination.innerHTML = "";
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.style.margin = "0 4px";
+    btn.style.padding = "4px 10px";
+    btn.style.borderRadius = "6px";
+    btn.style.border = "none";
+    btn.style.cursor = "pointer";
+    btn.style.background = i === currentPage ? "#2980b9" : "#ccc";
+    btn.style.color = i === currentPage ? "white" : "black";
+
+    btn.onclick = () => {
+      currentPage = i;
+      renderUserTable();
+    };
+
+    pagination.appendChild(btn);
+  }
+
+  // Insertar debajo de la tabla si no está ya
+  const table = document.getElementById("userTable");
+  if (!document.getElementById("userPagination")) {
+    table.parentNode.appendChild(pagination);
+  }
+}
+
+function renderUserPagination(totalFiltered) {
+  const pagination = document.getElementById("userPagination") || document.createElement("div");
+  pagination.id = "userPagination";
+  pagination.style.textAlign = "center";
+  pagination.style.marginTop = "12px";
+
+  const totalPages = Math.ceil(totalFiltered / USERS_PER_PAGE);
+  pagination.innerHTML = "";
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.style.margin = "0 4px";
+    btn.style.padding = "4px 10px";
+    btn.style.borderRadius = "6px";
+    btn.style.border = "none";
+    btn.style.cursor = "pointer";
+    btn.style.background = i === currentPage ? "#2980b9" : "#ccc";
+    btn.style.color = i === currentPage ? "white" : "black";
+
+    btn.onclick = () => {
+      currentPage = i;
+      renderUserTable();
+    };
+
+    pagination.appendChild(btn);
+  }
+
+  // Insertar debajo de la tabla si no está ya
+  const table = document.getElementById("userTable");
+  if (!document.getElementById("userPagination")) {
+    table.parentNode.appendChild(pagination);
+  }
+}
+
+
   </script>
 </body>
 </html>
