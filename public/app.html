@@ -301,10 +301,12 @@ async function loadTasks() {
     }));
 
     // 🔸 Filtro para ocultar tareas terminadas, excepto las del usuario actual
-    allTasks = allTasks.filter(task => {
-      const isMine = task.ClaimedBy === currentUser.username;
-      return task.Status !== "finished" || isMine;
-    });
+allTasks = allTasks.filter(task => {
+  const isMine = task.ClaimedBy === currentUser.username;
+  const isPendingOrClaimed = task.Status !== "finished" || isMine;
+  return isPendingOrClaimed;
+});
+
 
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
     const stillValid = allTasks.some(
@@ -513,17 +515,44 @@ finishBtn.onclick = async () => {
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    socket.on("taskClaimed", ({ subtask, username }) => {
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  socket.on("taskClaimed", ({ subtask, username }) => {
+    loadTasks();
+  });
+
+  socket.on("taskFinished", ({ subtask }) => {
+    const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+    if (card) {
+      card.remove();
+      localStorage.removeItem("lastClaimedTask");
+      localStorage.removeItem("claimedAt");
+    } else {
       loadTasks();
-    });
-socket.on("taskFinished", ({ subtask }) => {
-  const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-  if (card) {
-    card.remove(); // elimina la tarjeta directamente
-  } else {
-    loadTasks(); // fallback por si no la encuentra
+    }
+  });
+
+  function handleLoginLogout() {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser) {
+      localStorage.clear();
+      window.location.href = "login.html";
+    } else {
+      window.location.href = "login.html";
+    }
   }
-});
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const user = localStorage.getItem("currentUser");
+    const btn = document.getElementById("loginLogoutBtn");
+    if (btn) {
+      btn.textContent = user ? "Logout" : "Login";
+    }
+  });
+</script>
+
+
 
 
 
