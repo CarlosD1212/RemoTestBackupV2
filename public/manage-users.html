@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f8f9fa;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    text-align: left;
+  }
+
+  th {
+    background: #3498db;
+    color: white;
+  }
+
+  .btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .icon-btn {
+    cursor: pointer;
+    margin-left: 8px;
+    color: #2980b9;
+    font-weight: bold;
+  }
+
+  #modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
+  #modalContent {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  #modalContent h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #3498db;
+    color: white;
+    padding: 4px 10px;
+    margin: 4px 4px 8px;
+    border-radius: 15px;
+    font-size: 14px;
+    position: relative;
+  }
+
+  .badge .remove-role {
+    color: white;
+    margin-left: 8px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #modalContent select {
+  padding: 6px 30px 6px 12px; /* espacio a la derecha para la flechita */
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%233498db' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px;
+}
+
+  #modalContent button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 6px;
+  }
+
+  .btn-primary {
+    background: #3498db;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #95a5a6;
+    color: white;
+  }
+</style>
+
+</head>
+<body>
+  <div class="container">
+    <h1>Manage Users</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Roles</th>
+          <th>Projects</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal">
+    <div id="modalContent">
+      <h2 id="modalTitle">Edit Roles</h2>
+      <div id="modalList"></div>
+      <select id="modalSelect"></select>
+      <button onclick="addModalValue()">Add</button>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    let users = [];
+    let currentEditUser = null;
+    let currentEditType = "role";
+
+    async function loadUsers() {
+      const res = await fetch(`${BASE_URL}/api/users`);
+      users = await res.json();
+      renderUsers();
+    }
+
+    function renderUsers() {
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
+      users.forEach(user => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>
+            ${user.role.map(r => `<span class='badge'>${r}</span>`).join('')} 
+            <span class="icon-btn" onclick="openModal('${user.username}', 'role')">＋</span>
+          </td>
+          <td>
+            ${user.project.map(p => `<span class='badge'>${p}</span>`).join('')} 
+            <span class="icon-btn" onclick="openModal('${user.username}', 'project')">＋</span>
+          </td>
+          <td><button class="btn-delete" onclick="deleteUser('${user.username}')">Delete</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function deleteUser(username) {
+      if (!confirm(`Delete user ${username}?`)) return;
+      const res = await fetch(`${BASE_URL}/api/delete-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+      });
+      const json = await res.json();
+      if (json.status === "success") loadUsers();
+      else alert(json.message);
+    }
+
+    function openModal(username, type) {
+      currentEditUser = username;
+      currentEditType = type;
+      const modal = document.getElementById("modal");
+      document.getElementById("modalTitle").textContent = `Edit ${type}s for ${username}`;
+      const user = users.find(u => u.username === username);
+      const values = user[type];
+      const modalList = document.getElementById("modalList");
+      modalList.innerHTML = values.map(v => `<span class='badge'>${v}<span class='remove-role' onclick='removeModalValue("${v}")'>&times;</span></span>`).join('');
+
+      const select = document.getElementById("modalSelect");
+      select.innerHTML = "";
+      const options = type === "role" ? ["admin", "-1", "0", "1", "10"] : ["Gemini", "Andromeda", "Other"];
+      options.forEach(opt => {
+        if (!values.includes(opt)) {
+          const o = document.createElement("option");
+          o.value = opt;
+          o.textContent = opt;
+          select.appendChild(o);
+        }
+      });
+
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    function removeModalValue(value) {
+      const user = users.find(u => u.username === currentEditUser);
+      user[currentEditType] = user[currentEditType].filter(v => v !== value);
+      updateUser(user);
+    }
+
+    function addModalValue() {
+      const select = document.getElementById("modalSelect");
+      const value = select.value;
+      if (!value) return;
+      const user = users.find(u => u.username === currentEditUser);
+      if (!user[currentEditType].includes(value)) {
+        user[currentEditType].push(value);
+        updateUser(user);
+      }
+    }
+
+    async function updateUser(user) {
+      const res = await fetch(`${BASE_URL}/api/register-users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users: [user] })
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        closeModal();
+        loadUsers();
+      } else {
+        alert(json.message);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadUsers);
+  </script>
+</body>
+</html>
