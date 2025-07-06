@@ -1,143 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Manage Users</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background: #f8f9fa;
-  }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f8f9fa;
+    }
 
-  h1 {
-    text-align: center;
-  }
+    h1 {
+      text-align: center;
+    }
 
-  .container {
-    max-width: 900px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
 
-  th,
-  td {
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-    text-align: left;
-  }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
 
-  th {
-    background: #3498db;
-    color: white;
-  }
+    th {
+      background: #3498db;
+      color: white;
+    }
 
-  .btn-delete {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+    .btn-delete {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-  .icon-btn {
-    cursor: pointer;
-    margin-left: 8px;
-    color: #2980b9;
-    font-weight: bold;
-  }
+    .icon-btn {
+      cursor: pointer;
+      margin-left: 8px;
+      color: #2980b9;
+      font-weight: bold;
+    }
 
-  #modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
 
-  #modalContent {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
+    #modalContent {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
 
-  #modalContent h2 {
-    margin-top: 0;
-    margin-bottom: 15px;
-  }
+    #modalContent h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
 
-  .badge {
-    display: inline-block;
-    background: #3498db;
-    color: white;
-    padding: 4px 10px;
-    margin: 4px 4px 8px;
-    border-radius: 15px;
-    font-size: 14px;
-    position: relative;
-  }
+    .badge {
+      display: inline-block;
+      background: #3498db;
+      color: white;
+      padding: 4px 10px;
+      margin: 4px 4px 8px;
+      border-radius: 15px;
+      font-size: 14px;
+      position: relative;
+    }
 
-  .badge .remove-role {
-    color: white;
-    margin-left: 8px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+    .badge .remove-role {
+      color: white;
+      margin-left: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-  #modalContent select {
-  padding: 6px 30px 6px 12px; /* espacio a la derecha para la flechita */
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  appearance: none;
-  background-color: #fff;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%233498db' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 10px;
-}
+    #modalContent select {
+      padding: 6px 30px 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      appearance: none;
+      background-color: #fff;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%233498db' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+    }
 
-  #modalContent button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin: 6px;
-  }
+    #modalContent button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 6px;
+    }
 
-  .btn-primary {
-    background: #3498db;
-    color: white;
-  }
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
 
-  .btn-secondary {
-    background: #95a5a6;
-    color: white;
-  }
-</style>
-
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -148,6 +146,7 @@
           <th>Username</th>
           <th>Roles</th>
           <th>Projects</th>
+          <th>Email</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -186,13 +185,14 @@
         row.innerHTML = `
           <td>${user.username}</td>
           <td>
-            ${user.role.map(r => `<span class='badge'>${r}</span>`).join('')} 
+            ${user.role.map(r => `<span class='badge'>${r}</span>`).join('')}
             <span class="icon-btn" onclick="openModal('${user.username}', 'role')">＋</span>
           </td>
           <td>
-            ${user.project.map(p => `<span class='badge'>${p}</span>`).join('')} 
+            ${user.project.map(p => `<span class='badge'>${p}</span>`).join('')}
             <span class="icon-btn" onclick="openModal('${user.username}', 'project')">＋</span>
           </td>
+          <td>${user.email || ''}</td>
           <td><button class="btn-delete" onclick="deleteUser('${user.username}')">Delete</button></td>
         `;
         tbody.appendChild(row);
@@ -258,11 +258,20 @@
     }
 
     async function updateUser(user) {
+      const payload = {
+        username: user.username,
+        password: "", // mantiene vacía si no se cambia
+        role: user.role,
+        project: user.project,
+        email: user.email || ""
+      };
+
       const res = await fetch(`${BASE_URL}/api/register-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users: [user] })
+        body: JSON.stringify({ users: [payload] })
       });
+
       const json = await res.json();
       if (json.status === "success") {
         closeModal();
