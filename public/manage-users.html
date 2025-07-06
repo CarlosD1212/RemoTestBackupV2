@@ -170,6 +170,17 @@
     let users = [];
     let currentEditUser = null;
     let currentEditType = "role";
+    let availableProjects = [];
+
+    async function fetchProjects() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/projects`);
+        availableProjects = await res.json();
+      } catch (err) {
+        console.error("Error loading projects:", err);
+        availableProjects = ["Project A", "Project B"];
+      }
+    }
 
     async function loadUsers() {
       const res = await fetch(`${BASE_URL}/api/users`);
@@ -223,7 +234,10 @@
 
       const select = document.getElementById("modalSelect");
       select.innerHTML = "";
-      const options = type === "role" ? ["admin", "-1", "0", "1", "10"] : ["Gemini", "Andromeda", "Other"];
+      const options = type === "role"
+        ? ["admin", "-1", "0", "1", "10"]
+        : availableProjects;
+
       options.forEach(opt => {
         if (!values.includes(opt)) {
           const o = document.createElement("option");
@@ -258,34 +272,34 @@
     }
 
     async function updateUser(user) {
-  const original = users.find(u => u.username === user.username);
-  const updatedUser = {
-    username: original.username.toLowerCase(),
-    password: "placeholder123", // Se necesita algo válido si no tienes el real
-    email: original.email || "unknown@email.com",
-    role: user.role || [],
-    project: user.project || []
-  };
+      const original = users.find(u => u.username === user.username);
+      const updatedUser = {
+        username: original.username.toLowerCase(),
+        password: "temporal123", // ⚠️ temporal
+        email: original.email || "no@email.com",
+        role: user.role || [],
+        project: user.project || []
+      };
 
-  console.log("🟢 Enviando usuario:", updatedUser); // ✅ Para depurar
+      const res = await fetch(`${BASE_URL}/api/register-users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users: [updatedUser] })
+      });
 
-  const res = await fetch(`${BASE_URL}/api/register-users`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ users: [updatedUser] })
-  });
+      const json = await res.json();
+      if (json.status === "success") {
+        closeModal();
+        loadUsers();
+      } else {
+        alert(json.message || "Error updating user.");
+      }
+    }
 
-  const json = await res.json();
-  if (json.status === "success") {
-    closeModal();
-    loadUsers();
-  } else {
-    alert(json.message || "Error updating user.");
-  }
-}
-
-
-    window.addEventListener("DOMContentLoaded", loadUsers);
+    window.addEventListener("DOMContentLoaded", async () => {
+      await fetchProjects();
+      loadUsers();
+    });
   </script>
 </body>
 </html>

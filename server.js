@@ -205,21 +205,29 @@ app.post("/api/register-users", async (req, res) => {
       const { username, password, role, project, email } = user;
       const uname = username.toLowerCase();
 
-      // Asegurar que role y project son arrays
       const roles = Array.isArray(role) ? role : [role];
       const projects = Array.isArray(project) ? project : [project];
 
       const existing = await pool.query("SELECT * FROM users WHERE username = $1", [uname]);
 
       if (existing.rows.length > 0) {
-        await pool.query(
-          "UPDATE users SET password = $1, role = $2, project = $3, email = $4 WHERE username = $5",
-          [password, roles, projects, email, uname]
-        );
+        // Construir query dinámica si el password está presente o no
+        if (password) {
+          await pool.query(
+            "UPDATE users SET password = $1, role = $2, project = $3, email = $4 WHERE username = $5",
+            [password, roles, projects, email, uname]
+          );
+        } else {
+          await pool.query(
+            "UPDATE users SET role = $1, project = $2, email = $3 WHERE username = $4",
+            [roles, projects, email, uname]
+          );
+        }
       } else {
+        const pwd = password || "temporal123"; // Si no lo envían, crea uno temporal
         await pool.query(
           "INSERT INTO users (username, password, role, project, email) VALUES ($1, $2, $3, $4, $5)",
-          [uname, password, roles, projects, email]
+          [uname, pwd, roles, projects, email]
         );
       }
     }
@@ -230,6 +238,7 @@ app.post("/api/register-users", async (req, res) => {
     res.status(500).json({ status: "error", message: "Failed to register users" });
   }
 });
+
 
 
 
