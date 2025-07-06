@@ -516,9 +516,15 @@ finishBtn.onclick = async () => {
     socket.on("taskClaimed", ({ subtask, username }) => {
       loadTasks();
     });
-socket.on("taskFinished", () => {
-  loadTasks();
+socket.on("taskFinished", ({ subtask }) => {
+  const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+  if (card) {
+    card.remove(); // elimina la tarjeta directamente
+  } else {
+    loadTasks(); // fallback por si no la encuentra
+  }
 });
+
 
 
     function handleLoginLogout() {
