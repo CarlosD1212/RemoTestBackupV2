@@ -257,29 +257,31 @@
       }
     }
 
-    async function updateUser(user) {
-      const payload = {
-        username: user.username,
-        password: "", // mantiene vacía si no se cambia
-        role: user.role,
-        project: user.project,
-        email: user.email || ""
-      };
+async function updateUser(user) {
+  const original = users.find(u => u.username === currentEditUser);
+  const updatedUser = {
+    username: original.username.toLowerCase(), // corregido
+    password: original.password,
+    email: original.email, // asegúrate de mantenerlo
+    role: user.role,
+    project: user.project
+  };
 
-      const res = await fetch(`${BASE_URL}/api/register-users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users: [payload] })
-      });
+  const res = await fetch(`${BASE_URL}/api/register-users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ users: [updatedUser] })
+  });
 
-      const json = await res.json();
-      if (json.status === "success") {
-        closeModal();
-        loadUsers();
-      } else {
-        alert(json.message);
-      }
-    }
+  const json = await res.json();
+  if (json.status === "success") {
+    closeModal();
+    loadUsers();
+  } else {
+    alert(json.message);
+  }
+}
+
 
     window.addEventListener("DOMContentLoaded", loadUsers);
   </script>
