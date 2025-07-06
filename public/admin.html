@@ -142,6 +142,10 @@
     <select id="project" required></select>
 
     <button type="submit">Register User</button>
+    <button type="button" onclick="goToManageUsers()" style="margin-top: 10px; background-color: #2ecc71; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer;">
+  Manage Users
+</button>
+
   </form>
 
   <form id="projectForm">
@@ -276,6 +280,11 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
     function goToApp() {
       window.location.href = "app.html";
     }
+
+    function goToManageUsers() {
+  window.location.href = "manage-users.html";
+}
+
 
     window.addEventListener("DOMContentLoaded", () => {
       loadProjects();
