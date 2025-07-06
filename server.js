@@ -199,6 +199,35 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
+app.post("/api/delete-task", async (req, res) => {
+  const { subtask } = req.body;
+
+  try {
+    await pool.query("DELETE FROM tasks WHERE subtask = $1", [subtask]);
+    res.json({ status: "success", message: "Task deleted" });
+  } catch (err) {
+    console.error("❌ Error deleting task:", err);
+    res.status(500).json({ status: "error", message: "Failed to delete task" });
+  }
+});
+
+app.post("/api/restore-task", async (req, res) => {
+  const { subtask } = req.body;
+
+  try {
+    await pool.query(
+      "UPDATE tasks SET status = 'pending', claimed_by = '' WHERE subtask = $1",
+      [subtask]
+    );
+    res.json({ status: "success", message: "Task restored" });
+  } catch (err) {
+    console.error("❌ Error restoring task:", err);
+    res.status(500).json({ status: "error", message: "Failed to restore task" });
+  }
+});
+
+
+
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users;
 
