@@ -513,13 +513,8 @@ async function loadTasks() {
     socket.on("taskClaimed", ({ subtask, username }) => {
       loadTasks();
     });
-   socket.on("taskFinished", ({ subtask }) => {
-   const cards = document.querySelectorAll(".task-card");
-   cards.forEach(card => {
-    if (card.getAttribute("data-subtask") === subtask) {
-      card.remove();
-    }
-  });
+socket.on("taskFinished", () => {
+  loadTasks();
 });
 
 
