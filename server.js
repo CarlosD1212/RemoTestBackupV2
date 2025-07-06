@@ -203,17 +203,18 @@ app.post("/api/register-users", async (req, res) => {
 
     for (const user of users) {
       const { username, password, role, project, email } = user;
+      const uname = username.toLowerCase();
 
-      const existing = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+      const existing = await pool.query("SELECT * FROM users WHERE username = $1", [uname]);
       if (existing.rows.length > 0) {
         await pool.query(
           "UPDATE users SET password = $1, role = $2, project = $3, email = $4 WHERE username = $5",
-          [password, role, project, email, username]
+          [password, [role], [project], email, uname]
         );
       } else {
         await pool.query(
           "INSERT INTO users (username, password, role, project, email) VALUES ($1, $2, $3, $4, $5)",
-          [username, password, role, project, email]
+          [uname, password, [role], [project], email]
         );
       }
     }
@@ -224,6 +225,7 @@ app.post("/api/register-users", async (req, res) => {
     res.status(500).json({ status: "error", message: "Failed to register users" });
   }
 });
+
 
 
 app.post("/api/delete-user", async (req, res) => {
