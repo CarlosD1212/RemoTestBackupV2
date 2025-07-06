@@ -424,7 +424,7 @@ async function loadTasks() {
 
         select.onchange = () => finishBtn.disabled = !select.value;
 
-        finishBtn.onclick = async () => {
+finishBtn.onclick = async () => {
   const review_option = select.value;
   const claimedAt = localStorage.getItem("claimedAt");
   const finishedAt = new Date().toISOString();
@@ -433,10 +433,10 @@ async function loadTasks() {
     subtask: task.Subtask,
     level: task.Level,
     review_option,
-    email: currentUser.email || "", // aún no lo tenemos, se agregará después
+    email: currentUser.email || "",
     claimed_at: claimedAt,
     finished_at: finishedAt,
-    data_type: "" // se agregará más adelante a la tarjeta
+    data_type: ""
   };
 
   const res = await fetch(`${BASE_URL}/api/mark-finished`, {
@@ -449,9 +449,12 @@ async function loadTasks() {
   if (result.status === "success") {
     localStorage.removeItem("lastClaimedTask");
     localStorage.removeItem("claimedAt");
-    loadTasks();
+    await loadTasks(); // 🔄 fuerza recarga desde backend
+  } else {
+    alert("Error finishing task");
   }
 };
+
 
 
         actions.appendChild(claimBtn);
