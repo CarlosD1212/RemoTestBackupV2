@@ -247,13 +247,14 @@ app.post("/api/delete-user", async (req, res) => {
 
 app.get("/api/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT username, role, project FROM users ORDER BY username ASC");
+    const result = await pool.query("SELECT username, role, project, email, password FROM users ORDER BY username ASC");
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error fetching users:", err);
     res.status(500).json({ status: "error", message: "Error loading users" });
   }
 });
+
 
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
