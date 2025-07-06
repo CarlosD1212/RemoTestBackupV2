@@ -327,6 +327,7 @@
 
         const card = document.createElement("div");
         card.className = "task-card";
+card.setAttribute("data-subtask", task.Subtask);
         if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
@@ -505,9 +506,10 @@
     socket.on("taskClaimed", ({ subtask, username }) => {
       loadTasks();
     });
-    socket.on("taskFinished", ({ subtask }) => {
-      loadTasks();
-    });
+socket.on("taskFinished", ({ subtask }) => {
+  const card = document.querySelector(`[data-subtask="${subtask}"]`);
+  if (card) card.remove();
+});
 
     function handleLoginLogout() {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
