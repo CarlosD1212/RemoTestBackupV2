@@ -139,31 +139,49 @@ app.post("/api/claim", async (req, res) => {
 });
 
 app.post("/api/mark-finished", async (req, res) => {
-  const {
-    subtask, level, review_option, email, claimed_at, finished_at, data_type
-  } = req.body;
+  const { subtask, review } = req.body;
+  const username = (req.body.username || "").trim().toLowerCase();
+  const finishedAt = new Date().toISOString();
 
   try {
-    // 1. Actualizar tarea como finalizada
+    // Obtener datos de la tarea
+    const taskResult = await pool.query("SELECT * FROM tasks WHERE subtask = $1", [subtask]);
+    if (taskResult.rows.length === 0) {
+      return res.status(404).json({ status: "error", message: "Task not found" });
+    }
+    const task = taskResult.rows[0];
+
+    // Obtener el proyecto desde el usuario
+    const userResult = await pool.query("SELECT project FROM users WHERE username = $1", [username]);
+    const user = userResult.rows[0];
+    const project = user?.project || task.project || "unknown";
+
+    // Guardar en el historial
     await pool.query(
-      `UPDATE tasks SET status = 'finished' WHERE subtask = $1`,
-      [subtask]
+      `INSERT INTO task_history (subtask, level, review, claimed_by, claimed_at, finished_at, project)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        task.subtask,
+        task.level,
+        review,
+        task.claimed_by,
+        task.claimed_at,
+        finishedAt,
+        project
+      ]
     );
 
-    // 2. Guardar en historial
-    await pool.query(
-      `INSERT INTO task_history (subtask, level, review_option, email, claimed_at, finished_at, data_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [subtask, level, review_option, email, claimed_at, finished_at, data_type]
-    );
+    // Marcar la tarea como finalizada
+    await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
 
     io.emit("taskFinished", { subtask });
-    return res.json({ status: "success", message: "Tarea finalizada y registrada" });
+    res.json({ status: "success" });
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
-    res.status(500).json({ status: "error", message: "Internal error in finish" });
+    res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
+
 
 
 app.post("/api/tasks", async (req, res) => {
