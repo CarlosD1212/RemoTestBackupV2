@@ -399,32 +399,35 @@
 
         select.onchange = () => finishBtn.disabled = !select.value;
 
-        finishBtn.onclick = async () => {
-          const payload = {
-            subtask: task.Subtask,
-            level: task.Level,
-            review_option: select.value,
-            email: currentUser.email || "",
-            claimed_at: localStorage.getItem("claimedAt"),
-            finished_at: new Date().toISOString(),
-            data_type: ""
-          };
+finishBtn.onclick = async () => {
+  const payload = {
+    subtask: task.Subtask,
+    level: task.Level,
+    review_option: select.value,
+    email: currentUser.email || "",
+    claimed_at: localStorage.getItem("claimedAt"),
+    finished_at: new Date().toISOString(),
+    data_type: ""
+  };
 
-          const res = await fetch(FINISH_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
+  const res = await fetch(FINISH_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-          const result = await res.json();
-          if (result.status === "success") {
-            localStorage.removeItem("lastClaimedTask");
-            localStorage.removeItem("claimedAt");
-            loadTasks();
-          } else {
-            alert("Error finishing task");
-          }
-        };
+  const result = await res.json();
+  if (result.status === "success") {
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+
+    const card = document.querySelector(`.task-card[data-subtask="${task.Subtask}"]`);
+    if (card) card.remove();
+  } else {
+    alert("Error finishing task");
+  }
+};
+
 
         actions.appendChild(claimBtn);
         actions.appendChild(select);
