@@ -109,6 +109,17 @@ app.get("/api/tasks", async (req, res) => {
   }
 });
 
+app.get("/api/history", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM task_history ORDER BY finished_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error en /api/history:", err);
+    res.status(500).json({ status: "error", message: "Failed to load history" });
+  }
+});
+
+
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
 
@@ -141,26 +152,32 @@ app.post("/api/claim", async (req, res) => {
 });
 
 app.post("/api/mark-finished", async (req, res) => {
-  const { subtask } = req.body;
+  const {
+    subtask, level, review_option, email, claimed_at, finished_at, data_type
+  } = req.body;
 
   try {
-    const result = await pool.query(
-      `UPDATE tasks SET status = 'finished' WHERE subtask = $1 RETURNING *`,
+    // 1. Actualizar tarea como finalizada
+    await pool.query(
+      `UPDATE tasks SET status = 'finished' WHERE subtask = $1`,
       [subtask]
     );
 
-    if (result.rowCount > 0) {
-      io.emit("taskFinished", { subtask });
-      return res.json({ status: "success", message: "Tarea finalizada" });
-    } else {
-      return res.json({ status: "error", message: "Tarea no encontrada" });
-    }
+    // 2. Guardar en historial
+    await pool.query(
+      `INSERT INTO task_history (subtask, level, review_option, email, claimed_at, finished_at, data_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [subtask, level, review_option, email, claimed_at, finished_at, data_type]
+    );
 
+    io.emit("taskFinished", { subtask });
+    return res.json({ status: "success", message: "Tarea finalizada y registrada" });
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
     res.status(500).json({ status: "error", message: "Internal error in finish" });
   }
 });
+
 
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;

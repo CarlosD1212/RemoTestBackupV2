@@ -235,9 +235,11 @@
 </head>
 <body>
   <div class="header-buttons">
-    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
+  <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+  <button class="admin-btn" onclick="goToHistory()">View History</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
   <h1>Task Dashboard</h1>
   <div id="task-container"></div>
   <div id="pagination" style="text-align: center; margin-top: 20px;"></div>
@@ -272,6 +274,14 @@
     }
 
     function goToAdmin() { window.location.href = "admin.html"; }
+    function goToHistory() {
+  if (currentUser.role === "admin") {
+    window.location.href = "historial.html";
+  } else {
+    alert("Access denied. Admin only.");
+  }
+}
+
     function logout() { localStorage.clear(); window.location.href = "login.html"; }
     function truncate(text) { return text?.length > 10 ? text.slice(0, 10) + "…" : text; }
 
@@ -362,6 +372,7 @@
               return;
             }
             localStorage.setItem("lastClaimedTask", task.Subtask);
+            localStorage.setItem("claimedAt", new Date().toISOString());
             showModal("Espera, reservando tu tarea...");
 
             const res = await fetch(CLAIM_URL, {
@@ -405,17 +416,34 @@
         select.onchange = () => finishBtn.disabled = !select.value;
 
         finishBtn.onclick = async () => {
-          const res = await fetch(FINISH_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ subtask: task.Subtask })
-          });
-          const result = await res.json();
-          if (result.status === "success") {
-            localStorage.removeItem("lastClaimedTask");
-            loadTasks();
-          }
-        };
+  const review_option = select.value;
+  const claimedAt = localStorage.getItem("claimedAt");
+  const finishedAt = new Date().toISOString();
+
+  const payload = {
+    subtask: task.Subtask,
+    level: task.Level,
+    review_option,
+    email: currentUser.email || "", // aún no lo tenemos, se agregará después
+    claimed_at: claimedAt,
+    finished_at: finishedAt,
+    data_type: "" // se agregará más adelante a la tarjeta
+  };
+
+  const res = await fetch(`${BASE_URL}/api/mark-finished`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await res.json();
+  if (result.status === "success") {
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+    loadTasks();
+  }
+};
+
 
         actions.appendChild(claimBtn);
         actions.appendChild(select);
