@@ -288,10 +288,11 @@
           Project: task.project
         }));
 
-        allTasks = allTasks.filter(task => {
-          const isMine = task.ClaimedBy === currentUser.username;
-          return task.Status !== "finished" || isMine;
-        });
+allTasks = allTasks.filter(task => {
+  const isMine = task.ClaimedBy?.toLowerCase() === currentUser.username?.toLowerCase();
+  return task.Status !== "finished" || isMine;
+});
+
 
         const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
         const stillValid = allTasks.some(
