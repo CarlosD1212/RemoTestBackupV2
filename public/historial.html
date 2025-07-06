@@ -22,7 +22,7 @@
       margin-bottom: 20px;
     }
 
-    select, input[type="text"] {
+    select {
       padding: 8px;
       margin: 0 10px 20px 0;
       border-radius: 6px;
@@ -160,16 +160,19 @@
 
       tbody.innerHTML = "";
       paginated.forEach(h => {
+        const finishDate = h.finished_at?.split("T")[0] || "-";
+        const finishTime = h.finished_at?.split("T")[1]?.split(".")[0] || "-";
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${h.subtask}</td>
           <td>${h.level}</td>
-          <td>${h.option || "-"}</td>
+          <td>${h.review || "-"}</td>
           <td>${h.email || "-"}</td>
           <td>${h.date || "-"}</td>
-          <td>${h.claimTime || "-"}</td>
-          <td>${h.finishTime || "-"}</td>
-          <td>${h.dataType || "-"}</td>
+          <td>${h.claim_time || "-"}</td>
+          <td>${finishTime}</td>
+          <td>${h.data_type || "-"}</td>
           <td>${h.project || "-"}</td>
         `;
         tbody.appendChild(row);
@@ -202,7 +205,17 @@
       const headers = ["Subtask", "Level", "Option", "Email", "Date", "Claim Time", "Finish Time", "Data Type", "Project"];
       const csvContent = [
         headers.join(","),
-        ...rows.map(r => headers.map(h => `"${(r[h.toLowerCase()] || "").replace(/"/g, '""')}"`).join(","))
+        ...rows.map(r => [
+          r.subtask,
+          r.level,
+          r.review,
+          r.email,
+          r.date,
+          r.claim_time,
+          r.finished_at?.split("T")[1]?.split(".")[0],
+          r.data_type,
+          r.project
+        ].map(val => `"${(val || "").replace(/"/g, '""')}"`).join(","))
       ].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv" });
