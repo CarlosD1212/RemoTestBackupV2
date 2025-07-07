@@ -501,7 +501,7 @@ socket.on("taskFinished", ({ subtask }) => {
   if (card) card.remove();
 
   // Recargar tareas para actualizar todo el estado
-  loadTasks();
+  setTimeout(loadTasks, 300);
 });
 
 
