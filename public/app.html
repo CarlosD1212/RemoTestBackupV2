@@ -218,14 +218,13 @@
 </head>
 <body>
   <div class="header-buttons">
-    <div id="admin-btn-container" style="display: none;">
-      <button onclick="goToAdmin()">Admin Panel</button>
-    </div>
+    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+    <button class="admin-btn" onclick="goToHistory()">View History</button>
     <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
   </div>
 
   <h1>Task Dashboard</h1>
-  <div id="task-container" class="task-container"></div>
+  <div id="task-container"></div>
   <div id="pagination"></div>
 
   <div id="modal">
@@ -239,16 +238,7 @@
     const BASE_URL = "https://remo-task-manager-production.up.railway.app";
     const CLAIM_URL = BASE_URL + "/api/claim";
     const FINISH_URL = BASE_URL + "/api/mark-finished";
-    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
-    const isAdmin = currentUser.role?.includes("admin");
-
-    window.addEventListener("DOMContentLoaded", () => {
-      if (isAdmin) {
-        const adminBtn = document.getElementById("admin-btn-container");
-        if (adminBtn) adminBtn.style.display = "block";
-      }
-    });
-
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     const taskContainer = document.getElementById("task-container");
     const modal = document.getElementById("modal");
     const modalMessage = document.getElementById("modal-message");
@@ -257,8 +247,22 @@
     const TASKS_PER_PAGE = 36;
     let allTasks = [];
 
-    function goToAdmin() {
-      window.location.href = "admin.html";
+    function showModal(message) {
+      modalMessage.textContent = message;
+      modal.style.display = "flex";
+    }
+
+    function hideModal() {
+      modal.style.display = "none";
+    }
+
+    function goToAdmin() { window.location.href = "admin.html"; }
+    function goToHistory() {
+      if (currentUser.role === "admin") {
+        window.location.href = "historial.html";
+      } else {
+        alert("Access denied. Admin only.");
+      }
     }
 
     function handleLoginLogout() {
@@ -276,9 +280,6 @@ async function loadTasks() {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
     const data = await res.json();
 
-    const username = currentUser.username?.toLowerCase();
-    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-
     allTasks = data
       .filter(task => task.status?.toLowerCase() !== "finished")
       .map(task => ({
@@ -288,17 +289,14 @@ async function loadTasks() {
         Status: task.status,
         ClaimedBy: task.claimed_by,
         Project: task.project
-      }))
-      .sort((a, b) => {
-        // Mostrar primero la tarea reclamada por el usuario
-        if (a.Subtask === myClaimedTask) return -1;
-        if (b.Subtask === myClaimedTask) return 1;
-        return a.Subtask.localeCompare(b.Subtask);
-      });
+      }));
 
-    // Validar que el lastClaimedTask aún sea válido
+    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+    const username = currentUser.username?.toLowerCase();
+
     const stillValid = allTasks.some(
-      t => t.Subtask === myClaimedTask && t.ClaimedBy?.toLowerCase() === username
+      t => t.Subtask === myClaimedTask &&
+           t.ClaimedBy?.toLowerCase() === username
     );
     if (!stillValid) {
       localStorage.removeItem("lastClaimedTask");
@@ -309,7 +307,6 @@ async function loadTasks() {
     console.error("❌ Error loading tasks:", err);
   }
 }
-
 
 
 
