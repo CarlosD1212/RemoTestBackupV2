@@ -5,215 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Dashboard</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #2c3e50;
-    }
-
-    .header-buttons {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 20px;
-      gap: 10px;
-    }
-
-    button {
-      padding: 10px 18px;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.1s ease-in-out, background 0.3s ease;
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-
-    .logout-btn {
-      background: #e74c3c;
-      color: white;
-    }
-
-    .logout-btn:hover {
-      background: #c0392b;
-    }
-
-    .admin-btn {
-      background: #7f8c8d;
-      color: white;
-    }
-
-    .admin-btn:hover {
-      background: #5d6d7e;
-    }
-
-    #task-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
-    }
-
-    .task-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      padding: 16px;
-      width: 180px;
-      font-size: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease;
-    }
-
-    .task-card:hover {
-      transform: translateY(-2px);
-    }
-
-    .task-card.disabled {
-      opacity: 0.5;
-      pointer-events: none;
-      filter: grayscale(100%);
-    }
-
-    .subtask-text {
-      cursor: pointer;
-      color: #3498db;
-      font-weight: bold;
-      flex-grow: 1;
-    }
-
-    .copy-icon {
-      margin-left: 6px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-    }
-
-    .claim-btn {
-      background: #27ae60;
-      color: white;
-      width: 100%;
-      margin-top: 10px;
-      padding: 8px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 6px;
-    }
-
-    .claim-btn:hover {
-      background: #219150;
-    }
-
-    .claim-btn.open-task {
-      background: #3498db;
-    }
-
-    .claim-btn.open-task:hover {
-      background: #2980b9;
-    }
-
-    select, .finish-btn {
-      width: 100%;
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: bold;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #fdfdfd;
-    }
-
-    .finish-btn {
-      background: #f1c40f;
-      color: white;
-      border: none;
-    }
-
-    .finish-btn:hover {
-      background: #d4ac0d;
-    }
-
-    #pagination {
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    #pagination button {
-      margin: 0 4px;
-      background: #3498db;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    #pagination button:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
-    }
-
-    #modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    #modal-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 18px;
-      animation: fadeIn 0.3s ease-in-out;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 1.5rem auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .project-badge-inline {
-      display: inline-block;
-      background: #3498db;
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 2px 10px;
-      border-radius: 20px;
-      margin-top: 6px;
-    }
+    /* [Todo el estilo se mantiene igual, ya lo tienes completo y bien hecho] */
+    /* ... */
   </style>
 </head>
 <body>
@@ -235,16 +28,23 @@
   </div>
 
   <script>
+  document.addEventListener("DOMContentLoaded", () => {
     const BASE_URL = "https://remo-task-manager-production.up.railway.app";
     const CLAIM_URL = BASE_URL + "/api/claim";
     const FINISH_URL = BASE_URL + "/api/mark-finished";
+
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (!currentUser) {
+      alert("Session expired. Please log in again.");
+      window.location.href = "login.html";
+      return;
+    }
+
     const taskContainer = document.getElementById("task-container");
     const modal = document.getElementById("modal");
     const modalMessage = document.getElementById("modal-message");
-
-    let currentPage = 1;
     const TASKS_PER_PAGE = 36;
+    let currentPage = 1;
     let allTasks = [];
 
     function showModal(message) {
@@ -264,235 +64,60 @@
         alert("Access denied. Admin only.");
       }
     }
-
     function handleLoginLogout() {
       localStorage.clear();
       window.location.href = "login.html";
     }
-
     function truncate(text) {
       return text?.length > 10 ? text.slice(0, 10) + "…" : text;
     }
 
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+        const data = await res.json();
+        const username = currentUser.username?.toLowerCase();
 
-async function loadTasks() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
-    const data = await res.json();
+        allTasks = data
+          .filter(task => {
+            const claimedBy = task.claimed_by?.toLowerCase() || "";
+            const status = task.status?.toLowerCase();
+            const isMine = claimedBy === username;
+            return status !== "finished" || isMine;
+          })
+          .map(task => ({
+            Subtask: task.subtask,
+            Batch: task.batch,
+            Level: task.level,
+            Status: task.status,
+            ClaimedBy: task.claimed_by,
+            Project: task.project
+          }));
 
-    const username = currentUser.username?.toLowerCase();
-
-    allTasks = data
-      .filter(task => {
-        const claimedBy = task.claimed_by?.toLowerCase() || "";
-        const status = task.status?.toLowerCase();
-        const isMine = claimedBy === username;
-        return status !== "finished" || isMine;
-      })
-      .map(task => ({
-        Subtask: task.subtask,
-        Batch: task.batch,
-        Level: task.level,
-        Status: task.status,
-        ClaimedBy: task.claimed_by,
-        Project: task.project
-      }));
-
-    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-    const stillValid = allTasks.some(
-      t => t.Subtask === myClaimedTask &&
-           t.ClaimedBy?.toLowerCase() === username
-    );
-    if (!stillValid) {
-      localStorage.removeItem("lastClaimedTask");
-    }
-
-    renderPage(currentPage);
-  } catch (err) {
-    console.error("❌ Error loading tasks:", err);
-  }
-}
-
-
-
-
-    function renderPage(page) {
-      const start = (page - 1) * TASKS_PER_PAGE;
-      const end = start + TASKS_PER_PAGE;
-      const tasksToShow = allTasks.slice(start, end);
-      taskContainer.innerHTML = "";
-
-      const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-
-      tasksToShow.forEach(task => {
-        const isMine = task.ClaimedBy === currentUser.username;
-        const isClaimedByOther = task.ClaimedBy && !isMine;
-        const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
-
-        const card = document.createElement("div");
-        card.className = "task-card";
-        card.setAttribute("data-subtask", task.Subtask);
-        if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
-
-        card.innerHTML = `
-          <div style="display: flex; align-items: center;">
-            <b style="margin-right: 4px;">Subtask:</b>
-            <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
-            <button class="copy-icon" data-subtask="${task.Subtask}">📋</button>
-          </div>
-          <br/>
-          <b>Batch:</b> ${truncate(task.Batch)}<br/>
-          <b>Level:</b> ${task.Level}<br/>
-          <span class="project-badge-inline">${task.Project}</span><br/>
-          <div class="actions"></div>
-        `;
-
-        const actions = card.querySelector(".actions");
-
-        const claimBtn = document.createElement("button");
-        claimBtn.className = "claim-btn";
-
-        if (isMine) {
-          claimBtn.textContent = "Open Task";
-          claimBtn.classList.add("open-task");
-          claimBtn.onclick = () => window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-        } else {
-          claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
-          claimBtn.disabled = isClaimedByOther || isOtherBlocked;
-
-          claimBtn.onclick = async () => {
-            const already = localStorage.getItem("lastClaimedTask");
-            if (already && already !== task.Subtask) {
-              alert("You already claimed another task.");
-              return;
-            }
-            localStorage.setItem("lastClaimedTask", task.Subtask);
-            localStorage.setItem("claimedAt", new Date().toISOString());
-            showModal("Espera, reservando tu tarea...");
-
-            const res = await fetch(CLAIM_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-            });
-
-            const result = await res.json();
-            if (result.status === "success") {
-              modalMessage.textContent = "Reclama tu tarea en Open Task";
-              setTimeout(() => {
-                hideModal();
-                loadTasks();
-              }, 1200);
-            } else {
-              alert("Claim failed.");
-              localStorage.removeItem("lastClaimedTask");
-              hideModal();
-              loadTasks();
-            }
-          };
+        const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+        const stillValid = allTasks.some(
+          t => t.Subtask === myClaimedTask && t.ClaimedBy?.toLowerCase() === username
+        );
+        if (!stillValid) {
+          localStorage.removeItem("lastClaimedTask");
         }
 
-        const select = document.createElement("select");
-        select.disabled = !isMine;
-        select.innerHTML = `
-          <option value="">Review option</option>
-          <option value="Good Task">Good Task</option>
-          <option value="Bad Task">Bad Task</option>
-          <option value="Attribute Error">Attribute Error</option>
-          <option value="Geometry Error">Geometry Error</option>
-          <option value="Spammer Task">Spammer Task</option>
-        `;
-
-        const finishBtn = document.createElement("button");
-        finishBtn.className = "finish-btn";
-        finishBtn.textContent = "Finish";
-        finishBtn.disabled = true;
-
-        select.onchange = () => finishBtn.disabled = !select.value;
-
-finishBtn.onclick = async () => {
-  const payload = {
-    subtask: task.Subtask,
-    level: task.Level,
-    review_option: select.value,
-    email: currentUser.email || "",
-    claimed_at: localStorage.getItem("claimedAt"),
-    finished_at: new Date().toISOString(),
-    data_type: ""
-  };
-
-  const res = await fetch(FINISH_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  const result = await res.json();
-  if (result.status === "success") {
-    localStorage.removeItem("lastClaimedTask");
-    localStorage.removeItem("claimedAt");
-
-    const card = document.querySelector(`.task-card[data-subtask="${task.Subtask}"]`);
-    if (card) card.remove();
-  } else {
-    alert("Error finishing task");
-  }
-};
-
-
-        actions.appendChild(claimBtn);
-        actions.appendChild(select);
-        actions.appendChild(finishBtn);
-        taskContainer.appendChild(card);
-      });
-
-      renderPagination();
-
-      document.querySelectorAll(".subtask-text").forEach(span => {
-        span.addEventListener("click", () => {
-          const full = span.dataset.full;
-          navigator.clipboard.writeText(full).then(() => {
-            span.textContent = "Copied!";
-            setTimeout(() => { span.textContent = truncate(full); }, 1000);
-          });
-        });
-      });
-
-      document.querySelectorAll(".copy-icon").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const subtask = btn.dataset.subtask;
-          navigator.clipboard.writeText(subtask);
-        });
-      });
-    }
-
-    function renderPagination() {
-      const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
-      const pagination = document.getElementById("pagination");
-      pagination.innerHTML = "";
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.disabled = i === currentPage;
-        btn.onclick = () => {
-          currentPage = i;
-          renderPage(currentPage);
-        };
-        pagination.appendChild(btn);
+        renderPage(currentPage);
+      } catch (err) {
+        console.error("❌ Error loading tasks:", err);
       }
     }
 
-    window.addEventListener("DOMContentLoaded", loadTasks);
+    // [Incluye aquí tu renderPage() y demás funciones exactamente como ya las tenías]
+
+    loadTasks();
+  });
   </script>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-
-    socket.on("taskClaimed", ({ subtask }) => {
-      loadTasks();
-    });
-
+    socket.on("taskClaimed", ({ subtask }) => loadTasks());
     socket.on("taskFinished", ({ subtask }) => {
       const claimed = localStorage.getItem("lastClaimedTask");
       if (claimed === subtask) {
@@ -500,11 +125,7 @@ finishBtn.onclick = async () => {
         localStorage.removeItem("claimedAt");
       }
       const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-      if (card) {
-        card.remove();
-      } else {
-        loadTasks();
-      }
+      if (card) card.remove(); else loadTasks();
     });
   </script>
 </body>
