@@ -274,54 +274,46 @@
       return text?.length > 10 ? text.slice(0, 10) + "…" : text;
     }
 
-async function loadTasks() {
-  console.log("✅ Ejecutando loadTasks");
 
+async function loadTasks() {
   try {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
     const data = await res.json();
 
-    console.log("🟡 Datos recibidos:", data);
-
-    // Mapeo explícito de campos
-    allTasks = data.map(task => ({
-      Subtask: task.subtask,
-      Batch: task.batch,
-      Level: task.level,
-      Status: task.status,
-      ClaimedBy: task.claimed_by,
-      Project: task.project
-    }));
-
     const username = currentUser.username?.toLowerCase();
 
-    // Mostrar todas las tareas crudas que siguen apareciendo (depuración)
-    console.log("🔵 Mapeadas:", allTasks);
+    allTasks = data
+      .filter(task => {
+        const claimedBy = task.claimed_by?.toLowerCase() || "";
+        const status = task.status?.toLowerCase();
+        const isMine = claimedBy === username;
+        return status !== "finished" || isMine;
+      })
+      .map(task => ({
+        Subtask: task.subtask,
+        Batch: task.batch,
+        Level: task.level,
+        Status: task.status,
+        ClaimedBy: task.claimed_by,
+        Project: task.project
+      }));
 
-    // Filtro: Ocultar tareas finished que no sean del usuario
-    allTasks = allTasks.filter(task => {
-      const claimedBy = task.ClaimedBy?.toLowerCase() || "";
-      const status = task.Status?.toLowerCase();
-      const isMine = claimedBy === username;
-      const mostrar = status !== "finished" || isMine;
-      if (!mostrar) {
-        console.log("⛔ Ocultando tarea:", task.Subtask, "Status:", status, "ClaimedBy:", claimedBy);
-      }
-      return mostrar;
-    });
-
-    // Validar si la tarea reclamada por el usuario sigue activa
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
     const stillValid = allTasks.some(
-      t => t.Subtask === myClaimedTask && t.ClaimedBy?.toLowerCase() === username
+      t => t.Subtask === myClaimedTask &&
+           t.ClaimedBy?.toLowerCase() === username
     );
-    if (!stillValid) localStorage.removeItem("lastClaimedTask");
+    if (!stillValid) {
+      localStorage.removeItem("lastClaimedTask");
+    }
 
     renderPage(currentPage);
   } catch (err) {
-    console.error("❌ Error en loadTasks:", err);
+    console.error("❌ Error loading tasks:", err);
   }
 }
+
+
 
 
     function renderPage(page) {
