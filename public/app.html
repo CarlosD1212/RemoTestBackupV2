@@ -219,15 +219,13 @@
 <body>
   <div class="header-buttons">
     <div id="admin-btn-container" style="display: none;">
-  <button onclick="goToAdmin()">Admin Panel</button>
-</div>
-
-    <button class="admin-btn" onclick="goToHistory()">View History</button>
+      <button onclick="goToAdmin()">Admin Panel</button>
+    </div>
     <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
   </div>
 
   <h1>Task Dashboard</h1>
-  <div id="task-container"></div>
+  <div id="task-container" class="task-container"></div>
   <div id="pagination"></div>
 
   <div id="modal">
@@ -237,44 +235,30 @@
     </div>
   </div>
 
-<script>
-  const BASE_URL = "https://remo-task-manager-production.up.railway.app";
-  const CLAIM_URL = BASE_URL + "/api/claim";
-  const FINISH_URL = BASE_URL + "/api/mark-finished";
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
-  const isAdmin = currentUser.role?.includes("admin");
+  <script>
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    const CLAIM_URL = BASE_URL + "/api/claim";
+    const FINISH_URL = BASE_URL + "/api/mark-finished";
+    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+    const isAdmin = currentUser.role?.includes("admin");
 
-  // ✅ Mostrar botón solo si es admin
-  if (isAdmin) {
-    document.getElementById("admin-btn-container").style.display = "block";
-  }
-
-  const taskContainer = document.getElementById("task-container");
-  const modal = document.getElementById("modal");
-  const modalMessage = document.getElementById("modal-message");
-
-  let currentPage = 1;
-  const TASKS_PER_PAGE = 36;
-  let allTasks = [];
-
-
-
-    function showModal(message) {
-      modalMessage.textContent = message;
-      modal.style.display = "flex";
-    }
-
-    function hideModal() {
-      modal.style.display = "none";
-    }
-
-    function goToAdmin() { window.location.href = "admin.html"; }
-    function goToHistory() {
-      if (currentUser.role === "admin") {
-        window.location.href = "historial.html";
-      } else {
-        alert("Access denied. Admin only.");
+    window.addEventListener("DOMContentLoaded", () => {
+      if (isAdmin) {
+        const adminBtn = document.getElementById("admin-btn-container");
+        if (adminBtn) adminBtn.style.display = "block";
       }
+    });
+
+    const taskContainer = document.getElementById("task-container");
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modal-message");
+
+    let currentPage = 1;
+    const TASKS_PER_PAGE = 36;
+    let allTasks = [];
+
+    function goToAdmin() {
+      window.location.href = "admin.html";
     }
 
     function handleLoginLogout() {
