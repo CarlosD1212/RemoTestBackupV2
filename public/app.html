@@ -280,16 +280,19 @@ async function loadTasks() {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
     const data = await res.json();
 
-    allTasks = data
-      .filter(task => task.status?.toLowerCase() !== "finished")
-      .map(task => ({
-        Subtask: task.subtask,
-        Batch: task.batch,
-        Level: task.level,
-        Status: task.status,
-        ClaimedBy: task.claimed_by,
-        Project: task.project
-      }));
+allTasks = data
+  .filter(task => task.status?.toLowerCase() !== "finished")
+  .map(task => ({
+    Subtask: task.subtask,
+    Batch: task.batch,
+    Level: task.level,
+    Status: task.status,
+    ClaimedBy: task.claimed_by,
+    Project: task.project
+  }))
+  .sort((a, b) => a.Subtask.localeCompare(b.Subtask));
+
+      
 
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
     const username = currentUser.username?.toLowerCase();
