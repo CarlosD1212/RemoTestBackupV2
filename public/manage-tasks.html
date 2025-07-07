@@ -144,7 +144,8 @@
     const TASKS_PER_PAGE = 10;
 
     async function loadTasks() {
-      const res = await fetch(`${BASE_URL}/api/tasks`);
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
       const data = await res.json();
       allTasks = data; // mostramos todas
       renderTasks();
