@@ -115,7 +115,15 @@
 
    <div style="text-align: right; margin-bottom: 10px;">
   <button onclick="goToApp()" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold;">Go to Task App</button>
-</div>
+  <button type="button" onclick="goToManageUsers()" style="background: #36bd48; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold;">
+   Manage Users
+  </button>
+  <button onclick="window.location.href='manage-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #e6a544; color: white; border: none; border-radius: 6px; cursor: pointer;">
+   Manage Tasks
+  </button>
+  </div>
+
+
 
   <!-- User Registration -->
   <form id="userForm">
@@ -143,10 +151,8 @@
     <label for="project">Project:</label>
     <select id="project" required></select>
 
-    <button type="submit">Register User</button>
-    <button type="button" onclick="goToManageUsers()" style="margin-top: 10px; background-color: #2ecc71; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer;">
-  Manage Users
-</button>
+    <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Register User</button>
+    
 
   </form>
 
@@ -181,10 +187,8 @@
 
 
 
-    <button type="submit">Upload Tasks</button>
-    <button onclick="window.location.href='manage-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">
-      Manage Tasks
-    </button>
+    <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Upload Tasks</button>
+
   </form>
 
   <script>
