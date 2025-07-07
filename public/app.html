@@ -280,15 +280,8 @@ async function loadTasks() {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
     const data = await res.json();
 
-    const username = currentUser.username?.toLowerCase();
-
     allTasks = data
-      .filter(task => {
-        const claimedBy = task.claimed_by?.toLowerCase() || "";
-        const status = task.status?.toLowerCase();
-        const isMine = claimedBy === username;
-        return status !== "finished" || isMine;
-      })
+      .filter(task => task.status?.toLowerCase() !== "finished")
       .map(task => ({
         Subtask: task.subtask,
         Batch: task.batch,
@@ -299,6 +292,8 @@ async function loadTasks() {
       }));
 
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+    const username = currentUser.username?.toLowerCase();
+
     const stillValid = allTasks.some(
       t => t.Subtask === myClaimedTask &&
            t.ClaimedBy?.toLowerCase() === username
@@ -312,6 +307,7 @@ async function loadTasks() {
     console.error("❌ Error loading tasks:", err);
   }
 }
+
 
 
 
