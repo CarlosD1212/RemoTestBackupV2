@@ -78,14 +78,42 @@ app.post("/api/projects", async (req, res) => {
 });
 
 app.get("/api/tasks", async (req, res) => {
+  const username = (req.query.username || "").trim().toLowerCase();
+
+  if (!username) {
+    return res.status(400).json({ status: "error", message: "Missing username" });
+  }
+
   try {
-    const result = await pool.query("SELECT * FROM tasks");
-    res.json(result.rows);
+    const userResult = await pool.query("SELECT role, project FROM users WHERE username = $1", [username]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+    const roles = Array.isArray(user.role) ? user.role : user.role?.split(",") || [];
+    const projects = Array.isArray(user.project) ? user.project : user.project?.split(",") || [];
+
+    // ✅ Si es admin, ver todas las tareas
+    if (roles.includes("admin")) {
+      const all = await pool.query("SELECT * FROM tasks");
+      return res.json(all.rows);
+    }
+
+    // ✅ Si no es admin, filtrar por roles y proyectos
+    const query = `
+      SELECT * FROM tasks
+      WHERE level = ANY($1::text[]) AND project = ANY($2::text[])
+    `;
+    const filtered = await pool.query(query, [roles, projects]);
+    res.json(filtered.rows);
+
   } catch (err) {
     console.error("❌ Error en /api/tasks:", err);
     res.status(500).json({ status: "error", message: "Failed to load tasks" });
   }
 });
+
 
 app.post("/api/tasks", async (req, res) => {
   const tasks = req.body.tasks;
