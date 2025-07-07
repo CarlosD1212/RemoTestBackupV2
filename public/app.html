@@ -489,19 +489,18 @@ finishBtn.onclick = async () => {
       loadTasks();
     });
 
-    socket.on("taskFinished", ({ subtask }) => {
-      const claimed = localStorage.getItem("lastClaimedTask");
-      if (claimed === subtask) {
-        localStorage.removeItem("lastClaimedTask");
-        localStorage.removeItem("claimedAt");
-      }
-      const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-      if (card) {
-        card.remove();
-      } else {
-        loadTasks();
-      }
-    });
+socket.on("taskFinished", ({ subtask }) => {
+  const claimed = localStorage.getItem("lastClaimedTask");
+  if (claimed === subtask) {
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+  }
+
+  // Siempre recargar tareas para desbloquear otras
+  loadTasks();
+});
+
+
   </script>
 </body>
 </html>
