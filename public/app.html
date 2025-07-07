@@ -218,7 +218,7 @@
 </head>
 <body>
   <div class="header-buttons">
-    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+    <button id="adminBtn" onclick="goToAdmin()" style="display: none;">Admin Panel</button>
     <button class="admin-btn" onclick="goToHistory()">View History</button>
     <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
   </div>
@@ -235,26 +235,32 @@
   </div>
 
   <script>
-    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
-    const CLAIM_URL = BASE_URL + "/api/claim";
-    const FINISH_URL = BASE_URL + "/api/mark-finished";
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    const taskContainer = document.getElementById("task-container");
-    const modal = document.getElementById("modal");
-    const modalMessage = document.getElementById("modal-message");
+  const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+  const CLAIM_URL = BASE_URL + "/api/claim";
+  const FINISH_URL = BASE_URL + "/api/mark-finished";
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const taskContainer = document.getElementById("task-container");
+  const modal = document.getElementById("modal");
+  const modalMessage = document.getElementById("modal-message");
 
-    let currentPage = 1;
-    const TASKS_PER_PAGE = 36;
-    let allTasks = [];
+  // Mostrar el botón de admin solo si el usuario tiene rol "admin"
+  const adminBtn = document.getElementById("adminBtn");
+  if (currentUser?.role === "admin" && adminBtn) {
+    adminBtn.style.display = "inline-block";
+  }
 
-    function showModal(message) {
-      modalMessage.textContent = message;
-      modal.style.display = "flex";
-    }
+  let currentPage = 1;
+  const TASKS_PER_PAGE = 36;
+  let allTasks = [];
 
-    function hideModal() {
-      modal.style.display = "none";
-    }
+  function showModal(message) {
+    modalMessage.textContent = message;
+    modal.style.display = "flex";
+  }
+
+  function hideModal() {
+    modal.style.display = "none";
+  }
 
     function goToAdmin() { window.location.href = "admin.html"; }
     function goToHistory() {
