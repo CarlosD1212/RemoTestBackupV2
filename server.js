@@ -155,16 +155,22 @@ app.post("/api/mark-finished", async (req, res) => {
       [task.subtask, task.level, review, email, task.claimed_at, finishedAt, project]
     );
 
-    await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
+    const updateResult = await pool.query(
+      "UPDATE tasks SET status = 'finished' WHERE subtask = $1",
+      [subtask]
+    );
 
-    io.emit("taskFinished", { subtask });
+    if (updateResult.rowCount > 0) {
+      io.emit("taskFinished", { subtask });
+    }
+
     res.json({ status: "success" });
-
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
     res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
+
 
 
 app.get("/api/history", async (req, res) => {

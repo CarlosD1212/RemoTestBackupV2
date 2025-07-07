@@ -496,9 +496,14 @@ socket.on("taskFinished", ({ subtask }) => {
     localStorage.removeItem("claimedAt");
   }
 
-  // Siempre recargar tareas para desbloquear otras
+  // Eliminar la tarjeta directamente si existe (optimización visual)
+  const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+  if (card) card.remove();
+
+  // Recargar tareas para actualizar todo el estado
   loadTasks();
 });
+
 
 
   </script>
