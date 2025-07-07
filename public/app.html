@@ -274,37 +274,55 @@
       return text?.length > 10 ? text.slice(0, 10) + "…" : text;
     }
 
-    async function loadTasks() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
-        const data = await res.json();
+async function loadTasks() {
+  console.log("✅ Ejecutando loadTasks");
 
-        allTasks = data.map(task => ({
-          Subtask: task.subtask,
-          Batch: task.batch,
-          Level: task.level,
-          Status: task.status,
-          ClaimedBy: task.claimed_by,
-          Project: task.project
-        }));
+  try {
+    const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+    const data = await res.json();
 
-allTasks = allTasks.filter(task => {
-  const isMine = task.ClaimedBy?.toLowerCase() === currentUser.username?.toLowerCase();
-  return task.Status !== "finished" || isMine;
-});
+    console.log("🟡 Datos recibidos:", data);
 
+    // Mapeo explícito de campos
+    allTasks = data.map(task => ({
+      Subtask: task.subtask,
+      Batch: task.batch,
+      Level: task.level,
+      Status: task.status,
+      ClaimedBy: task.claimed_by,
+      Project: task.project
+    }));
 
-        const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-        const stillValid = allTasks.some(
-          t => t.Subtask === myClaimedTask && t.ClaimedBy === currentUser.username
-        );
-        if (!stillValid) localStorage.removeItem("lastClaimedTask");
+    const username = currentUser.username?.toLowerCase();
 
-        renderPage(currentPage);
-      } catch (err) {
-        console.error("Error loading tasks:", err);
+    // Mostrar todas las tareas crudas que siguen apareciendo (depuración)
+    console.log("🔵 Mapeadas:", allTasks);
+
+    // Filtro: Ocultar tareas finished que no sean del usuario
+    allTasks = allTasks.filter(task => {
+      const claimedBy = task.ClaimedBy?.toLowerCase() || "";
+      const status = task.Status?.toLowerCase();
+      const isMine = claimedBy === username;
+      const mostrar = status !== "finished" || isMine;
+      if (!mostrar) {
+        console.log("⛔ Ocultando tarea:", task.Subtask, "Status:", status, "ClaimedBy:", claimedBy);
       }
-    }
+      return mostrar;
+    });
+
+    // Validar si la tarea reclamada por el usuario sigue activa
+    const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+    const stillValid = allTasks.some(
+      t => t.Subtask === myClaimedTask && t.ClaimedBy?.toLowerCase() === username
+    );
+    if (!stillValid) localStorage.removeItem("lastClaimedTask");
+
+    renderPage(currentPage);
+  } catch (err) {
+    console.error("❌ Error en loadTasks:", err);
+  }
+}
+
 
     function renderPage(page) {
       const start = (page - 1) * TASKS_PER_PAGE;
