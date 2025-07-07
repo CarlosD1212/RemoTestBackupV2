@@ -218,7 +218,10 @@
 </head>
 <body>
   <div class="header-buttons">
-    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
+    <div id="admin-btn-container" style="display: none;">
+  <button onclick="goToAdmin()">Admin Panel</button>
+</div>
+
     <button class="admin-btn" onclick="goToHistory()">View History</button>
     <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
   </div>
@@ -234,18 +237,27 @@
     </div>
   </div>
 
-  <script>
-    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
-    const CLAIM_URL = BASE_URL + "/api/claim";
-    const FINISH_URL = BASE_URL + "/api/mark-finished";
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    const taskContainer = document.getElementById("task-container");
-    const modal = document.getElementById("modal");
-    const modalMessage = document.getElementById("modal-message");
+<script>
+  const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+  const CLAIM_URL = BASE_URL + "/api/claim";
+  const FINISH_URL = BASE_URL + "/api/mark-finished";
+  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+  const isAdmin = currentUser.role?.includes("admin");
 
-    let currentPage = 1;
-    const TASKS_PER_PAGE = 36;
-    let allTasks = [];
+  // ✅ Mostrar botón solo si es admin
+  if (isAdmin) {
+    document.getElementById("admin-btn-container").style.display = "block";
+  }
+
+  const taskContainer = document.getElementById("task-container");
+  const modal = document.getElementById("modal");
+  const modalMessage = document.getElementById("modal-message");
+
+  let currentPage = 1;
+  const TASKS_PER_PAGE = 36;
+  let allTasks = [];
+</script>
+
 
     function showModal(message) {
       modalMessage.textContent = message;
