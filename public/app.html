@@ -217,11 +217,10 @@
   </style>
 </head>
 <body>
-  <div class="header-buttons">
-    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
-    <button class="admin-btn" onclick="goToHistory()">View History</button>
-    <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
-  </div>
+<div class="header-buttons">
+  <button id="adminPanelBtn" class="admin-btn" onclick="goToAdmin()" style="display: none;">Admin Panel</button>
+  <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
+</div>
 
   <h1>Task Dashboard</h1>
   <div id="task-container"></div>
@@ -257,13 +256,7 @@
     }
 
     function goToAdmin() { window.location.href = "admin.html"; }
-    function goToHistory() {
-      if (currentUser.role === "admin") {
-        window.location.href = "historial.html";
-      } else {
-        alert("Access denied. Admin only.");
-      }
-    }
+
 
     function handleLoginLogout() {
       localStorage.clear();
@@ -478,8 +471,19 @@ finishBtn.onclick = async () => {
       }
     }
 
-    window.addEventListener("DOMContentLoaded", loadTasks);
+ window.addEventListener("DOMContentLoaded", () => {
+  loadTasks();
+
+  // Mostrar botón solo si el usuario tiene rol admin
+  const adminPanelBtn = document.getElementById("adminPanelBtn");
+  const roles = Array.isArray(currentUser.role) ? currentUser.role : [currentUser.role];
+  if (roles.includes("admin")) {
+    adminPanelBtn.style.display = "inline-block";
+  }
+});
   </script>
+
+  
 
 <script src="https://remo-task-manager-production.up.railway.app/socket.io/socket.io.js"></script>
 <script>
@@ -489,6 +493,7 @@ finishBtn.onclick = async () => {
     socket.on("taskClaimed", ({ subtask }) => {
       loadTasks();
     });
+
 
 socket.on("taskFinished", ({ subtask }) => {
   const claimed = localStorage.getItem("lastClaimedTask");
@@ -504,6 +509,8 @@ socket.on("taskFinished", ({ subtask }) => {
   // Recargar tareas para actualizar todo el estado
   setTimeout(loadTasks, 300);
 });
+
+
 
 
 
