@@ -218,7 +218,7 @@
 </head>
 <body>
   <div class="header-buttons">
-    <button id="adminBtn" onclick="goToAdmin()" style="display: none;">Admin Panel</button>
+    <button class="admin-btn" onclick="goToAdmin()">Admin Panel</button>
     <button class="admin-btn" onclick="goToHistory()">View History</button>
     <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
   </div>
@@ -235,60 +235,44 @@
   </div>
 
   <script>
-  const BASE_URL = "https://remo-task-manager-production.up.railway.app";
-  const CLAIM_URL = BASE_URL + "/api/claim";
-  const FINISH_URL = BASE_URL + "/api/mark-finished";
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const TASKS_PER_PAGE = 36;
-  let currentPage = 1;
-  let allTasks = [];
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    const CLAIM_URL = BASE_URL + "/api/claim";
+    const FINISH_URL = BASE_URL + "/api/mark-finished";
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const taskContainer = document.getElementById("task-container");
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modal-message");
 
-  // ✅ Variables globales accesibles para otras funciones
-  const taskContainer = document.getElementById("task-container");
-  const modal = document.getElementById("modal");
-  const modalMessage = document.getElementById("modal-message");
+    let currentPage = 1;
+    const TASKS_PER_PAGE = 36;
+    let allTasks = [];
 
-  // ✅ Mostrar botón admin si el rol es 'admin'
-  document.addEventListener("DOMContentLoaded", () => {
-    const adminBtn = document.getElementById("adminBtn");
-    if (currentUser?.role?.toLowerCase() === "admin" && adminBtn) {
-      adminBtn.style.display = "inline-block";
+    function showModal(message) {
+      modalMessage.textContent = message;
+      modal.style.display = "flex";
     }
-  });
 
-  // ✅ Funciones disponibles globalmente
-  function goToAdmin() {
-    window.location.href = "admin.html";
-  }
-
-  function goToHistory() {
-    if (currentUser.role === "admin") {
-      window.location.href = "historial.html";
-    } else {
-      alert("Access denied. Admin only.");
+    function hideModal() {
+      modal.style.display = "none";
     }
-  }
 
-  function handleLoginLogout() {
-    localStorage.clear();
-    window.location.href = "login.html";
-  }
+    function goToAdmin() { window.location.href = "admin.html"; }
+    function goToHistory() {
+      if (currentUser.role === "admin") {
+        window.location.href = "historial.html";
+      } else {
+        alert("Access denied. Admin only.");
+      }
+    }
 
-  function showModal(message) {
-    modalMessage.textContent = message;
-    modal.style.display = "flex";
-  }
+    function handleLoginLogout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
 
-  function hideModal() {
-    modal.style.display = "none";
-  }
-
-  function truncate(text) {
-    return text?.length > 10 ? text.slice(0, 10) + "…" : text;
-  }
-
-  // ✅ Iniciar carga de tareas cuando DOM esté listo
-  window.addEventListener("DOMContentLoaded", loadTasks);
+    function truncate(text) {
+      return text?.length > 10 ? text.slice(0, 10) + "…" : text;
+    }
 
 
 async function loadTasks() {
