@@ -481,9 +481,10 @@ finishBtn.onclick = async () => {
     window.addEventListener("DOMContentLoaded", loadTasks);
   </script>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
+<script src="https://remo-task-manager-production.up.railway.app/socket.io/socket.io.js"></script>
+<script>
+  const socket = io("https://remo-task-manager-production.up.railway.app");
+
 
     socket.on("taskClaimed", ({ subtask }) => {
       loadTasks();
