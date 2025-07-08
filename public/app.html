@@ -395,6 +395,11 @@ function populateProjectFilter() {
         const card = document.createElement("div");
         card.className = "task-card";
         card.setAttribute("data-subtask", task.Subtask);
+        card.setAttribute("data-subtask", task.Subtask);
+card.setAttribute("data-project", task.Project || "");
+card.setAttribute("data-level", task.Level || "");
+card.setAttribute("data-status", task.Status || "pending");
+card.setAttribute("data-batch", task.Batch || "");
         if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
