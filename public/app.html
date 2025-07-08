@@ -496,6 +496,16 @@ finishBtn.onclick = async () => {
   // Emitir evento al conectar
   socket.emit("userConnected", currentUser.username);
 
+  // Generador de color según inicial
+  const getColorForLetter = (letter) => {
+    const colors = [
+      "#e74c3c", "#8e44ad", "#2980b9", "#27ae60", "#f39c12",
+      "#d35400", "#2c3e50", "#16a085", "#c0392b", "#7f8c8d"
+    ];
+    const index = letter.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
   // Recibir lista de usuarios conectados
   socket.on("activeUsers", (usernames) => {
     const container = document.getElementById("user-avatars");
@@ -503,12 +513,13 @@ finishBtn.onclick = async () => {
     container.innerHTML = "";
     usernames.forEach(name => {
       const avatar = document.createElement("div");
-      avatar.textContent = name.charAt(0).toUpperCase();
+      const initial = name.charAt(0).toUpperCase();
+      avatar.textContent = initial;
       avatar.title = name;
       avatar.style = `
         width: 32px;
         height: 32px;
-        background: #3498db;
+        background: ${getColorForLetter(initial.toLowerCase())};
         color: white;
         border-radius: 50%;
         display: flex;
