@@ -139,23 +139,7 @@
 
   <div class="pagination" id="paginationControls"></div>
 
-  <h2 style="margin-top: 40px;">Bulk Delete Tasks</h2>
-
-<div class="note" style="background: #fef5f5; padding: 14px 18px; border-left: 4px solid #e74c3c; border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
-  Paste the <strong>Subtask IDs</strong> below (one per line or space-separated).<br>
-  Example:<br>
-  <code>123456 654321 998877</code><br>or:<br>
-  <pre style="margin: 6px 0; background: #f4f4f4; padding: 8px; border-radius: 6px;">123456
-654321
-998877</pre>
-</div>
-
-<textarea id="bulkDeleteInput" placeholder="Paste subtasks here..." style="width: 120%; height: 180px; margin-bottom: 12px; padding: 10px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
-<br />
-<button onclick="bulkDeleteTasks()" style="background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Delete Tasks</button>
-
-<div id="bulkDeleteStatus" style="margin-top: 10px; font-weight: bold;"></div>
-
+  
 
   <script>
     const BASE_URL = "https://remo-task-manager-production.up.railway.app"; // tu backend
