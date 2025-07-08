@@ -304,12 +304,7 @@ app.post("/api/update-user", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `UPDATE users
-       SET password = $1,
-           email = $2,
-           role = $3,
-           project = $4
-       WHERE LOWER(username) = $5`,
+      `UPDATE users SET password = $1, email = $2, role = $3, project = $4 WHERE LOWER(username) = $5`,
       [
         password,
         email,
@@ -318,6 +313,17 @@ app.post("/api/update-user", async (req, res) => {
         username.toLowerCase()
       ]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+
+    res.json({ status: "success", message: "User updated" });
+  } catch (err) {
+    console.error("❌ Error updating user:", err);
+    res.status(500).json({ status: "error", message: "Error updating user" });
+  }
+});
 
     if (result.rowCount === 0) {
       return res.status(404).json({ status: "error", message: "User not found" });
