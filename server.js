@@ -137,21 +137,46 @@ app.get("/api/tasks", async (req, res) => {
 
 
 app.post("/api/tasks", async (req, res) => {
-  const tasks = req.body.tasks;
+  const { tasks } = req.body;
+
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ status: "error", message: "No tasks provided" });
+  }
+
   try {
-    for (const task of tasks) {
-      const { subtask, batch, level, project } = task;
-      await pool.query(
-        `INSERT INTO tasks (subtask, batch, level, status, project) VALUES ($1, $2, $3, 'pending', $4)`,
-        [subtask, batch, level, project]
+    const client = await pool.connect();
+
+    const existingSubtasksRes = await client.query(
+      "SELECT subtask FROM tasks WHERE subtask = ANY($1)",
+      [tasks.map(t => t.subtask)]
+    );
+    const existingSubtasks = existingSubtasksRes.rows.map(r => r.subtask);
+
+    const newTasks = tasks.filter(t => !existingSubtasks.includes(t.subtask));
+
+    let inserted = 0;
+
+    for (const task of newTasks) {
+      await client.query(
+        "INSERT INTO tasks (subtask, batch, level, project, status) VALUES ($1, $2, $3, $4, 'pending')",
+        [task.subtask, task.batch, task.level, task.project]
       );
+      inserted++;
     }
-    res.json({ status: "success", message: "Tareas guardadas en PostgreSQL" });
+
+    client.release();
+
+    res.json({
+      status: "success",
+      inserted,
+      skipped: existingSubtasks.length
+    });
   } catch (err) {
-    console.error("❌ Error al guardar tareas:", err);
-    res.status(500).json({ status: "error", message: "No se pudieron guardar las tareas" });
+    console.error("❌ Error inserting tasks:", err);
+    res.status(500).json({ status: "error", message: "Server error" });
   }
 });
+
 
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
@@ -265,36 +290,32 @@ app.post("/api/restore-task", async (req, res) => {
 });
 
 app.post("/api/register-users", async (req, res) => {
+  const users = req.body.users || [];
+
   try {
-    const users = req.body.users;
+    const { rows: existing } = await db.query("SELECT username FROM users");
+    const existingUsers = new Set(existing.map(u => u.username.toLowerCase()));
 
-    for (const user of users) {
-      const { username, password, role, project, email } = user;
-      const uname = username.toLowerCase();
+    const uniqueUsers = users.filter(u => !existingUsers.has(u.username.toLowerCase()));
+    
+    const inserted = [];
 
-      // Asegurar arrays planos
-      const roles = [].concat(role).flat();
-      const projects = [].concat(project).flat();
-
-      const existing = await pool.query("SELECT * FROM users WHERE username = $1", [uname]);
-
-      if (existing.rows.length > 0) {
-        await pool.query(
-          "UPDATE users SET password = $1, role = $2, project = $3, email = $4 WHERE username = $5",
-          [password, roles, projects, email, uname]
-        );
-      } else {
-        await pool.query(
-          "INSERT INTO users (username, password, role, project, email) VALUES ($1, $2, $3, $4, $5)",
-          [uname, password, roles, projects, email]
-        );
-      }
+    for (const user of uniqueUsers) {
+      await db.query(
+        "INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)",
+        [user.username.toLowerCase(), user.password, user.role, user.project]
+      );
+      inserted.push(user.username);
     }
 
-    res.json({ status: "success" });
+    res.json({
+      status: "success",
+      inserted: inserted.length,
+      skipped: users.length - inserted.length
+    });
   } catch (err) {
-    console.error("❌ Error en /api/register-users:", err);
-    res.status(500).json({ status: "error", message: "Failed to register users" });
+    console.error("❌ Error registering users:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
 

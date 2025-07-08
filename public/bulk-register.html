@@ -121,10 +121,12 @@
 
       const json = await res.json();
       if (json.status === "success") {
-        showStatus("Users registered successfully!", "success");
-        document.getElementById("bulkInput").value = "";
+      const inserted = json.inserted || 0;
+      const skipped = json.skipped || 0;
+      showStatus(` Inserted: ${inserted} |  Duplicates skipped: ${skipped}`, "success");
+      document.getElementById("bulkInput").value = "";
       } else {
-        showStatus(json.message || "Error registering users", "error");
+      showStatus(json.message || "Error registering users", "error");
       }
     }
 

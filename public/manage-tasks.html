@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Tasks</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+ .table-container {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  overflow-x: auto;
+}
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .back-button {
+      margin-bottom: 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
+     
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+        min-width: 140px; /* Mantienes el ancho mínimo para inputs */
+}
+    
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+th {
+  background: #f0f2f5;
+  text-align: left;
+  padding: 12px 10px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+td {
+  padding: 10px;
+  border-top: 1px solid #e6e6e6;
+  font-size: 14px;
+  color: #333;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .btn-delete {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-restore {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pagination button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: bold;
+  font-size: 14px;
+  align-self: center;
+}
+
+    .btn-danger {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+
+    <h1>Manage Tasks</h1>
+
+    <input type="text" id="taskSearch" placeholder="Search tasks...">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Subtask</th>
+          <th>Batch</th>
+          <th>Level</th>
+          <th>Status</th>
+          <th>Claimed By</th>
+          <th>Project</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="taskTableBody"></tbody>
+    </table>
+
+  <div class="pagination">
+  <button onclick="prevPage()" id="prevBtn">Prev</button>
+  <span id="pageIndicator">1 / 4</span>
+  <button onclick="nextPage()" id="nextBtn">Next</button>
+</div>
+
+
+  
+
+  <script>
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app"; // tu backend
+    let allTasks = [];
+    let currentPage = 1;
+    const TASKS_PER_PAGE = 10;
+
+    async function loadTasks() {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+      const data = await res.json();
+      allTasks = data; // mostramos todas
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const tbody = document.getElementById("taskTableBody");
+      const search = document.getElementById("taskSearch").value.toLowerCase();
+
+      const filtered = allTasks.filter(t =>
+        t.subtask.toLowerCase().includes(search) ||
+        t.batch.toLowerCase().includes(search) ||
+        t.level.toLowerCase().includes(search) ||
+        t.status.toLowerCase().includes(search) ||
+        (t.claimed_by || "").toLowerCase().includes(search) ||
+        (t.project || "").toLowerCase().includes(search)
+      );
+
+      const start = (currentPage - 1) * TASKS_PER_PAGE;
+      const end = start + TASKS_PER_PAGE;
+      const tasksToShow = filtered.slice(start, end);
+
+      tbody.innerHTML = "";
+      tasksToShow.forEach(t => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${t.subtask}</td>
+          <td>${t.batch}</td>
+          <td>${t.level}</td>
+          <td>${t.status}</td>
+          <td>${t.claimed_by || "-"}</td>
+          <td>${t.project}</td>
+          <td>
+            <button class="btn-danger" onclick="deleteTask('${t.subtask}')">Delete</button>
+            
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      renderPagination(filtered.length);
+    }
+
+    function renderPagination(total) {
+      const controls = document.getElementById("paginationControls");
+      const pages = Math.ceil(total / TASKS_PER_PAGE);
+      controls.innerHTML = "";
+
+      for (let i = 1; i <= pages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.disabled = true;
+        btn.onclick = () => {
+          currentPage = i;
+          renderTasks();
+        };
+        controls.appendChild(btn);
+      }
+    }
+
+    async function deleteTask(subtask) {
+      if (!confirm(`Are you sure you want to delete subtask "${subtask}"?`)) return;
+
+      const res = await fetch(`${BASE_URL}/api/delete-task`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtask })
+      });
+
+      const result = await res.json();
+      if (result.status === "success") {
+        alert("Task deleted.");
+        await loadTasks();
+      } else {
+        alert("Error: " + result.message);
+      }
+    }
+
+    async function restoreTask(subtask) {
+      const res = await fetch(`${BASE_URL}/api/restore-task`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtask })
+      });
+
+      const result = await res.json();
+      if (result.status === "success") {
+        alert("Task restored.");
+        await loadTasks();
+      } else {
+        alert("Error: " + result.message);
+      }
+    }
+
+    document.getElementById("taskSearch").addEventListener("input", () => {
+      currentPage = 1;
+      renderTasks();
+    });
+
+    window.addEventListener("DOMContentLoaded", loadTasks);
+
+    async function bulkDeleteTasks() {
+  const input = document.getElementById("bulkDeleteInput").value.trim();
+  const rawSubtasks = input.split(/\s+/);
+  const subtasks = rawSubtasks.filter(s => s !== "");
+  const statusDiv = document.getElementById("bulkDeleteStatus");
+
+  if (subtasks.length === 0) {
+    statusDiv.style.color = "red";
+    statusDiv.textContent = "No subtasks provided.";
+    return;
+  }
+
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (const subtask of subtasks) {
+    const res = await fetch(`${BASE_URL}/api/delete-task`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtask })
+    });
+
+    const result = await res.json();
+    if (result.status === "success") {
+      successCount++;
+    } else {
+      errorCount++;
+    }
+  }
+
+  statusDiv.style.color = "#2ecc71";
+  statusDiv.textContent = `✅ Deleted: ${successCount}, ❌ Errors: ${errorCount}`;
+  document.getElementById("bulkDeleteInput").value = "";
+  await loadTasks(); // recarga tabla
+}
+
+  </script>
+</body>
+</html>
