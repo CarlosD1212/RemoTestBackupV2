@@ -217,10 +217,14 @@
   </style>
 </head>
 <body>
+
+  
 <div class="header-buttons">
   <button id="adminPanelBtn" class="admin-btn" onclick="goToAdmin()" style="display: none;">Admin Panel</button>
   <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
 </div>
+
+<div id="user-avatars" style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 10px;"></div>
 
   <h1>Task Dashboard</h1>
   <div id="task-container"></div>
@@ -489,31 +493,53 @@ finishBtn.onclick = async () => {
 <script>
   const socket = io("https://remo-task-manager-production.up.railway.app");
 
+  // Emitir evento al conectar
+  socket.emit("userConnected", currentUser.username);
 
-    socket.on("taskClaimed", ({ subtask }) => {
-      loadTasks();
+  // Recibir lista de usuarios conectados
+  socket.on("activeUsers", (usernames) => {
+    const container = document.getElementById("user-avatars");
+    if (!container) return;
+    container.innerHTML = "";
+    usernames.forEach(name => {
+      const avatar = document.createElement("div");
+      avatar.textContent = name.charAt(0).toUpperCase();
+      avatar.title = name;
+      avatar.style = `
+        width: 32px;
+        height: 32px;
+        background: #3498db;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+      `;
+      container.appendChild(avatar);
     });
+  });
 
+  // Evento: tarea reclamada
+  socket.on("taskClaimed", ({ subtask }) => {
+    loadTasks();
+  });
 
-socket.on("taskFinished", ({ subtask }) => {
-  const claimed = localStorage.getItem("lastClaimedTask");
-  if (claimed === subtask) {
-    localStorage.removeItem("lastClaimedTask");
-    localStorage.removeItem("claimedAt");
-  }
+  // Evento: tarea finalizada
+  socket.on("taskFinished", ({ subtask }) => {
+    const claimed = localStorage.getItem("lastClaimedTask");
+    if (claimed === subtask) {
+      localStorage.removeItem("lastClaimedTask");
+      localStorage.removeItem("claimedAt");
+    }
 
-  // Eliminar la tarjeta directamente si existe (optimización visual)
-  const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-  if (card) card.remove();
+    const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+    if (card) card.remove();
 
-  // Recargar tareas para actualizar todo el estado
-  setTimeout(loadTasks, 300);
-});
+    setTimeout(loadTasks, 300);
+  });
+</script>
 
-
-
-
-
-  </script>
 </body>
 </html>

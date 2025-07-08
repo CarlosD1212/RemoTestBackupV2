@@ -32,9 +32,26 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+const connectedUsers = {}; // Lista de usuarios activos por socket.id
+
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado:", socket.id);
+
+  socket.on("userConnected", (username) => {
+    connectedUsers[socket.id] = username;
+    console.log(`👤 ${username} se ha conectado.`);
+    io.emit("activeUsers", Object.values(connectedUsers));
+  });
+
+  socket.on("disconnect", () => {
+    const username = connectedUsers[socket.id];
+    console.log(`🔴 Cliente desconectado: ${socket.id} (${username || "desconocido"})`);
+    delete connectedUsers[socket.id];
+    io.emit("activeUsers", Object.values(connectedUsers));
+  });
 });
+
+
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
@@ -51,7 +68,11 @@ app.post("/api/login", async (req, res) => {
     console.error("❌ Error login:", err);
     res.status(500).json({ status: "error", message: "Internal login error" });
   }
+
+  
 });
+
+
 
 app.get("/api/projects", async (req, res) => {
   try {
