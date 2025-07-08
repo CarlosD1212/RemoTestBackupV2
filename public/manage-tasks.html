@@ -34,11 +34,13 @@
     }
 
     input[type="text"] {
-      width: 100%;
+     
       padding: 10px;
       margin-bottom: 20px;
       border-radius: 6px;
       border: 1px solid #ccc;
+        min-width: 140px; /* Mantienes el ancho mínimo para inputs */
+}
     }
 
     table {
@@ -148,7 +150,7 @@
 998877</pre>
 </div>
 
-<textarea id="bulkDeleteInput" placeholder="Paste subtasks here..." style="width: 100%; height: 180px; margin-bottom: 12px; padding: 10px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
+<textarea id="bulkDeleteInput" placeholder="Paste subtasks here..." style="width: 120%; height: 180px; margin-bottom: 12px; padding: 10px; border-radius: 6px; border: 1px solid #ccc;"></textarea>
 <br />
 <button onclick="bulkDeleteTasks()" style="background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Delete Tasks</button>
 
