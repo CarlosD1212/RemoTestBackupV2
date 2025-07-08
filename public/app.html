@@ -204,16 +204,15 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    .project-badge-inline {
-      display: inline-block;
-      background: #3498db;
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 2px 10px;
-      border-radius: 20px;
-      margin-top: 6px;
-    }
+.project-badge-inline {
+  display: inline-block;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
 
     #user-avatars {
     display: flex;
@@ -402,6 +401,15 @@ function populateProjectFilter() {
   }
 }
 
+function getColorFromProject(projectName) {
+  let hash = 0;
+  for (let i = 0; i < projectName.length; i++) {
+    hash = projectName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = hash % 360;
+  return `hsl(${hue}, 65%, 72%)`; // Puedes ajustar saturación y luminosidad
+}
+
 function renderPage(page) {
   const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
 
@@ -450,9 +458,11 @@ card.innerHTML = `
   </div>
   <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
 
-  <div style="margin-bottom: 6px;">
-    <span class="project-badge-inline">${task.Project}</span>
-  </div>
+<div style="margin-bottom: 6px;">
+  <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
+    ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
+  </span>
+</div>
   <div class="actions"></div>
 `;
 
@@ -760,6 +770,8 @@ socket.on("activeUsers", (usernames) => {
   [filterProject, filterLevel, filterStatus, filterBatch].forEach(el => {
     el.addEventListener("input", applyFilters);
   });
+
+  
 </script>
 
 </body>
