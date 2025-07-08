@@ -223,6 +223,16 @@
   max-width: 100%;
   padding: 4px 0;
 }
+#filters select {
+  width: 200px; /* Ancho fijo */
+  margin-left: 40px;
+}
+
+#filters input {
+  min-width: 140px; /* Mantienes el ancho mínimo para inputs */
+  margin-top: 9px;
+  margin-left: 30px;
+}
   </style>
 </head>
 <body>
@@ -233,9 +243,38 @@
   <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
 </div>
 
+
+
 <div id="user-avatars" style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 10px;"></div>
 
+
+
   <h1>Task Dashboard</h1>
+
+<div id="filters" style="display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; align-items: center;">
+  <select id="filter-project" style="padding: 6px 10px; border-radius: 6px; min-width: 150px;">
+    <option value="">All Projects</option>
+  </select>
+
+  <select id="filter-level" style="padding: 6px 10px; border-radius: 6px; min-width: 120px;">
+    <option value="">All Levels</option>
+    <option value="-1">-1</option>
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="10">10</option>
+  </select>
+
+  <select id="filter-status" style="padding: 6px 10px; border-radius: 6px; min-width: 140px;">
+    <option value="">All Statuses</option>
+    <option value="pending">Pending</option>
+    <option value="claimed">Claimed</option>
+    <option value="finished">Finished</option>
+  </select>
+
+  <input type="text" id="filter-batch" placeholder="Search Batch…" style="padding: 6px 10px; border-radius: 6px; min-width: 160px; border: 1px solid #ccc;" />
+</div>
+
+
   <div id="task-container"></div>
   <div id="pagination"></div>
 
@@ -314,11 +353,33 @@ async function loadTasks() {
   }
 }
 
+function populateProjectFilter() {
+  const select = document.getElementById("filter-project");
+  const projects = new Set();
 
+  document.querySelectorAll(".task-card").forEach(card => {
+    const project = card.getAttribute("data-project");
+    if (project) projects.add(project);
+  });
 
+  // Limpiar opciones anteriores excepto "All Projects"
+  const currentValue = select.value;
+  select.innerHTML = `<option value="">All Projects</option>`;
 
+  Array.from(projects).sort().forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  });
 
-    function renderPage(page) {
+  // Restaurar selección si es posible
+  if ([...select.options].some(o => o.value === currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+      function renderPage(page) {
       const start = (page - 1) * TASKS_PER_PAGE;
       const end = start + TASKS_PER_PAGE;
       const tasksToShow = allTasks.slice(start, end);
@@ -592,6 +653,41 @@ socket.on("activeUsers", (usernames) => {
     if (card) card.remove();
 
     setTimeout(loadTasks, 300);
+  });
+
+    const filterProject = document.getElementById("filter-project");
+  const filterLevel = document.getElementById("filter-level");
+  const filterStatus = document.getElementById("filter-status");
+  const filterBatch = document.getElementById("filter-batch");
+
+  function applyFilters() {
+    const project = filterProject.value.toLowerCase();
+    const level = filterLevel.value.toLowerCase();
+    const status = filterStatus.value.toLowerCase();
+    const batch = filterBatch.value.toLowerCase();
+
+    document.querySelectorAll(".task-card").forEach(card => {
+      const cardProject = card.getAttribute("data-project")?.toLowerCase() || "";
+      const cardLevel = card.getAttribute("data-level")?.toLowerCase() || "";
+      const cardStatus = card.getAttribute("data-status")?.toLowerCase() || "";
+      const cardBatch = card.getAttribute("data-batch")?.toLowerCase() || "";
+
+      const matchProject = project === "" || project === "all" || cardProject === project;
+      const matchLevel = level === "" || level === "all" || cardLevel === level;
+      const matchStatus = status === "" || status === "all" || cardStatus === status;
+      const matchBatch = cardBatch.includes(batch);
+
+      if (matchProject && matchLevel && matchStatus && matchBatch) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+  }
+
+  // Escuchamos cambios en todos los filtros
+  [filterProject, filterLevel, filterStatus, filterBatch].forEach(el => {
+    el.addEventListener("input", applyFilters);
   });
 </script>
 
