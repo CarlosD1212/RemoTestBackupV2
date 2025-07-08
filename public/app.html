@@ -214,6 +214,15 @@
       border-radius: 20px;
       margin-top: 6px;
     }
+
+    #user-avatars {
+    display: flex;
+    gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 4px 0;
+}
   </style>
 </head>
 <body>
@@ -506,31 +515,65 @@ finishBtn.onclick = async () => {
     return colors[index];
   };
 
-  // Recibir lista de usuarios conectados
-  socket.on("activeUsers", (usernames) => {
-    const container = document.getElementById("user-avatars");
-    if (!container) return;
-    container.innerHTML = "";
-    usernames.forEach(name => {
-      const avatar = document.createElement("div");
-      const initial = name.charAt(0).toUpperCase();
-      avatar.textContent = initial;
-      avatar.title = name;
-      avatar.style = `
-        width: 32px;
-        height: 32px;
-        background: ${getColorForLetter(initial.toLowerCase())};
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: bold;
-      `;
-      container.appendChild(avatar);
-    });
+socket.on("activeUsers", (usernames) => {
+  const container = document.getElementById("user-avatars");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const getColorForLetter = (letter) => {
+    const colors = [
+      "#e74c3c", "#8e44ad", "#2980b9", "#27ae60", "#f39c12",
+      "#d35400", "#2c3e50", "#16a085", "#c0392b", "#7f8c8d"
+    ];
+    const index = letter.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const maxVisible = 10;
+  const visibleUsers = usernames.slice(0, maxVisible);
+  const extraUsers = usernames.slice(maxVisible);
+
+  visibleUsers.forEach(name => {
+    const avatar = document.createElement("div");
+    const initial = name.charAt(0).toUpperCase();
+    avatar.textContent = initial;
+    avatar.title = name;
+    avatar.style = `
+      width: 32px;
+      height: 32px;
+      background: ${getColorForLetter(initial.toLowerCase())};
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    `;
+    container.appendChild(avatar);
   });
+
+  if (extraUsers.length > 0) {
+    const more = document.createElement("div");
+    more.textContent = `+${extraUsers.length}`;
+    more.title = extraUsers.join(", ");
+    more.style = `
+      width: 32px;
+      height: 32px;
+      background: #bdc3c7;
+      color: black;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: default;
+    `;
+    container.appendChild(more);
+  }
+});
+
 
   // Evento: tarea reclamada
   socket.on("taskClaimed", ({ subtask }) => {
