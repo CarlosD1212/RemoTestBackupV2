@@ -244,6 +244,24 @@
   text-decoration: underline;
   color: #2980b9;
 }
+
+.optional-review {
+  margin-top: 6px;
+  margin-right: 8px;
+  padding: 4px 10px;
+  background: #ecf0f1;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.optional-review.active {
+  background: #3498db;
+  color: white;
+  border-color: #2980b9;
+}
   </style>
 </head>
 <body>
@@ -515,20 +533,42 @@ claimBtn.onclick = async () => {
   }
 };
 
-           populateProjectFilter();
-        }
+  populateProjectFilter();
+ }
         
+ 
 
-        const select = document.createElement("select");
-        select.disabled = !isMine;
-        select.innerHTML = `
-          <option value="">Review option</option>
-          <option value="Good Task">Good Task</option>
-          <option value="Bad Task">Bad Task</option>
-          <option value="Attribute Error">Attribute Error</option>
-          <option value="Geometry Error">Geometry Error</option>
-          <option value="Spammer Task">Spammer Task</option>
-        `;
+// Crear el selector
+const select = document.createElement("select");
+select.className = "review-select";
+select.disabled = !isMine;
+select.innerHTML = `
+  <option value="">Review option</option>
+  <option value="Good Task">Good Task</option>
+  <option value="Bad Task">Bad Task</option>
+  <option value="Attribute Error">Attribute Error</option>
+  <option value="Geometry Error">Geometry Error</option>
+  <option value="Spammer Task">Spammer Task</option>
+  <option value="Objetos faltantes">Objetos faltantes</option>
+  <option value="Mal posicionamiento">Mal posicionamiento</option>
+`;
+
+// Crear botones opcionales por separado
+const optionalContainer = document.createElement("div");
+optionalContainer.className = "optional-review-buttons";
+
+["Good data", "Bad data"].forEach(label => {
+  const btn = document.createElement("button");
+  btn.textContent = label;
+  btn.className = "optional-review";
+  btn.dataset.value = label;
+  if (!isMine) btn.disabled = true;
+  optionalContainer.appendChild(btn);
+});
+
+// Luego agregar ambos al contenedor de la tarjeta:
+card.appendChild(select);
+card.appendChild(optionalContainer);
 
         const finishBtn = document.createElement("button");
         finishBtn.className = "finish-btn";
@@ -536,6 +576,8 @@ claimBtn.onclick = async () => {
         finishBtn.disabled = true;
 
         select.onchange = () => finishBtn.disabled = !select.value;
+
+  
 
 finishBtn.onclick = async () => {
   const payload = {
@@ -609,6 +651,33 @@ finishBtn.onclick = async () => {
         });
       });
     }
+
+      function finishTask(subtask) {
+    const card = document.querySelector(`[data-subtask="${subtask}"]`);
+    const select = card.querySelector(".review-select");
+    const selectedReview = select.value.trim();
+
+    if (!selectedReview) {
+      alert("Please select a main review option.");
+      return;
+    }
+
+    const optionalButtons = card.querySelectorAll(".optional-review.active");
+    const optionalValues = Array.from(optionalButtons).map(btn => btn.dataset.value);
+    const combinedReview = [selectedReview, ...optionalValues].join(", ");
+
+    fetch(`${BASE_URL}/api/mark-finished`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtask, review: combinedReview, username: currentUser.username })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if (json.status === "success") {
+        card.remove(); // o card.style.display = "none";
+      }
+    });
+  }
 
     function renderPagination() {
       const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE);
@@ -770,6 +839,27 @@ socket.on("activeUsers", (usernames) => {
   [filterProject, filterLevel, filterStatus, filterBatch].forEach(el => {
     el.addEventListener("input", applyFilters);
   });
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("optional-review")) {
+    e.preventDefault();
+
+    const container = e.target.closest(".optional-review-buttons");
+    const buttons = container.querySelectorAll(".optional-review");
+
+    // Si el botón clicado ya estaba activo, lo desactivamos
+    const wasActive = e.target.classList.contains("active");
+
+    // Desactivar todos
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    // Si no estaba activo antes, activamos solo el clicado
+    if (!wasActive) {
+      e.target.classList.add("active");
+    }
+  }
+});
+
 
   
 </script>
