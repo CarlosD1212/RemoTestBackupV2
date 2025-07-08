@@ -392,15 +392,15 @@ function populateProjectFilter() {
         const isClaimedByOther = task.ClaimedBy && !isMine;
         const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
 
-        const card = document.createElement("div");
-        card.className = "task-card";
-        card.setAttribute("data-subtask", task.Subtask);
-        card.setAttribute("data-subtask", task.Subtask);
-card.setAttribute("data-project", task.Project || "");
-card.setAttribute("data-level", task.Level || "");
-card.setAttribute("data-status", task.Status || "pending");
-card.setAttribute("data-batch", task.Batch || "");
-        if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
+const card = document.createElement("div");
+card.className = "task-card";
+card.setAttribute("data-subtask", task.Subtask);
+card.setAttribute("data-project", task.Project?.toLowerCase() || "");
+card.setAttribute("data-level", task.Level?.toString().toLowerCase() || "");
+card.setAttribute("data-status", task.Status?.toLowerCase() || "");
+card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
+
+if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
           <div style="display: flex; align-items: center;">
@@ -458,7 +458,9 @@ card.setAttribute("data-batch", task.Batch || "");
               loadTasks();
             }
           };
+           populateProjectFilter();
         }
+        
 
         const select = document.createElement("select");
         select.disabled = !isMine;
