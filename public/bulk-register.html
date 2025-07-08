@@ -43,7 +43,7 @@
       background: #2980b9;
     }
 
-   .note {
+    .note {
       background: #ecf6fc;
       padding: 14px 20px;
       border-left: 4px solid #3498db;
@@ -54,12 +54,12 @@
     }
 
     pre {
-  background: #f4f4f4;
-  padding: 10px;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-family: monospace;
-}
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: monospace;
+    }
 
     .success, .error {
       margin-top: 10px;
@@ -82,13 +82,13 @@
 <body>
   <h1>Bulk User Registration</h1>
 
-<div class="note">
-  <strong>📌 Format Instructions</strong>
-  <p>Paste one user per line in the following format:</p>
-  <code><strong>username password email role project</strong></code>
-  <p>Example:</p>
-  <pre>johndoe pass123 john@example.com 1 ProjectX</pre>
-</div>
+  <div class="note">
+    <strong>📌 Format Instructions</strong>
+    <p>Paste one user per line in the following format:</p>
+    <code><strong>username password email role project</strong></code>
+    <p>Example:</p>
+    <pre>johndoe pass123 john@example.com 1 ProjectX</pre>
+  </div>
 
   <textarea id="bulkInput" placeholder="username password email role project"></textarea>
   <button onclick="submitUsers()">Register Users</button>
@@ -107,26 +107,31 @@
         const [username, password, email, role, project] = line.trim().split(/\s+/);
 
         if (!username || !password || !email || !role || !project) {
-          showStatus("Invalid format in line: " + line, "error");
+          showStatus("❌ Invalid format in line: " + line, "error");
           return;
         }
+
         users.push({ username, password, email, role, project });
       }
 
-      const res = await fetch(`${BASE_URL}/api/register-users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users })
-      });
+      try {
+        const res = await fetch(`${BASE_URL}/api/register-users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ users })
+        });
 
-      const json = await res.json();
-      if (json.status === "success") {
-      const inserted = json.inserted || 0;
-      const skipped = json.skipped || 0;
-      showStatus(` Inserted: ${inserted} |  Duplicates skipped: ${skipped}`, "success");
-      document.getElementById("bulkInput").value = "";
-      } else {
-      showStatus(json.message || "Error registering users", "error");
+        const json = await res.json();
+        if (json.status === "success") {
+          const inserted = json.inserted || 0;
+          const skipped = json.skipped || 0;
+          showStatus(`✅ Inserted: ${inserted} | ⛔ Duplicates skipped: ${skipped}`, "success");
+          document.getElementById("bulkInput").value = "";
+        } else {
+          showStatus("❌ Error: " + (json.message || "Server error"), "error");
+        }
+      } catch (err) {
+        showStatus("❌ Network error: " + err.message, "error");
       }
     }
 
