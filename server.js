@@ -325,17 +325,6 @@ app.post("/api/update-user", async (req, res) => {
   }
 });
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ status: "error", message: "User not found" });
-    }
-
-    res.json({ status: "success", message: "User updated" });
-  } catch (err) {
-    console.error("❌ Error updating user:", err);
-    res.status(500).json({ status: "error", message: "Error updating user" });
-  }
-});
-
 
 
 
