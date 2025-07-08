@@ -233,6 +233,18 @@
   margin-top: 9px;
   margin-left: 30px;
 }
+
+.subtask-text, .batch-text {
+  color: #3498db;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.subtask-text:hover, .batch-text:hover {
+  text-decoration: underline;
+  color: #2980b9;
+}
   </style>
 </head>
 <body>
@@ -423,18 +435,26 @@ function renderPage(page) {
 
     if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
-        card.innerHTML = `
-          <div style="display: flex; align-items: center;">
-            <b style="margin-right: 4px;">Subtask:</b>
-            <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
-            <button class="copy-icon" data-subtask="${task.Subtask}">📋</button>
-          </div>
-          <br/>
-          <b>Batch:</b> ${truncate(task.Batch)}<br/>
-          <b>Level:</b> ${task.Level}<br/>
-          <span class="project-badge-inline">${task.Project}</span><br/>
-          <div class="actions"></div>
-        `;
+card.innerHTML = `
+  <div style="display: flex; align-items: center; margin-bottom: 4px;">
+    <b style="margin-right: 4px;">Subtask:</b>
+    <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
+    
+  </div>
+<div style="display: flex; align-items: center; margin-bottom: 2px;">
+  <b style="margin-right: 4px;">Batch:</b>
+  <span class="batch-text" data-full="${task.Batch}" title="Click to copy">${truncate(task.Batch)}</span>
+</div>
+  <div style="margin-bottom: 2px;">
+    <b>Level:</b> ${task.Level}
+  </div>
+  <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
+
+  <div style="margin-bottom: 6px;">
+    <span class="project-badge-inline">${task.Project}</span>
+  </div>
+  <div class="actions"></div>
+`;
 
         const actions = card.querySelector(".actions");
 
@@ -471,6 +491,7 @@ claimBtn.onclick = async () => {
     modalMessage.textContent = "Reclama tu tarea en Open Task";
 
     // 🔥 Esta llamada será suficiente y ya calcula la página correcta
+    
     setTimeout(() => {
       hideModal();
       loadTasks(); // ✅ no sobrescribas currentPage después de esto
@@ -536,6 +557,8 @@ finishBtn.onclick = async () => {
 };
 
 
+
+
         actions.appendChild(claimBtn);
         actions.appendChild(select);
         actions.appendChild(finishBtn);
@@ -553,6 +576,21 @@ finishBtn.onclick = async () => {
           });
         });
       });
+
+ taskContainer.querySelectorAll(".batch-text").forEach(span => {
+  span.onclick = () => {
+    const fullText = span.getAttribute("data-full");
+    navigator.clipboard.writeText(fullText);
+
+    // Mostrar mensaje visual "Copied!"
+    const original = span.textContent;
+    span.textContent = "Copied!";
+    setTimeout(() => {
+      span.textContent = truncate(fullText); // usa truncate si ya lo usas
+    }, 1000);
+  };
+});
+
 
       document.querySelectorAll(".copy-icon").forEach(btn => {
         btn.addEventListener("click", () => {
