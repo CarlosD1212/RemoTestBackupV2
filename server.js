@@ -293,17 +293,25 @@ app.post("/api/register-users", async (req, res) => {
   const users = req.body.users || [];
 
   try {
-    const { rows: existing } = await db.query("SELECT username FROM users");
+    const { rows: existing } = await pool.query("SELECT username FROM users");
     const existingUsers = new Set(existing.map(u => u.username.toLowerCase()));
 
-    const uniqueUsers = users.filter(u => !existingUsers.has(u.username.toLowerCase()));
-    
+    const uniqueUsers = users.filter(u =>
+      !existingUsers.has(u.username.toLowerCase())
+    );
+
     const inserted = [];
 
     for (const user of uniqueUsers) {
-      await db.query(
-        "INSERT INTO users (username, password, role, project) VALUES ($1, $2, $3, $4)",
-        [user.username.toLowerCase(), user.password, user.role, user.project]
+      await pool.query(
+        "INSERT INTO users (username, password, email, role, project) VALUES ($1, $2, $3, $4, $5)",
+        [
+          user.username.toLowerCase(),
+          user.password,
+          user.email,
+          Array.isArray(user.role) ? user.role : user.role.split(','),
+          Array.isArray(user.project) ? user.project : user.project.split(',')
+        ]
       );
       inserted.push(user.username);
     }
@@ -318,6 +326,7 @@ app.post("/api/register-users", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
 
 
 
