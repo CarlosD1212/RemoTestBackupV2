@@ -271,30 +271,29 @@
       }
     }
 
-    async function updateUser(user) {
-      const original = users.find(u => u.username === user.username);
-      const updatedUser = {
-        username: original.username.toLowerCase(),
-        password: "temporal123", // ⚠️ temporal
-        email: original.email || "no@email.com",
-        role: user.role || [],
-        project: user.project || []
-      };
+async function updateUser(user) {
+  const updatedUser = {
+    username: user.username.toLowerCase(),
+    password: "temporal123", // ⚠️ temporal o puedes agregar input real si quieres editarlo
+    email: user.email || "no@email.com",
+    role: user.role || [],
+    project: user.project || []
+  };
 
-      const res = await fetch(`${BASE_URL}/api/register-users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users: [updatedUser] })
-      });
+  const res = await fetch(`${BASE_URL}/api/update-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedUser)
+  });
 
-      const json = await res.json();
-      if (json.status === "success") {
-        closeModal();
-        loadUsers();
-      } else {
-        alert(json.message || "Error updating user.");
-      }
-    }
+  const json = await res.json();
+  if (json.status === "success") {
+    closeModal();
+    loadUsers();
+  } else {
+    alert(json.message || "Error updating user.");
+  }
+}
 
     window.addEventListener("DOMContentLoaded", async () => {
       await fetchProjects();
