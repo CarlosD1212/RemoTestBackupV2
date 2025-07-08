@@ -295,8 +295,8 @@ if (result.status === "success") {
     }
 
     function goToManageUsers() {
-  window.location.href = "manage-users.html";
-}
+    window.location.href = "manage-users.html";
+    }
 
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -304,13 +304,13 @@ if (result.status === "success") {
     });
 
     document.getElementById("projectForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const newProject = document.getElementById("newProject").value.trim();
-  if (!newProject) {
+    const newProject = document.getElementById("newProject").value.trim();
+    if (!newProject) {
     alert("Please enter a project name.");
     return;
-  }
+    }
 
   const res = await fetch(PROJECT_URL, {
     method: "POST",
@@ -320,10 +320,11 @@ if (result.status === "success") {
 
   const json = await res.json();
 if (json.status === "success") {
-  alert(` Inserted: ${json.inserted} |  Duplicates skipped: ${json.skipped}`);
-  document.getElementById("taskForm").reset();
+  alert("✅ Project added successfully.");
+  document.getElementById("projectForm").reset();
+  loadProjects(); // recargar el selector
 } else {
-  alert("Error uploading tasks.");
+  alert("❌ Error adding project: " + (json.message || ""));
 }
 });
 

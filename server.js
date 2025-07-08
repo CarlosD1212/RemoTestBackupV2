@@ -90,13 +90,19 @@ app.post("/api/projects", async (req, res) => {
     return res.status(400).json({ status: "error", message: "Project name is required" });
   }
   try {
+    const existing = await pool.query("SELECT 1 FROM projects WHERE name = $1", [name]);
+    if (existing.rowCount > 0) {
+      return res.json({ status: "success", inserted: 0, skipped: 1 });
+    }
+
     await pool.query("INSERT INTO projects (name) VALUES ($1)", [name]);
-    res.json({ status: "success", message: "Project added" });
+    res.json({ status: "success", inserted: 1, skipped: 0 });
   } catch (err) {
     console.error("❌ Error adding project:", err);
     res.status(500).json({ status: "error", message: "Could not add project" });
   }
 });
+
 
 app.get("/api/tasks", async (req, res) => {
   const username = (req.query.username || "").trim().toLowerCase();
