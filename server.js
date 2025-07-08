@@ -356,3 +356,38 @@ app.get("/api/users", async (req, res) => {
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
+app.post("/api/register-users", async (req, res) => {
+  const users = req.body.users || [];
+
+  try {
+    const { rows: existing } = await pool.query("SELECT username FROM users");
+    const existingUsers = new Set(existing.map(u => u.username.toLowerCase()));
+
+    const uniqueUsers = users.filter(u => !existingUsers.has(u.username.toLowerCase()));
+    const inserted = [];
+
+    for (const user of uniqueUsers) {
+      await pool.query(
+        "INSERT INTO users (username, password, email, role, project) VALUES ($1, $2, $3, $4, $5)",
+        [
+          user.username.toLowerCase(),
+          user.password,
+          user.email || "",
+          Array.isArray(user.role) ? user.role : user.role.split(","),
+          Array.isArray(user.project) ? user.project : user.project.split(",")
+        ]
+      );
+      inserted.push(user.username.toLowerCase());
+    }
+
+    res.json({
+      status: "success",
+      inserted: inserted.length,
+      skipped: users.length - inserted.length
+    });
+  } catch (err) {
+    console.error("❌ Error registering users:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
