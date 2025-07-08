@@ -393,34 +393,35 @@ function populateProjectFilter() {
 function renderPage(page) {
   const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
 
-  // Reordenar allTasks colocando tu tarea al inicio
-  const sortedTasks = [...allTasks].sort((a, b) => {
-    if (a.Subtask === myClaimedTask) return -1;
-    if (b.Subtask === myClaimedTask) return 1;
-    return 0;
-  });
-
   const start = (page - 1) * TASKS_PER_PAGE;
   const end = start + TASKS_PER_PAGE;
-  const tasksToShow = sortedTasks.slice(start, end);
+  const tasksToShow = allTasks.slice(start, end); // Usamos allTasks sin ordenar globalmente
+
+  // Mover la tarea reclamada a la primera posición SOLO dentro de la página actual
+  if (myClaimedTask) {
+    const indexInPage = tasksToShow.findIndex(t => t.Subtask === myClaimedTask);
+    if (indexInPage > 0) {
+      const [claimedTask] = tasksToShow.splice(indexInPage, 1);
+      tasksToShow.unshift(claimedTask);
+    }
+  }
 
   taskContainer.innerHTML = "";
 
+  tasksToShow.forEach(task => {
+    const isMine = task.ClaimedBy === currentUser.username;
+    const isClaimedByOther = task.ClaimedBy && !isMine;
+    const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
 
-      tasksToShow.forEach(task => {
-        const isMine = task.ClaimedBy === currentUser.username;
-        const isClaimedByOther = task.ClaimedBy && !isMine;
-        const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
+    const card = document.createElement("div");
+    card.className = "task-card";
+    card.setAttribute("data-subtask", task.Subtask);
+    card.setAttribute("data-project", task.Project?.toLowerCase() || "");
+    card.setAttribute("data-level", task.Level?.toString().toLowerCase() || "");
+    card.setAttribute("data-status", task.Status?.toLowerCase() || "");
+    card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-const card = document.createElement("div");
-card.className = "task-card";
-card.setAttribute("data-subtask", task.Subtask);
-card.setAttribute("data-project", task.Project?.toLowerCase() || "");
-card.setAttribute("data-level", task.Level?.toString().toLowerCase() || "");
-card.setAttribute("data-status", task.Status?.toLowerCase() || "");
-card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
-
-if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
+    if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
         card.innerHTML = `
           <div style="display: flex; align-items: center;">
