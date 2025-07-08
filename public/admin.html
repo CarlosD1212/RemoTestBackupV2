@@ -269,19 +269,21 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  const res = await fetch(TASK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tasks })
-  });
+ const res = await fetch(TASK_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ tasks })
+});
 
-  const json = await res.json();
-  if (json.status === "success") {
-    alert("Tasks uploaded successfully!");
-    document.getElementById("taskForm").reset();
-  } else {
-    alert("Error uploading tasks.");
-  }
+const result = await res.json();
+
+if (result.status === "success") {
+  alert(`✅ Inserted: ${result.inserted} | ⛔ Duplicates skipped: ${result.skipped}`);
+  document.getElementById("taskForm").reset();
+} else {
+  alert("❌ Error uploading tasks: " + (result.message || ""));
+}
+
 });
 
 
@@ -314,13 +316,12 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
   });
 
   const json = await res.json();
-  if (json.status === "success") {
-    alert("Project added successfully!");
-    document.getElementById("projectForm").reset();
-    loadProjects(); // Actualiza los select
-  } else {
-    alert("Error adding project: " + json.message);
-  }
+if (json.status === "success") {
+  alert(`✅ Inserted: ${json.inserted} | ⛔ Duplicates skipped: ${json.skipped}`);
+  document.getElementById("taskForm").reset();
+} else {
+  alert("Error uploading tasks.");
+}
 });
 
   </script>
