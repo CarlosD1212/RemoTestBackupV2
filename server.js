@@ -265,12 +265,13 @@ app.post("/api/mark-finished", async (req, res) => {
 app.get("/api/history", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM task_history ORDER BY finished_at DESC");
-    res.json(result.rows);
+    res.json({ status: "success", tasks: result.rows });
   } catch (err) {
-    console.error("❌ Error en /api/history:", err);
+    console.error("Error loading history:", err);
     res.status(500).json({ status: "error", message: "Failed to load history" });
   }
 });
+
 
 app.post("/api/clear-history", async (req, res) => {
   try {

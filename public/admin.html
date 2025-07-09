@@ -104,6 +104,8 @@
     border-radius: 6px;
     border: 1px solid #ccc;
   }
+
+  
 </style>
 
 
@@ -119,7 +121,7 @@
     Manage Users
   </button>
   <button onclick="window.location.href='manage-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #e6a544; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    Task history
+    New function
   </button>
   <button onclick="window.location.href='historial.html'" style="margin-top: 10px; padding: 8px 12px; background: #9b59b6; color: white; border: none; border-radius: 6px; cursor: pointer;">
     Individual metrics
@@ -130,6 +132,9 @@
   <button onclick="window.location.href='bulk-delete-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer;">
     Bulk Delete Tasks
   </button>
+  <button onclick="window.location.href='history.html'" style="margin-top: 10px; padding: 8px 12px; background: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer;">
+  View Task History
+</button>
   </div>
 
 
@@ -327,6 +332,10 @@ if (json.status === "success") {
   alert("❌ Error adding project: " + (json.message || ""));
 }
 });
+
+  function goToHistory() {
+    window.location.href = "history.html";
+  }
 
   </script>
 </body>
