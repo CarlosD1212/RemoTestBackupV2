@@ -112,16 +112,16 @@
     let currentPage = 1;
     let historyData = [];
 
-    async function loadHistory() {
+async function loadHistory() {
   const res = await fetch(`${BASE_URL}/api/history`);
   const result = await res.json();
-  console.log("Historial recibido:", result); // 👈 Esto imprime el resultado en consola
+  console.log("Historial recibido:", result);
 
-  // Si el resultado es un array directamente:
-  historyData = Array.isArray(result) ? result : result.data || [];
-      populateProjects();
-      renderTable();
-    }
+  historyData = result.tasks || [];
+
+  populateProjects();
+  renderTable();
+}
 
     function populateProjects() {
       const projectSet = new Set(historyData.map(row => row.project));
