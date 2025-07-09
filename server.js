@@ -55,22 +55,28 @@ io.on("connection", (socket) => {
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  try {
-    const result = await pool.query(
-      "SELECT username, role, project FROM users WHERE LOWER(username) = $1 AND password = $2",
-      [username.toLowerCase(), password]
-    );
-    if (result.rows.length === 0) {
-      return res.json({ status: "error", message: "Invalid credentials" });
-    }
-    res.json({ status: "success", user: result.rows[0] });
-  } catch (err) {
-    console.error("❌ Error login:", err);
-    res.status(500).json({ status: "error", message: "Internal login error" });
+  const result = await pool.query(
+    "SELECT * FROM users WHERE username = $1 AND password = $2",
+    [username, password]
+  );
+
+  const user = result.rows[0];
+
+  if (!user) {
+    return res.status(401).json({ status: "error", message: "Invalid credentials" });
   }
 
-  
+  res.json({
+    status: "success",
+    user: {
+      username: user.username,
+      role: user.role,
+      project: user.project,
+      email: user.email || "" // Asegúrate de que esta línea exista
+    }
+  });
 });
+
 
 
 
