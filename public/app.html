@@ -475,17 +475,17 @@ card.innerHTML = `
     <b>Level:</b> ${task.Level}
   </div>
   <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
-
-<div style="margin-bottom: 6px;">
-  <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
-    ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
-  </span>
-</div>
   ${isMine && currentUser.email ? `
     <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
       Email: ${currentUser.email}
     </div>
   ` : ""}
+<div style="margin-bottom: 6px;">
+  <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
+    ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
+  </span>
+</div>
+
   <div class="actions"></div>
 `;
 
