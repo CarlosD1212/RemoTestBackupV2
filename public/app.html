@@ -4,281 +4,315 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Dashboard</title>
-<style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-  }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --success-color: #27ae60;
+      --warning-color: #f1c40f;
+      --danger-color: #e74c3c;
+      --dark-color: #2c3e50;
+      --light-bg: #f0f2f5;
+      --white: #ffffff;
+      --text-dark: #2c3e50;
+      --text-light: #7f8c8d;
+      --border-color: #ccc;
+      --radius: 10px;
+      --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
 
-  h1 {
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      padding: 20px;
+      color: var(--text-dark);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .header-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .logout-btn {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .admin-btn {
+      background: var(--dark-color);
+      color: white;
+    }
+
+    .admin-btn:hover {
+      background: #1a252f;
+    }
+
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    #filters select,
+    #filters input {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: white;
+      min-width: 160px;
+    }
+
+    #task-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .task-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      width: 220px;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .task-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .subtask-text,
+    .batch-text {
+      cursor: pointer;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .claim-btn, .finish-btn {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+      border: none;
+      margin-top: 8px;
+      transition: var(--transition);
+      justify-content: center;
+    }
+
+    .claim-btn {
+      background: var(--success-color);
+      color: white;
+    }
+
+    .claim-btn:hover {
+      background: #219150;
+    }
+
+    .claim-btn.open-task {
+      background: var(--primary-color);
+    }
+
+    .claim-btn.open-task:hover {
+      background: var(--primary-hover);
+    }
+
+    .finish-btn {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .finish-btn:hover {
+      background: #d4ac0d;
+    }
+
+    .review-select {
+      width: 100%;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fdfdfd;
+      margin-top: 8px;
+    }
+
+    .optional-review {
+      margin-top: 6px;
+      padding: 4px 10px;
+      background: #ecf0f1;
+      border: 1px solid #bdc3c7;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: var(--transition);
+    }
+
+    .optional-review.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-hover);
+    }
+
+    .project-badge-inline {
+      display: inline-block;
+      background: var(--primary-color);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+#pagination {
     text-align: center;
-    margin-bottom: 30px;
-    color: #2c3e50;
-  }
-
-  .header-buttons {
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-    gap: 10px;
-  }
+    justify-content: center; /* Centra horizontalmente los elementos flex */
+    align-items: center; /* Centra verticalmente los elementos flex */
+    margin: 30px auto; /* Margen superior e inferior de 30px y centrado horizontal automático */
+    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: max-content; /* El ancho máximo será el del contenido */
+}
 
-  button {
-    padding: 10px 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.1s ease-in-out, background 0.3s ease;
-  }
-
-  button:active {
-    transform: scale(0.97);
-  }
-
-  .logout-btn {
-    background: #e74c3c;
-    color: white;
-  }
-
-  .logout-btn:hover {
-    background: #c0392b;
-  }
-
-  .admin-btn {
-    background: #7f8c8d;
-    color: white;
-  }
-
-  .admin-btn:hover {
-    background: #5d6d7e;
-  }
-
-  #filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  #filters select,
-  #filters input {
-    padding: 8px 10px;
-    font-size: 14px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    min-width: 180px;
-    background: white;
-  }
-
-  #task-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-  }
-
-  .task-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    padding: 16px;
-    width: 200px;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s ease;
-  }
-
-  .task-card:hover {
-    transform: translateY(-2px);
-  }
-
-  .task-card.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    filter: grayscale(100%);
-  }
-
-  .subtask-text {
-    cursor: pointer;
-    color: #3498db;
-    font-weight: bold;
-    flex-grow: 1;
-  }
-
-  .copy-icon {
-    margin-left: 6px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-  }
-
-  .claim-btn,
-  .finish-btn {
-    width: 100%;
-    padding: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 6px;
-    border: none;
-    margin-top: 8px;
-  }
-
-  .claim-btn {
-    background: #27ae60;
-    color: white;
-  }
-
-  .claim-btn:hover {
-    background: #219150;
-  }
-
-  .claim-btn.open-task {
-    background: #3498db;
-  }
-
-  .claim-btn.open-task:hover {
-    background: #2980b9;
-  }
-
-  .finish-btn {
-    background: #f1c40f;
-    color: white;
-  }
-
-  .finish-btn:hover {
-    background: #d4ac0d;
-  }
-
-  select.review-select {
-    width: 100%;
-    font-size: 13px;
-    font-weight: bold;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #fdfdfd;
-    margin-top: 8px;
-  }
-
-  .optional-review {
-    margin-top: 6px;
-    margin-right: 3px;
-    padding: 4px 10px;
-    background: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
-  }
-
-  .optional-review.active {
-    background: #3498db;
-    color: white;
-    border-color: #2980b9;
-  }
-
-  .project-badge-inline {
-    display: inline-block;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 13px;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  #pagination {
-    text-align: center;
-    margin-top: 30px;
-  }
-
-  #pagination button {
+#pagination button {
     margin: 0 4px;
     background: #3498db;
     color: white;
     padding: 6px 12px;
     border-radius: 6px;
     font-weight: bold;
-  }
+}
 
-  #pagination button:disabled {
+#pagination button:disabled {
     background: #95a5a6;
     cursor: not-allowed;
-  }
+}
 
-  #modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  #modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 18px;
-    animation: fadeIn 0.3s ease-in-out;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-
-  .spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 1.5rem auto;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
+    #modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
 
-    100% {
-      transform: rotate(360deg);
+    #modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      text-align: center;
+      font-size: 18px;
+      animation: fadeIn 0.3s ease-in-out;
+      box-shadow: var(--shadow);
     }
-  }
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 1.5rem auto;
     }
 
-    to {
-      opacity: 1;
-      transform: scale(1);
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-  }
-</style>
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #user-avatars {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    #user-avatars div {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+    }
+  </style>
 
 
 </head>
 <body>
 
   
-<div class="header-buttons">
-  <button id="adminPanelBtn" class="admin-btn" onclick="goToAdmin()" style="display: none;">Admin Panel</button>
-  <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">Logout</button>
-</div>
-
+  <div class="header-buttons">
+    <button id="adminPanelBtn" class="admin-btn" onclick="goToAdmin()" style="display: none;">
+      <i class="fas fa-cogs"></i> Admin Panel
+    </button>
+    <button id="loginLogoutBtn" class="logout-btn" onclick="handleLoginLogout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
 
 
 <div id="user-avatars" style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 10px;"></div>
@@ -316,7 +350,7 @@
 
   <div id="modal">
     <div id="modal-content">
-      <div id="modal-message">Espera, reservando tu tarea...</div>
+      <div id="modal-message">Wait, reserved your task...</div>
       <div class="spinner"></div>
     </div>
   </div>
@@ -528,7 +562,7 @@ claimBtn.onclick = async () => {
 
   localStorage.setItem("lastClaimedTask", task.Subtask);
   localStorage.setItem("claimedAt", new Date().toISOString());
-  showModal("Espera, reservando tu tarea...");
+  showModal("Wait, reserved your task...");
 
   const res = await fetch(CLAIM_URL, {
     method: "POST",
@@ -538,7 +572,7 @@ claimBtn.onclick = async () => {
 
   const result = await res.json();
   if (result.status === "success") {
-    modalMessage.textContent = "Reclama tu tarea en Open Task";
+    modalMessage.textContent = "Claim your task in Open Task";
 
     // 🔥 Esta llamada será suficiente y ya calcula la página correcta
     
@@ -571,8 +605,8 @@ select.innerHTML = `
   <option value="Attribute Error">Attribute Error</option>
   <option value="Geometry Error">Geometry Error</option>
   <option value="Spammer Task">Spammer Task</option>
-  <option value="Missing objects">Objetos faltantes</option>
-  <option value="Poor positioning">Mal posicionamiento</option>
+  <option value="Missing objects">Missing objects</option>
+  <option value="Poor positioning">Poor positioning</option>
 `;
 
 // Crear botones opcionales por separado
