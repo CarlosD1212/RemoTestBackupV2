@@ -114,7 +114,8 @@
 
 async function loadHistory() {
   const res = await fetch(`${BASE_URL}/api/history`);
-  const result = await res.json();
+const result = await res.json();
+historyData = result.tasks || [];
   console.log("Historial recibido:", result);
 
   historyData = result.tasks || [];
