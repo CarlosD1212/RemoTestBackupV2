@@ -365,6 +365,8 @@ async function loadTasks() {
         Project: task.project
       }));
 
+      allTasks = sortTasksForDisplay(allTasks);
+
     const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
     const username = currentUser.username?.toLowerCase();
 
@@ -426,6 +428,14 @@ function getColorFromProject(projectName) {
   }
   const hue = hash % 360;
   return `hsl(${hue}, 65%, 72%)`; // Puedes ajustar saturación y luminosidad
+}
+
+function sortTasksForDisplay(tasks) {
+  return tasks.sort((a, b) => {
+    if (!a.ClaimedBy && b.ClaimedBy) return -1;
+    if (a.ClaimedBy && !b.ClaimedBy) return 1;
+    return a.Subtask.localeCompare(b.Subtask);
+  });
 }
 
 function renderPage(page) {
