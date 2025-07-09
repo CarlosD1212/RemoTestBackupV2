@@ -590,6 +590,11 @@ finishBtn.onclick = async () => {
     return;
   }
 
+  if (!select.value || select.value.trim() === "") {
+    alert("Please select a review option before finishing.");
+    return;
+  }
+
   const payload = {
     subtask: task.Subtask,
     level: task.Level,
@@ -597,24 +602,31 @@ finishBtn.onclick = async () => {
     email: currentUser.email.trim(),
     claimed_at: localStorage.getItem("claimedAt"),
     finished_at: new Date().toISOString(),
-    data_type: ""
+    username: currentUser.username,  // ✅ importante para backend
+    data_type: "" // si se usa luego
   };
 
-  const res = await fetch(FINISH_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const res = await fetch(FINISH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-  const result = await res.json();
-  if (result.status === "success") {
-    localStorage.removeItem("lastClaimedTask");
-    localStorage.removeItem("claimedAt");
+    const result = await res.json();
 
-    const card = document.querySelector(`.task-card[data-subtask="${task.Subtask}"]`);
-    if (card) card.remove();
-  } else {
-    alert("Error finishing task");
+    if (result.status === "success") {
+      localStorage.removeItem("lastClaimedTask");
+      localStorage.removeItem("claimedAt");
+
+      const card = document.querySelector(`.task-card[data-subtask="${task.Subtask}"]`);
+      if (card) card.remove();
+    } else {
+      alert("Error finishing task");
+    }
+  } catch (error) {
+    console.error("❌ Error en FINISH:", error);
+    alert("An unexpected error occurred");
   }
 };
 

@@ -220,9 +220,16 @@ app.post("/api/claim", async (req, res) => {
 });
 
 app.post("/api/mark-finished", async (req, res) => {
-  const { subtask, review } = req.body;
-  const username = (req.body.username || "").trim().toLowerCase();
-  const finishedAt = new Date().toISOString();
+  const {
+    subtask,
+    review_option,
+    email,
+    claimed_at,
+    finished_at,
+    level,
+    username,
+    data_type
+  } = req.body;
 
   try {
     const taskResult = await pool.query("SELECT * FROM tasks WHERE subtask = $1", [subtask]);
@@ -232,26 +239,18 @@ app.post("/api/mark-finished", async (req, res) => {
 
     const task = taskResult.rows[0];
 
-    const userResult = await pool.query("SELECT project, email FROM users WHERE username = $1", [username]);
-    const user = userResult.rows[0];
-    const project = user?.project || task.project || "unknown";
-    const email = user?.email || "unknown";
+    const project = task.project || "unknown";
 
     await pool.query(
       `INSERT INTO task_history 
-        (subtask, level, review_option, email, claimed_at, finished_at, project)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [task.subtask, task.level, review, email, task.claimed_at, finishedAt, project]
+        (subtask, level, review_option, email, claimed_at, finished_at, project, data_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [subtask, level, review_option, email, claimed_at, finished_at, project, data_type || null]
     );
 
-    const updateResult = await pool.query(
-      "UPDATE tasks SET status = 'finished' WHERE subtask = $1",
-      [subtask]
-    );
+    await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
 
-    if (updateResult.rowCount > 0) {
-      io.emit("taskFinished", { subtask });
-    }
+    io.emit("taskFinished", { subtask });
 
     res.json({ status: "success" });
   } catch (err) {
@@ -259,6 +258,7 @@ app.post("/api/mark-finished", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
+
 
 
 
