@@ -3,132 +3,114 @@
 <head>
   <meta charset="UTF-8" />
   <title>Task History</title>
-<style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-  }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --light-bg: #f0f2f5;
+      --white: #ffffff;
+      --text-dark: #2c3e50;
+      --border-color: #dfe6e9;
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      --radius: 10px;
+      --transition: all 0.3s ease;
+    }
 
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #2c3e50;
-  }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-dark);
+    }
 
-  .header-buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-    gap: 10px;
-  }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
 
-  button {
-    padding: 10px 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.1s ease-in-out, background 0.3s ease;
-  }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-  button:active {
-    transform: scale(0.97);
-  }
+    .controls select, .controls input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      background: white;
+    }
 
-  .logout-btn {
-    background: #e74c3c;
-    color: white;
-  }
+    .controls button {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: bold;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
 
-  .logout-btn:hover {
-    background: #c0392b;
-  }
+    .controls button:hover {
+      background-color: var(--primary-hover);
+    }
 
-  .admin-btn {
-    background: #7f8c8d;
-    color: white;
-  }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
 
-  .admin-btn:hover {
-    background: #5d6d7e;
-  }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+    }
 
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
+    th {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: bold;
+    }
 
-  .controls select, .controls input {
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    background: white;
-  }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
 
-  .controls button {
-    background-color: #3498db;
-    color: white;
-  }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 8px;
+    }
 
-  .controls button:hover {
-    background-color: #2980b9;
-  }
+    .pagination button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  }
-
-  th, td {
-    padding: 12px 14px;
-    text-align: left;
-    font-size: 14px;
-    border-bottom: 1px solid #eee;
-  }
-
-  th {
-    background-color: #3498db;
-    color: white;
-    font-weight: bold;
-  }
-
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-    gap: 8px;
-  }
-
-  .pagination button {
-    background: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .pagination button:disabled {
-    background: #95a5a6;
-    cursor: not-allowed;
-  }
-</style>
-
+    .pagination button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <h1>Task History</h1>
@@ -137,7 +119,14 @@
     <select id="projectFilter">
       <option value="">All Projects</option>
     </select>
-    <button onclick="exportCSV()">Export to CSV</button>
+    <select id="reviewFilter">
+      <option value="">All Reviews</option>
+    </select>
+    <select id="dataTypeFilter">
+      <option value="">All Data Types</option>
+    </select>
+    <input type="text" id="emailFilter" placeholder="Filter by Email">
+    <button onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export to CSV</button>
   </div>
 
   <table id="historyTable">
@@ -150,6 +139,7 @@
         <th>Claimed At</th>
         <th>Finished At</th>
         <th>Project</th>
+        <th>Data Type</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -166,41 +156,66 @@
     let currentPage = 1;
     let historyData = [];
 
-async function loadHistory() {
-  const res = await fetch(`${BASE_URL}/api/history`);
-const result = await res.json();
-historyData = result.tasks || [];
-  console.log("Historial recibido:", result);
+    async function loadHistory() {
+      const res = await fetch(`${BASE_URL}/api/history`);
+      const result = await res.json();
+      historyData = result.tasks || [];
 
-  historyData = result.tasks || [];
+      populateFilters();
+      renderTable();
+    }
 
-  populateProjects();
-  renderTable();
-}
+    function populateFilters() {
+      const projectSet = new Set();
+      const reviewSet = new Set();
+      const dataTypeSet = new Set();
 
-    function populateProjects() {
-      const projectSet = new Set(historyData.map(row => row.project));
-      const select = document.getElementById("projectFilter");
-      projectSet.forEach(p => {
+      historyData.forEach(row => {
+        projectSet.add(row.project);
+        reviewSet.add(row.review_option);
+        dataTypeSet.add(row.data_type || '-');
+      });
+
+      fillSelect("projectFilter", projectSet);
+      fillSelect("reviewFilter", reviewSet);
+      fillSelect("dataTypeFilter", dataTypeSet);
+
+      document.getElementById("projectFilter").onchange = resetAndRender;
+      document.getElementById("reviewFilter").onchange = resetAndRender;
+      document.getElementById("dataTypeFilter").onchange = resetAndRender;
+      document.getElementById("emailFilter").oninput = resetAndRender;
+    }
+
+    function fillSelect(id, set) {
+      const select = document.getElementById(id);
+      set.forEach(val => {
         const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
+        opt.value = val;
+        opt.textContent = val;
         select.appendChild(opt);
       });
-      select.onchange = () => {
-        currentPage = 1;
-        renderTable();
-      };
+    }
+
+    function resetAndRender() {
+      currentPage = 1;
+      renderTable();
     }
 
     function renderTable() {
-      const projectFilter = document.getElementById("projectFilter").value;
+      const project = document.getElementById("projectFilter").value;
+      const review = document.getElementById("reviewFilter").value;
+      const dataType = document.getElementById("dataTypeFilter").value;
+      const email = document.getElementById("emailFilter").value.trim().toLowerCase();
+
       const tbody = document.querySelector("#historyTable tbody");
       tbody.innerHTML = "";
 
-      const filtered = projectFilter
-        ? historyData.filter(d => d.project === projectFilter)
-        : historyData;
+      const filtered = historyData.filter(d => {
+        return (!project || d.project === project) &&
+               (!review || d.review_option === review) &&
+               (!dataType || (d.data_type || '-') === dataType) &&
+               (!email || (d.email || '').toLowerCase().includes(email));
+      });
 
       const totalPages = Math.ceil(filtered.length / rowsPerPage);
       document.getElementById("prevBtn").disabled = currentPage === 1;
@@ -219,6 +234,7 @@ historyData = result.tasks || [];
           <td>${new Date(row.claimed_at).toLocaleString()}</td>
           <td>${new Date(row.finished_at).toLocaleString()}</td>
           <td>${row.project}</td>
+          <td>${row.data_type || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -237,7 +253,7 @@ historyData = result.tasks || [];
     }
 
     function exportCSV() {
-      let csv = "Subtask,Level,Review,Email,Claimed At,Finished At,Project\n";
+      let csv = "Subtask,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
       historyData.forEach(row => {
         csv += [
           row.subtask,
@@ -246,7 +262,8 @@ historyData = result.tasks || [];
           row.email,
           new Date(row.claimed_at).toLocaleString(),
           new Date(row.finished_at).toLocaleString(),
-          row.project
+          row.project,
+          row.data_type || "-"
         ].join(",") + "\n";
       });
 

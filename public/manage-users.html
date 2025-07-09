@@ -4,24 +4,48 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Manage Users</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
   <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --light-bg: #f8f9fa;
+      --white: #ffffff;
+      --text-dark: #2c3e50;
+      --border-color: #dfe6e9;
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      --radius: 10px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background: var(--light-bg);
+      color: var(--text-dark);
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 30px;
+      font-weight: 600;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: var(--white);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
 
     table {
@@ -31,39 +55,61 @@
     }
 
     th, td {
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
+      padding: 12px;
       text-align: left;
+      border-bottom: 1px solid var(--border-color);
     }
 
     th {
-      background: #3498db;
-      color: white;
+      background-color: var(--primary-color);
+      color: var(--white);
+      font-weight: 600;
     }
 
     .btn-delete {
-      background: #e74c3c;
-      color: white;
+      background: var(--danger-color);
+      color: var(--white);
       border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
       cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .btn-delete:hover {
+      background: var(--danger-hover);
     }
 
     .icon-btn {
       cursor: pointer;
+      color: var(--primary-hover);
+      margin-left: 10px;
+      font-size: 1.2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--primary-color);
+      color: white;
+      padding: 4px 10px;
+      margin: 4px 4px 8px 0;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      position: relative;
+    }
+
+    .remove-role {
       margin-left: 8px;
-      color: #2980b9;
       font-weight: bold;
+      cursor: pointer;
     }
 
     #modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.4);
       justify-content: center;
       align-items: center;
@@ -72,68 +118,52 @@
 
     #modalContent {
       background: white;
-      padding: 20px;
-      border-radius: 10px;
+      padding: 1.5rem;
+      border-radius: var(--radius);
       max-width: 400px;
       width: 90%;
+      box-shadow: var(--shadow);
       text-align: center;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
 
     #modalContent h2 {
-      margin-top: 0;
-      margin-bottom: 15px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: #3498db;
-      color: white;
-      padding: 4px 10px;
-      margin: 4px 4px 8px;
-      border-radius: 15px;
-      font-size: 14px;
-      position: relative;
-    }
-
-    .badge .remove-role {
-      color: white;
-      margin-left: 8px;
-      font-weight: bold;
-      cursor: pointer;
+      margin-bottom: 1rem;
     }
 
     #modalContent select {
-      padding: 6px 30px 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      appearance: none;
-      background-color: #fff;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%233498db' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 10px;
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 1rem;
     }
 
     #modalContent button {
-      padding: 6px 12px;
+      padding: 10px 18px;
+      margin: 0.5rem;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--radius);
       cursor: pointer;
-      margin: 6px;
+      font-weight: bold;
     }
 
     .btn-primary {
-      background: #3498db;
-      color: white;
+      background: var(--primary-color);
+      color: var(--white);
     }
 
     .btn-secondary {
       background: #95a5a6;
       color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary:hover {
+      opacity: 0.85;
     }
   </style>
 </head>
@@ -160,8 +190,8 @@
       <h2 id="modalTitle">Edit</h2>
       <div id="modalList"></div>
       <select id="modalSelect"></select>
-      <button onclick="addModalValue()">Add</button>
-      <button onclick="closeModal()">Close</button>
+      <button class="btn-primary" onclick="addModalValue()">Add</button>
+      <button class="btn-secondary" onclick="closeModal()">Close</button>
     </div>
   </div>
 
@@ -176,8 +206,7 @@
       try {
         const res = await fetch(`${BASE_URL}/api/projects`);
         availableProjects = await res.json();
-      } catch (err) {
-        console.error("Error loading projects:", err);
+      } catch {
         availableProjects = ["Project A", "Project B"];
       }
     }
@@ -197,11 +226,11 @@
           <td>${user.username}</td>
           <td>
             ${user.role.map(r => `<span class='badge'>${r}</span>`).join('')}
-            <span class="icon-btn" onclick="openModal('${user.username}', 'role')">＋</span>
+            <span class="icon-btn" onclick="openModal('${user.username}', 'role')"><i class="fas fa-plus-circle"></i></span>
           </td>
           <td>
             ${user.project.map(p => `<span class='badge'>${p}</span>`).join('')}
-            <span class="icon-btn" onclick="openModal('${user.username}', 'project')">＋</span>
+            <span class="icon-btn" onclick="openModal('${user.username}', 'project')"><i class="fas fa-plus-circle"></i></span>
           </td>
           <td>${user.email || ''}</td>
           <td><button class="btn-delete" onclick="deleteUser('${user.username}')">Delete</button></td>
@@ -225,19 +254,16 @@
     function openModal(username, type) {
       currentEditUser = username;
       currentEditType = type;
-      const modal = document.getElementById("modal");
       document.getElementById("modalTitle").textContent = `Edit ${type}s for ${username}`;
       const user = users.find(u => u.username === username);
       const values = user[type];
-      const modalList = document.getElementById("modalList");
-      modalList.innerHTML = values.map(v => `<span class='badge'>${v}<span class='remove-role' onclick='removeModalValue("${v}")'>&times;</span></span>`).join('');
+      document.getElementById("modalList").innerHTML = values.map(v =>
+        `<span class='badge'>${v}<span class='remove-role' onclick='removeModalValue("${v}")'>&times;</span></span>`
+      ).join('');
 
       const select = document.getElementById("modalSelect");
       select.innerHTML = "";
-      const options = type === "role"
-        ? ["admin", "-1", "0", "1", "10"]
-        : availableProjects;
-
+      const options = type === "role" ? ["admin", "-1", "0", "1", "10"] : availableProjects;
       options.forEach(opt => {
         if (!values.includes(opt)) {
           const o = document.createElement("option");
@@ -247,7 +273,7 @@
         }
       });
 
-      modal.style.display = "flex";
+      document.getElementById("modal").style.display = "flex";
     }
 
     function closeModal() {
@@ -261,8 +287,7 @@
     }
 
     function addModalValue() {
-      const select = document.getElementById("modalSelect");
-      const value = select.value;
+      const value = document.getElementById("modalSelect").value;
       if (!value) return;
       const user = users.find(u => u.username === currentEditUser);
       if (!user[currentEditType].includes(value)) {
@@ -271,38 +296,30 @@
       }
     }
 
-async function updateUser(user) {
-  const username = user.username.toLowerCase();
+    async function updateUser(user) {
+      const payload = {
+        username: user.username.toLowerCase(),
+        password: "temporal123",
+        email: user.email || "no@email.com",
+        role: user.role || [],
+        project: user.project || []
+      };
 
-  // ¿El usuario ya existe en la lista?
-  const exists = users.some(u => u.username.toLowerCase() === username);
+      const endpoint = "update-user";
+      const res = await fetch(`${BASE_URL}/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-  const payload = {
-    username,
-    password: "temporal123", // puedes cambiar esto
-    email: user.email || "no@email.com",
-    role: user.role || [],
-    project: user.project || []
-  };
-
-  const endpoint = exists ? "update-user" : "register-users";
-
-  const res = await fetch(`${BASE_URL}/api/${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: exists
-      ? JSON.stringify(payload)
-      : JSON.stringify({ users: [payload] })
-  });
-
-  const json = await res.json();
-  if (json.status === "success") {
-    closeModal();
-    loadUsers();
-  } else {
-    alert(json.message || "Error updating/creating user.");
-  }
-}
+      const json = await res.json();
+      if (json.status === "success") {
+        closeModal();
+        loadUsers();
+      } else {
+        alert(json.message || "Error updating user.");
+      }
+    }
 
     window.addEventListener("DOMContentLoaded", async () => {
       await fetchProjects();
