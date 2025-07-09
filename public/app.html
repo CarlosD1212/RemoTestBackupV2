@@ -247,7 +247,7 @@
 
 .optional-review {
   margin-top: 6px;
-  margin-right: 8px;
+  margin-right: 3px;
   padding: 4px 10px;
   background: #ecf0f1;
   border: 1px solid #bdc3c7;
@@ -481,6 +481,11 @@ card.innerHTML = `
     ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
   </span>
 </div>
+  ${isMine && currentUser.email ? `
+    <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
+      Email: ${currentUser.email}
+    </div>
+  ` : ""}
   <div class="actions"></div>
 `;
 
@@ -549,15 +554,15 @@ select.innerHTML = `
   <option value="Attribute Error">Attribute Error</option>
   <option value="Geometry Error">Geometry Error</option>
   <option value="Spammer Task">Spammer Task</option>
-  <option value="Objetos faltantes">Objetos faltantes</option>
-  <option value="Mal posicionamiento">Mal posicionamiento</option>
+  <option value="Missing objects">Objetos faltantes</option>
+  <option value="Poor positioning">Mal posicionamiento</option>
 `;
 
 // Crear botones opcionales por separado
 const optionalContainer = document.createElement("div");
 optionalContainer.className = "optional-review-buttons";
 
-["Good data", "Bad data"].forEach(label => {
+["Good data!", "Bad data!"].forEach(label => {
   const btn = document.createElement("button");
   btn.textContent = label;
   btn.className = "optional-review";
@@ -580,11 +585,16 @@ card.appendChild(optionalContainer);
   
 
 finishBtn.onclick = async () => {
+  if (!currentUser.email || currentUser.email.trim() === "") {
+    alert("Your account does not have an email assigned. Please contact an admin.");
+    return;
+  }
+
   const payload = {
     subtask: task.Subtask,
     level: task.Level,
     review_option: select.value,
-    email: currentUser.email || "",
+    email: currentUser.email.trim(),
     claimed_at: localStorage.getItem("claimedAt"),
     finished_at: new Date().toISOString(),
     data_type: ""
@@ -613,6 +623,7 @@ finishBtn.onclick = async () => {
 
         actions.appendChild(claimBtn);
         actions.appendChild(select);
+        actions.appendChild(optionalContainer);
         actions.appendChild(finishBtn);
         taskContainer.appendChild(card);
       });

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task History</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .controls > * {
+      margin: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border: 1px solid #e0e0e0;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #3498db;
+      color: #fff;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    .pagination button {
+      padding: 8px 14px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    select {
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task History</h1>
+
+  <div class="controls">
+    <select id="projectFilter">
+      <option value="">All Projects</option>
+    </select>
+    <button onclick="exportCSV()">Export to CSV</button>
+  </div>
+
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>Subtask</th>
+        <th>Level</th>
+        <th>Review</th>
+        <th>Email</th>
+        <th>Claimed At</th>
+        <th>Finished At</th>
+        <th>Project</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="pagination">
+    <button onclick="prevPage()" id="prevBtn">Prev</button>
+    <button onclick="nextPage()" id="nextBtn">Next</button>
+  </div>
+
+  <script>
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    let historyData = [];
+
+    async function loadHistory() {
+      const res = await fetch(`${BASE_URL}/api/history`);
+      historyData = await res.json();
+      populateProjects();
+      renderTable();
+    }
+
+    function populateProjects() {
+      const projectSet = new Set(historyData.map(row => row.project));
+      const select = document.getElementById("projectFilter");
+      projectSet.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        select.appendChild(opt);
+      });
+      select.onchange = () => {
+        currentPage = 1;
+        renderTable();
+      };
+    }
+
+    function renderTable() {
+      const projectFilter = document.getElementById("projectFilter").value;
+      const tbody = document.querySelector("#historyTable tbody");
+      tbody.innerHTML = "";
+
+      const filtered = projectFilter
+        ? historyData.filter(d => d.project === projectFilter)
+        : historyData;
+
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      document.getElementById("prevBtn").disabled = currentPage === 1;
+      document.getElementById("nextBtn").disabled = currentPage === totalPages;
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const pageItems = filtered.slice(start, start + rowsPerPage);
+
+      pageItems.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.subtask}</td>
+          <td>${row.level}</td>
+          <td>${row.review_option}</td>
+          <td>${row.email}</td>
+          <td>${new Date(row.claimed_at).toLocaleString()}</td>
+          <td>${new Date(row.finished_at).toLocaleString()}</td>
+          <td>${row.project}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    }
+
+    function nextPage() {
+      currentPage++;
+      renderTable();
+    }
+
+    function exportCSV() {
+      let csv = "Subtask,Level,Review,Email,Claimed At,Finished At,Project\n";
+      historyData.forEach(row => {
+        csv += [
+          row.subtask,
+          row.level,
+          `"${row.review_option}"`,
+          row.email,
+          new Date(row.claimed_at).toLocaleString(),
+          new Date(row.finished_at).toLocaleString(),
+          row.project
+        ].join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "task_history.csv";
+      link.click();
+    }
+
+    window.addEventListener("DOMContentLoaded", loadHistory);
+  </script>
+</body>
+</html>
