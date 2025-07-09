@@ -2,204 +2,404 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel</title>
-<style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: #eef2f7;
-    padding: 2rem;
-    max-width: 900px;
-    margin: auto;
-  }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Task Manager</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --warning-color: #e6a544;
+      --warning-hover: #d68910;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --purple-color: #9b59b6;
+      --purple-hover: #8e44ad;
+      --dark-color: #2c3e50;
+      --dark-hover: #1a252f;
+      --light-bg: #f8f9fa;
+      --white: #ffffff;
+      --border-color: #dfe6e9;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --text-light: #7f8c8d;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
 
-  h1 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 40px;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  form {
-    background: white;
-    padding: 24px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    margin-bottom: 2rem;
-    transition: all 0.3s ease;
-  }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-  .section-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 16px;
-    color: #34495e;
-    border-left: 4px solid #3498db;
-    padding-left: 10px;
-  }
+    h1 {
+      text-align: center;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
 
-  label {
-    display: block;
-    font-weight: 600;
-    margin: 12px 0 6px;
-    color: #2c3e50;
-  }
+    h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.5rem auto 0;
+      border-radius: 3px;
+    }
 
-  input, select, textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #cccccc;
-    border-radius: 8px;
-    font-size: 15px;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-  }
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      justify-content: flex-end;
+    }
 
-  input:focus, select:focus, textarea:focus {
-    border-color: #3498db;
-    outline: none;
-  }
+    .btn {
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-  textarea {
-    height: 120px;
-    resize: vertical;
-  }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
 
-  button {
-    padding: 10px 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease-in-out;
-    font-size: 14px;
-    margin-top: 10px;
-    margin-right: 8px;
-  }
+    .btn:active {
+      transform: translateY(0);
+    }
 
-  button:hover {
-    transform: scale(0.98);
-  }
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
 
-  button.green {
-    background-color: #2ecc71;
-    color: white;
-  }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
 
-  button.green:hover {
-    background-color: #27ae60;
-  }
+    .btn-success {
+      background-color: var(--success-color);
+      color: var(--white);
+    }
 
-  button.blue {
-    background-color: #3498db;
-    color: white;
-  }
+    .btn-success:hover {
+      background-color: var(--success-hover);
+    }
 
-  button.blue:hover {
-    background-color: #2980b9;
-  }
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: var(--white);
+    }
 
-  #userSearch {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
+    .btn-warning:hover {
+      background-color: var(--warning-hover);
+    }
 
-  
-</style>
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: var(--white);
+    }
 
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
 
+    .btn-purple {
+      background-color: var(--purple-color);
+      color: var(--white);
+    }
+
+    .btn-purple:hover {
+      background-color: var(--purple-hover);
+    }
+
+    .btn-dark {
+      background-color: var(--dark-color);
+      color: var(--white);
+    }
+
+    .btn-dark:hover {
+      background-color: var(--dark-hover);
+    }
+
+    .form-section {
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+
+    .form-section:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      color: var(--text-medium);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title i {
+      font-size: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-medium);
+      font-size: 0.9rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 0.95rem;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary-color);
+      color: var(--white);
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 1rem;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .action-buttons {
+        justify-content: center;
+      }
+      
+      .btn {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+      }
+    }
+
+    /* Loading state */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+      color: transparent;
+    }
+
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      top: 50%;
+      left: 50%;
+      margin: -9px 0 0 -9px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <h1>Admin Control Panel</h1>
 
-  
-
-  <div style="text-align: right; margin-bottom: 10px;">
-  <button onclick="goToApp()" style="background: #3498db; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold;">Go to Task App</button>
-  <button type="button" onclick="goToManageUsers()" style="background: #36bd48; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold;">
-    Manage Users
-  </button>
-  <button onclick="window.location.href='manage-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #e6a544; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    New function
-  </button>
-  <button onclick="window.location.href='historial.html'" style="margin-top: 10px; padding: 8px 12px; background: #9b59b6; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    Individual metrics
-  </button>
-    <button onclick="window.location.href='bulk-register.html'" style="margin-top: 10px; padding: 8px 12px; background: #8e44ad; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    Bulk Register Users
-  </button>
-  <button onclick="window.location.href='bulk-delete-tasks.html'" style="margin-top: 10px; padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    Bulk Delete Tasks
-  </button>
-  <button onclick="window.location.href='history.html'" style="margin-top: 10px; padding: 8px 12px; background: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer;">
-  View Task History
-</button>
+  <div class="action-buttons">
+    <button onclick="goToApp()" class="btn btn-primary">
+      <i class="fas fa-tasks"></i> Task App
+    </button>
+    <button onclick="goToManageUsers()" class="btn btn-success">
+      <i class="fas fa-users-cog"></i> Manage Users
+    </button>
+    <button onclick="window.location.href='manage-tasks.html'" class="btn btn-warning">
+      <i class="fas fa-plus-circle"></i> New Function
+    </button>
+    <button onclick="window.location.href='historial.html'" class="btn btn-purple">
+      <i class="fas fa-chart-line"></i> Individual Metrics
+    </button>
+    <button onclick="window.location.href='bulk-register.html'" class="btn btn-purple">
+      <i class="fas fa-users"></i> Bulk Register
+    </button>
+    <button onclick="window.location.href='bulk-delete-tasks.html'" class="btn btn-danger">
+      <i class="fas fa-trash-alt"></i> Bulk Delete Tasks
+    </button>
+    <button onclick="window.location.href='history.html'" class="btn btn-dark">
+      <i class="fas fa-history"></i> Task History
+    </button>
   </div>
 
+  <div class="form-grid">
+    <!-- User Registration -->
+    <form id="userForm" class="form-section">
+      <div class="section-title">
+        <i class="fas fa-user-plus"></i> Register New User
+      </div>
 
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required autocomplete="off" />
+      </div>
 
-  <!-- User Registration -->
-  <form id="userForm">
-    <div class="section-title">Register New User</div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" required autocomplete="new-password" />
+      </div>
 
-    <label for="username">Username:</label>
-    <input type="text" id="username" required />
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required autocomplete="email" />
+      </div>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" required />
+      <div class="form-group">
+        <label for="role">Role:</label>
+        <select id="role" required>
+          <option value="">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="-1">-1</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="10">10</option>
+        </select>
+      </div>
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" required />
+      <div class="form-group">
+        <label for="project">Project:</label>
+        <select id="project" required></select>
+      </div>
 
-    <label for="role">Role:</label>
-    <select id="role" required>
-      <option value="">Select Role</option>
-      <option value="admin">admin</option>
-      <option value="-1">-1</option>
-      <option value="0">0</option>
-      <option value="1">1</option>
-      <option value="10">10</option>
-    </select>
-
-    <label for="project">Project:</label>
-    <select id="project" required></select>
-
-    <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Register User</button>
+      <button type="submit" class="submit-btn" id="registerUserBtn">
+        <i class="fas fa-user-plus"></i> Register User
+      </button>
     </form>
 
-  <form id="projectForm">
-    <div class="section-title">Add New Project</div>
-    <label for="newProject">Project Name:</label>
-    <input type="text" id="newProject" required />
-    <button type="submit" class="blue">Add Project</button>
+    <!-- Add Project -->
+    <form id="projectForm" class="form-section">
+      <div class="section-title">
+        <i class="fas fa-project-diagram"></i> Add New Project
+      </div>
+
+      <div class="form-group">
+        <label for="newProject">Project Name:</label>
+        <input type="text" id="newProject" required autocomplete="off" />
+      </div>
+
+      <button type="submit" class="submit-btn" id="addProjectBtn">
+        <i class="fas fa-plus"></i> Add Project
+      </button>
     </form>
 
-  <!-- Task Upload -->
-  <form id="taskForm">
-    <div class="section-title">Upload Tasks</div>
+    <!-- Task Upload -->
+    <form id="taskForm" class="form-section">
+      <div class="section-title">
+        <i class="fas fa-tasks"></i> Upload Tasks
+      </div>
 
-    <label for="projectName">Select Project:</label>
-    <select id="projectName" required></select>
+      <div class="form-group">
+        <label for="projectName">Select Project:</label>
+        <select id="projectName" required></select>
+      </div>
 
-    <label for="taskLevel">Select Level:</label>
-<select id="taskLevel" required>
-  <option value="">Select Level</option>
-  <option value="-1">-1</option>
-  <option value="0">0</option>
-  <option value="1">1</option>
-  <option value="10">10</option>
-</select>
+      <div class="form-group">
+        <label for="taskLevel">Select Level:</label>
+        <select id="taskLevel" required>
+          <option value="">Select Level</option>
+          <option value="-1">-1</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="10">10</option>
+        </select>
+      </div>
 
-<label for="tasks">Paste tasks below (Subtask and Batch only):</label>
-<textarea id="tasks" placeholder="e.g. 123456 batchA" required></textarea>
+      <div class="form-group">
+        <label for="tasks">Paste tasks below (Subtask and Batch only):</label>
+        <textarea id="tasks" placeholder="e.g. 123456 batchA" required></textarea>
+      </div>
 
-
-
-
-    <button type="submit" style="margin-top: 16px; padding: 10px 16px; font-weight: bold; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">Upload Tasks</button>
-
-  </form>
+      <button type="submit" class="submit-btn" id="uploadTasksBtn">
+        <i class="fas fa-upload"></i> Upload Tasks
+      </button>
+    </form>
+  </div>
 
   <script>
     const BASE_URL = "https://remo-task-manager-production.up.railway.app";
@@ -208,135 +408,162 @@
     const PROJECT_URL = BASE_URL + "/api/projects";
 
     async function loadProjects() {
-      const res = await fetch(PROJECT_URL);
-      const projects = await res.json();
-      const selects = [document.getElementById("project"), document.getElementById("projectName")];
+      try {
+        const res = await fetch(PROJECT_URL);
+        if (!res.ok) throw new Error('Failed to load projects');
+        
+        const projects = await res.json();
+        const selects = [document.getElementById("project"), document.getElementById("projectName")];
 
-      selects.forEach(select => {
-        select.innerHTML = `<option value="">Select Project</option>`;
-        projects.forEach(name => {
-          const option = document.createElement("option");
-          option.value = name;
-          option.textContent = name;
-          select.appendChild(option);
+        selects.forEach(select => {
+          select.innerHTML = `<option value="">Select Project</option>`;
+          projects.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+          });
         });
-      });
+      } catch (error) {
+        console.error("Error loading projects:", error);
+        alert("Error loading projects. Please try again.");
+      }
     }
 
-document.getElementById("userForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+    document.getElementById("userForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("registerUserBtn");
+      btn.classList.add("btn-loading");
 
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const email = document.getElementById("email").value.trim(); // nuevo
-  const role = document.getElementById("role").value;
-  const project = document.getElementById("project").value;
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const role = document.getElementById("role").value;
+      const project = document.getElementById("project").value;
 
-  if (!username || !password || !email || !role || !project) {
-    alert("Please fill in all user fields.");
-    return;
-  }
+      if (!username || !password || !email || !role || !project) {
+        alert("Please fill in all user fields.");
+        btn.classList.remove("btn-loading");
+        return;
+      }
 
-  const users = [{ username, password, email, role, project }];
+      try {
+        const users = [{ username, password, email, role, project }];
+        const res = await fetch(USER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ users })
+        });
 
-  const res = await fetch(USER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ users })
-  });
+        const json = await res.json();
+        if (json.status === "success") {
+          alert(`✅ Inserted: ${json.inserted} | ⚠️ Duplicates skipped: ${json.skipped}`);
+          document.getElementById("userForm").reset();
+        } else {
+          alert("❌ Error registering user: " + (json.message || ""));
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        alert("❌ Error registering user. Please try again.");
+      } finally {
+        btn.classList.remove("btn-loading");
+      }
+    });
 
-const json = await res.json();
-if (json.status === "success") {
-  alert(` Inserted: ${json.inserted} |  Duplicates skipped: ${json.skipped}`);
-  document.getElementById("userForm").reset();
-} else {
-  alert("Error registering user.");
-}
-});
+    document.getElementById("taskForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("uploadTasksBtn");
+      btn.classList.add("btn-loading");
 
+      const project = document.getElementById("projectName").value;
+      const level = document.getElementById("taskLevel").value;
+      const taskLines = document.getElementById("tasks").value.trim().split("\n");
 
-document.getElementById("taskForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+      if (!project || !level) {
+        alert("Please select both Project and Level.");
+        btn.classList.remove("btn-loading");
+        return;
+      }
 
-  const project = document.getElementById("projectName").value;
-  const level = document.getElementById("taskLevel").value;
-  const taskLines = document.getElementById("tasks").value.trim().split("\n");
+      const tasks = taskLines
+        .map(line => line.trim().split(/\s+/))
+        .filter(parts => parts.length === 2)
+        .map(([subtask, batch]) => ({ subtask, batch, level, project }));
 
-  if (!project || !level) {
-    alert("Please select both Project and Level.");
-    return;
-  }
+      if (tasks.length === 0) {
+        alert("Please paste valid task data (Subtask and Batch only).");
+        btn.classList.remove("btn-loading");
+        return;
+      }
 
-  const tasks = taskLines
-    .map(line => line.trim().split(/\s+/))
-    .filter(parts => parts.length === 2)
-    .map(([subtask, batch]) => ({ subtask, batch, level, project }));
+      try {
+        const res = await fetch(TASK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tasks })
+        });
 
-  if (tasks.length === 0) {
-    alert("Please paste valid task data (Subtask and Batch only).");
-    return;
-  }
-
- const res = await fetch(TASK_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ tasks })
-});
-
-const result = await res.json();
-
-if (result.status === "success") {
-  alert(`✅ Inserted: ${result.inserted} | ⛔ Duplicates skipped: ${result.skipped}`);
-  document.getElementById("taskForm").reset();
-} else {
-  alert("❌ Error uploading tasks: " + (result.message || ""));
-}
-
-});
-
+        const result = await res.json();
+        if (result.status === "success") {
+          alert(`✅ Inserted: ${result.inserted} | ⚠️ Duplicates skipped: ${result.skipped}`);
+          document.getElementById("taskForm").reset();
+        } else {
+          alert("❌ Error uploading tasks: " + (result.message || ""));
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        alert("❌ Error uploading tasks. Please try again.");
+      } finally {
+        btn.classList.remove("btn-loading");
+      }
+    });
 
     function goToApp() {
       window.location.href = "app.html";
     }
 
     function goToManageUsers() {
-    window.location.href = "manage-users.html";
+      window.location.href = "manage-users.html";
     }
 
+    document.getElementById("projectForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("addProjectBtn");
+      btn.classList.add("btn-loading");
+
+      const newProject = document.getElementById("newProject").value.trim();
+      if (!newProject) {
+        alert("Please enter a project name.");
+        btn.classList.remove("btn-loading");
+        return;
+      }
+
+      try {
+        const res = await fetch(PROJECT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newProject })
+        });
+
+        const json = await res.json();
+        if (json.status === "success") {
+          alert("✅ Project added successfully.");
+          document.getElementById("projectForm").reset();
+          loadProjects();
+        } else {
+          alert("❌ Error adding project: " + (json.message || ""));
+        }
+      } catch (error) {
+        console.error("Project error:", error);
+        alert("❌ Error adding project. Please try again.");
+      } finally {
+        btn.classList.remove("btn-loading");
+      }
+    });
 
     window.addEventListener("DOMContentLoaded", () => {
       loadProjects();
     });
-
-    document.getElementById("projectForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const newProject = document.getElementById("newProject").value.trim();
-    if (!newProject) {
-    alert("Please enter a project name.");
-    return;
-    }
-
-  const res = await fetch(PROJECT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: newProject })
-  });
-
-  const json = await res.json();
-if (json.status === "success") {
-  alert("✅ Project added successfully.");
-  document.getElementById("projectForm").reset();
-  loadProjects(); // recargar el selector
-} else {
-  alert("❌ Error adding project: " + (json.message || ""));
-}
-});
-
-  function goToHistory() {
-    window.location.href = "history.html";
-  }
-
   </script>
 </body>
 </html>

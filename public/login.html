@@ -3,83 +3,278 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
+  <title>Login | Task Manager</title>
   <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --bg-dark: #1f1f2e;
+      --bg-medium: #2c3e50;
+      --bg-light: #34495e;
+      --text-light: #ecf0f1;
+      --text-muted: #bdc3c7;
+      --error-color: #e74c3c;
+      --success-color: #2ecc71;
+      --border-radius: 12px;
+      --transition-speed: 0.3s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f2f2f2;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, var(--bg-dark), #2e2e3f, var(--bg-dark));
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .login-container {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: var(--bg-medium);
+      padding: 2.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      margin: 1rem;
+      animation: fadeIn 0.5s ease-in-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary-color);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 24px;
-      color: #2c3e50;
+      margin-bottom: 1.75rem;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-light);
+      position: relative;
+    }
+
+    h2::after {
+      content: '';
+      display: block;
+      width: 50px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.75rem auto 0;
+      border-radius: 3px;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+      position: relative;
     }
 
     label {
       display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 0.9rem;
     }
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
+      padding: 0.9rem;
+      border: 1px solid transparent;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: all var(--transition-speed) ease;
+      font-family: inherit;
     }
 
-    button {
+    input::placeholder {
+      color: color-mix(in srgb, var(--text-muted) 70%, transparent);
+      opacity: 0.7;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: color-mix(in srgb, var(--bg-light) 90%, #000);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent);
+    }
+
+    .password-container {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .toggle-password:hover {
+      color: var(--text-light);
+    }
+
+    button[type="submit"] {
       width: 100%;
-      padding: 12px;
-      background-color: #3498db;
+      padding: 0.9rem;
+      background: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: bold;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: all var(--transition-speed) ease;
+      margin-top: 0.5rem;
+      font-family: inherit;
     }
 
-    button:hover {
-      background-color: #2980b9;
+    button[type="submit"]:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
     }
 
     .error {
-      color: #e74c3c;
-      font-size: 14px;
+      color: var(--error-color);
+      font-size: 0.85rem;
       text-align: center;
-      margin-top: 10px;
+      margin: 1rem 0 0;
+      padding: 0.5rem;
+      background: color-mix(in srgb, var(--error-color) 10%, transparent);
+      border-radius: 4px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    .forgot-password {
+      display: block;
+      text-align: right;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      
+    }
+
+    .forgot-password a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--transition-speed);
+      
+    }
+
+    .forgot-password a:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+      
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 1.75rem;
+        margin: 1rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+    }
+
+    /* Loading state */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+      color: transparent;
+    }
+
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin: -10px 0 0 -10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h2>Login</h2>
+    <h2>Welcome Back</h2>
     <form id="loginForm">
-      <label for="username">Username</label>
-      <input type="text" id="username" required />
+      <div class="form-group">
+        <label for="username">Username or Email</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username or email" required autocomplete="username" />
+      </div>
 
-      <label for="password">Password</label>
-      <input type="password" id="password" required />
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-container">
+          <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
+          <button type="button" class="toggle-password" aria-label="Show password">👁️</button>
+        </div>
+        <a href="#" class="forgot-password">Forgot password?</a>
+      </div>
 
-      <button type="submit">Log In</button>
+      <button type="submit" id="loginButton">Log In</button>
       <div class="error" id="errorMessage"></div>
     </form>
   </div>
@@ -88,12 +283,32 @@
     const BASE_URL = "https://remo-task-manager-production.up.railway.app";
 
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
+      const loginForm = document.getElementById("loginForm");
+      const usernameInput = document.getElementById("username");
+      const passwordInput = document.getElementById("password");
+      const errorMessage = document.getElementById("errorMessage");
+      const loginButton = document.getElementById("loginButton");
+      const togglePassword = document.querySelector(".toggle-password");
 
-        const username = document.getElementById("username").value.trim().toLowerCase();
-        const password = document.getElementById("password").value.trim();
-        const errorMessage = document.getElementById("errorMessage");
+      // Toggle password visibility
+      togglePassword.addEventListener("click", () => {
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+        togglePassword.textContent = type === "password" ? "👁️" : "🔒";
+      });
+
+      // Form submission
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Reset error message
+        errorMessage.classList.remove("show");
+        
+        // Show loading state
+        loginButton.classList.add("btn-loading");
+        
+        const username = usernameInput.value.trim().toLowerCase();
+        const password = passwordInput.value.trim();
 
         try {
           const res = await fetch(`${BASE_URL}/api/login`, {
@@ -114,13 +329,20 @@
             }));
             window.location.href = "app.html";
           } else {
-            errorMessage.textContent = "Invalid username or password.";
+            errorMessage.textContent = data.message || "Invalid username or password.";
+            errorMessage.classList.add("show");
           }
         } catch (err) {
           console.error("Login error:", err);
           errorMessage.textContent = "An error occurred. Please try again.";
+          errorMessage.classList.add("show");
+        } finally {
+          loginButton.classList.remove("btn-loading");
         }
       });
+
+      // Focus username field on page load
+      usernameInput.focus();
     });
   </script>
 </body>
