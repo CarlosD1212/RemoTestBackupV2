@@ -62,6 +62,9 @@ app.post("/api/login", async (req, res) => {
 
   const user = result.rows[0];
 
+  console.log("Usuario autenticado:", user);
+
+
   if (!user) {
     return res.status(401).json({ status: "error", message: "Invalid credentials" });
   }
