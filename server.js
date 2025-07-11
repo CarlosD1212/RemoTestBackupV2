@@ -7,11 +7,11 @@ const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
 const pool = new Pool({
-  user: "postgres",
-  host: "yamanote.proxy.rlwy.net",
-  database: "railway",
-  password: "RjaUAROUupKqOTLwJNwXqjfatfplGjri",
-  port: 57774,
+  user:     process.env.PGUSER,      // postgres
+  host:     process.env.PGHOST,      // yamanote.proxy.rlwy.net
+  database: process.env.PGDATABASE,  // railway
+  password: process.env.PGPASSWORD,  // ********
+  port:     process.env.PGPORT,      // 57774
   ssl: { rejectUnauthorized: false }
 });
 
