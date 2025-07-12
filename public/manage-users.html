@@ -213,7 +213,27 @@
 
     async function loadUsers() {
       const res = await fetch(`${BASE_URL}/api/users`);
-      users = await res.json();
+      const rawUsers = await res.json();
+
+users = rawUsers.map(user => {
+  const normalizeField = (field) => {
+    if (Array.isArray(field)) return field;
+    if (typeof field === "string" && field.startsWith("{") && field.endsWith("}")) {
+      return field
+        .replace(/^{|}$/g, "")     // elimina { }
+        .split(",")                // separa por coma
+        .map(f => f.trim().replace(/^"|"$/g, "")); // quita comillas externas
+    }
+    return [field]; // si es string normal, lo convierte en array
+  };
+
+  return {
+    ...user,
+    role: normalizeField(user.role),
+    project: normalizeField(user.project),
+  };
+});
+
       renderUsers();
     }
 
