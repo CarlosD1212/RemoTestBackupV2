@@ -79,15 +79,27 @@ app.post("/api/login", async (req, res) => {
 
     console.log("✅ Usuario autenticado:", user.username);
 
-    res.json({
-      status: "success",
-      user: {
-        username: user.username,
-        role: user.role,
-        project: user.project,
-        email: user.email || ""
-      }
-    });
+const normalizeField = (field) => {
+  if (Array.isArray(field)) return field;
+  if (typeof field === "string" && field.startsWith("{") && field.endsWith("}")) {
+    return field
+      .replace(/^{|}$/g, "")
+      .split(",")
+      .map(f => f.trim().replace(/^"|"$/g, ""));
+  }
+  return [field];
+};
+
+res.json({
+  status: "success",
+  user: {
+    username: user.username,
+    role: normalizeField(user.role),
+    project: normalizeField(user.project),
+    email: user.email || ""
+  }
+});
+
   } catch (err) {
     console.error("❌ Error en /api/login:", err);
     res.status(500).json({ status: "error", message: "Internal server error" });
