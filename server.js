@@ -215,37 +215,66 @@ app.get("/api/tasks", async (req, res) => {
 });
 
 app.post("/api/tasks", async (req, res) => {
-  const tasks = req.body.tasks || [];
+  const { tasks } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
-    return res.status(400).json({ status: "error", message: "No tasks provided" });
+    return res.status(400).json({ status: "error", message: "No tasks received." });
   }
 
   try {
-    const inserted = [];
+    // Agrupar por proyecto
+    const projects = [...new Set(tasks.map(t => t.project))];
+    const projectLevelsMap = {};
 
-    for (const task of tasks) {
-      const { subtask, batch, level, status, project } = task;
-
-      // Evita duplicados por subtask
-      const exists = await pool.query("SELECT 1 FROM tasks WHERE subtask = $1", [subtask]);
-      if (exists.rows.length > 0) continue;
-
-      await pool.query(
-        `INSERT INTO tasks (subtask, batch, level, status, project)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [subtask, batch, level, status || 'pending', project]
-      );
-
-      inserted.push(subtask);
+    // Consultar niveles permitidos de cada proyecto
+    for (const name of projects) {
+      const result = await pool.query("SELECT levels FROM projects WHERE name = $1", [name]);
+      if (!result.rows[0]) {
+        return res.status(400).json({ status: "error", message: `Project '${name}' not found.` });
+      }
+      projectLevelsMap[name] = result.rows[0].levels;
     }
 
-    res.json({ status: "success", inserted, skipped: tasks.length - inserted.length });
+    // Validar que el level de cada tarea esté permitido
+    for (const task of tasks) {
+      const allowedLevels = projectLevelsMap[task.project];
+      if (!allowedLevels.includes(task.level)) {
+        return res.status(400).json({
+          status: "error",
+          message: `Invalid level '${task.level}' for project '${task.project}'. Allowed levels: ${allowedLevels.join(", ")}`
+        });
+      }
+    }
+
+    // Verificar duplicados
+    const existing = await pool.query(
+      "SELECT subtask FROM tasks WHERE subtask = ANY($1::text[])",
+      [tasks.map(t => t.subtask)]
+    );
+    const existingSubtasks = new Set(existing.rows.map(r => r.subtask));
+
+    const newTasks = tasks.filter(t => !existingSubtasks.has(t.subtask));
+
+    // Insertar las nuevas
+    for (const t of newTasks) {
+      await pool.query(
+        "INSERT INTO tasks (subtask, batch, level, project, status) VALUES ($1, $2, $3, $4, 'pending')",
+        [t.subtask, t.batch, t.level, t.project]
+      );
+    }
+
+    res.json({
+      status: "success",
+      inserted: newTasks,
+      skipped: existingSubtasks.size
+    });
+
   } catch (err) {
     console.error("❌ Error saving tasks:", err);
-    res.status(500).json({ status: "error", message: "Internal error saving tasks" });
+    res.status(500).json({ status: "error", message: "Server error while saving tasks." });
   }
 });
+
 
 
 
