@@ -313,6 +313,8 @@ app.post("/api/claim", async (req, res) => {
 
     const userRoles = cleanPgArray(user.role);
 
+    console.log("🧪 Roles interpretados:", userRoles, typeof userRoles);
+
     // ✅ Este check es opcional si quieres aplicar reglas por roles
     if (!userRoles.includes("admin")) {
       const alreadyClaimed = await pool.query(
