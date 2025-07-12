@@ -317,34 +317,30 @@ app.post("/api/restore-task", async (req, res) => {
 });
 
 app.post("/api/update-user", async (req, res) => {
-  const { username, password, email, role, project } = req.body;
-
-  if (!username) {
-    return res.status(400).json({ status: "error", message: "Missing username" });
-  }
+  const { username, email, password, role, project } = req.body;
 
   try {
-    const result = await pool.query(
-      `UPDATE users SET password = $1, email = $2, role = $3, project = $4 WHERE LOWER(username) = $5`,
-      [
-        password,
-        email,
-        Array.isArray(role) ? role : role.split(','),
-        Array.isArray(project) ? project : project.split(','),
-        username.toLowerCase()
-      ]
-    );
+    let finalPassword = password;
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ status: "error", message: "User not found" });
+    if (!password.startsWith("$2a$")) {
+      // No está encriptada, la encriptamos
+      const salt = await bcrypt.genSalt(10);
+      finalPassword = await bcrypt.hash(password, salt);
     }
 
-    res.json({ status: "success", message: "User updated" });
+    await pool.query(
+      "UPDATE users SET email = $1, password = $2, role = $3, project = $4 WHERE username = $5",
+      [email, finalPassword, role, project, username]
+    );
+
+    res.json({ status: "success" });
   } catch (err) {
     console.error("❌ Error updating user:", err);
-    res.status(500).json({ status: "error", message: "Error updating user" });
+    res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
+
 
 
 
@@ -354,14 +350,16 @@ app.post("/api/update-user", async (req, res) => {
 
 app.post("/api/delete-user", async (req, res) => {
   const { username } = req.body;
+
   try {
-    const result = await pool.query("DELETE FROM users WHERE LOWER(username) = $1", [username.toLowerCase()]);
-    res.json(result.rowCount > 0 ? { status: "success" } : { status: "error", message: "User not found" });
+    await pool.query("DELETE FROM users WHERE username = $1", [username.toLowerCase()]);
+    res.json({ status: "success", message: "User deleted" });
   } catch (err) {
     console.error("❌ Error deleting user:", err);
     res.status(500).json({ status: "error", message: "Error deleting user" });
   }
 });
+
 
 app.get("/api/users", async (req, res) => {
   try {

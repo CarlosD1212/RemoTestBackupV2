@@ -2,315 +2,325 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manage Tasks</title>
+  <title>Manage Users</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
+      background: #f4f6f8;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
     }
-
- .table-container {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 20px;
-  overflow-x: auto;
-}
 
     h1 {
       text-align: center;
+      color: #2c3e50;
       margin-bottom: 30px;
     }
 
-    .back-button {
-      margin-bottom: 20px;
-      background-color: #3498db;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #3498db;
       color: white;
+    }
+
+    button {
+      padding: 6px 10px;
       border: none;
-      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    input[type="text"] {
-     
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-        min-width: 140px; /* Mantienes el ancho mínimo para inputs */
-}
-    
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-th {
-  background: #f0f2f5;
-  text-align: left;
-  padding: 12px 10px;
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 14px;
-}
-
-td {
-  padding: 10px;
-  border-top: 1px solid #e6e6e6;
-  font-size: 14px;
-  color: #333;
-}
-
-tr:hover {
-  background-color: #f9f9f9;
-}
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    .btn-delete {
-      background-color: #e74c3c;
+    .edit-btn {
+      background: #27ae60;
       color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
+      margin-right: 5px;
     }
 
-    .btn-restore {
-      background-color: #2ecc71;
+    .delete-btn {
+      background: #e74c3c;
       color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-left: 5px;
     }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
-}
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
 
-.pagination button {
-  padding: 6px 12px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 6px;
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      min-width: 400px;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+    }
+
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+
+    .modal-content .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Filtros visuales */
+#filter-username,
+#filter-role,
+#filter-project {
+  padding: 10px 12px;
   font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  outline: none;
 }
 
-.pagination button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+#filter-username:focus,
+#filter-role:focus,
+#filter-project:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
-.pagination span {
-  font-weight: bold;
-  font-size: 14px;
-  align-self: center;
-}
-
-    .btn-danger {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
   </style>
 </head>
 <body>
-  <div class="container">
-    
+  <h1>Manage Users</h1>
 
-    <h1>Manage Tasks</h1>
-
-    <input type="text" id="taskSearch" placeholder="Search tasks...">
-
-    <table>
-      <thead>
-        <tr>
-          <th>Subtask</th>
-          <th>Batch</th>
-          <th>Level</th>
-          <th>Status</th>
-          <th>Claimed By</th>
-          <th>Project</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="taskTableBody"></tbody>
-    </table>
-
-  <div class="pagination">
-  <button onclick="prevPage()" id="prevBtn">Prev</button>
-  <span id="pageIndicator">1 / 4</span>
-  <button onclick="nextPage()" id="nextBtn">Next</button>
+  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+  <input type="text" id="filter-username" placeholder="Search username..." oninput="renderUsers()">
+  <select id="filter-role" onchange="renderUsers()">
+    <option value="">All roles</option>
+  </select>
+  <select id="filter-project" onchange="renderUsers()">
+    <option value="">All projects</option>
+  </select>
 </div>
 
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Project</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="user-table-body"></tbody>
+  </table>
 
   
 
+  <div class="modal" id="edit-modal">
+    <div class="modal-content">
+      <h2>Edit User</h2>
+      <input type="text" id="edit-email" placeholder="Email">
+      <input type="text" id="edit-role" placeholder="Role(s) comma-separated">
+      <input type="text" id="edit-project" placeholder="Project(s) comma-separated">
+      <div class="actions">
+        <button onclick="saveUser()" class="edit-btn">Save</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-     const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
-    let allTasks = [];
-    let currentPage = 1;
-    const TASKS_PER_PAGE = 10;
+    const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
+    let users = [];
+    let editingUser = null;
 
-    async function loadTasks() {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
-      const data = await res.json();
-      allTasks = data; // mostramos todas
-      renderTasks();
+    async function loadUsers() {
+      const res = await fetch(`${BASE_URL}/api/users`);
+      users = await res.json();
+      renderUsers();
     }
 
-    function renderTasks() {
-      const tbody = document.getElementById("taskTableBody");
-      const search = document.getElementById("taskSearch").value.toLowerCase();
+    function populateFilters() {
+  const roleSet = new Set();
+  const projectSet = new Set();
 
-      const filtered = allTasks.filter(t =>
-        t.subtask.toLowerCase().includes(search) ||
-        t.batch.toLowerCase().includes(search) ||
-        t.level.toLowerCase().includes(search) ||
-        t.status.toLowerCase().includes(search) ||
-        (t.claimed_by || "").toLowerCase().includes(search) ||
-        (t.project || "").toLowerCase().includes(search)
-      );
+  users.forEach(user => {
+    const roles = Array.isArray(user.role) ? user.role : user.role.split(",");
+    const projects = Array.isArray(user.project) ? user.project : user.project.split(",");
 
-      const start = (currentPage - 1) * TASKS_PER_PAGE;
-      const end = start + TASKS_PER_PAGE;
-      const tasksToShow = filtered.slice(start, end);
+    roles.forEach(r => roleSet.add(r.trim()));
+    projects.forEach(p => projectSet.add(p.trim()));
+  });
 
-      tbody.innerHTML = "";
-      tasksToShow.forEach(t => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${t.subtask}</td>
-          <td>${t.batch}</td>
-          <td>${t.level}</td>
-          <td>${t.status}</td>
-          <td>${t.claimed_by || "-"}</td>
-          <td>${t.project}</td>
-          <td>
-            <button class="btn-danger" onclick="deleteTask('${t.subtask}')">Delete</button>
-            
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+  const roleSelect = document.getElementById("filter-role");
+  const projectSelect = document.getElementById("filter-project");
 
-      renderPagination(filtered.length);
-    }
+  roleSet.forEach(role => {
+    const opt = document.createElement("option");
+    opt.value = role;
+    opt.textContent = role;
+    roleSelect.appendChild(opt);
+  });
 
-    function renderPagination(total) {
-      const controls = document.getElementById("paginationControls");
-      const pages = Math.ceil(total / TASKS_PER_PAGE);
-      controls.innerHTML = "";
+  projectSet.forEach(proj => {
+    const opt = document.createElement("option");
+    opt.value = proj;
+    opt.textContent = proj;
+    projectSelect.appendChild(opt);
+  });
+}
 
-      for (let i = 1; i <= pages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        if (i === currentPage) btn.disabled = true;
-        btn.onclick = () => {
-          currentPage = i;
-          renderTasks();
-        };
-        controls.appendChild(btn);
+// Después de loadUsers:
+loadUsers().then(populateFilters);
+
+
+function renderUsers() {
+  const tbody = document.getElementById("user-table-body");
+  tbody.innerHTML = "";
+
+  const search = document.getElementById("filter-username").value.toLowerCase();
+  const selectedRole = document.getElementById("filter-role").value;
+  const selectedProject = document.getElementById("filter-project").value;
+
+  // Limpia caracteres especiales de strings o arrays
+  const cleanArrayValue = (value) => {
+    if (Array.isArray(value)) return value.map(v => v.trim());
+
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.map(v => v.trim());
+      } catch {
+        return value
+          .replace(/[\{\}\[\]"]/g, "") // elimina { } [ ] "
+          .split(",")
+          .map(v => v.trim());
       }
     }
 
-    async function deleteTask(subtask) {
-      if (!confirm(`Are you sure you want to delete subtask "${subtask}"?`)) return;
+    return [];
+  };
 
-      const res = await fetch(`${BASE_URL}/api/delete-task`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask })
-      });
+  const filtered = users.filter(user => {
+    const uname = user.username.toLowerCase();
+    const roles = cleanArrayValue(user.role);
+    const projects = cleanArrayValue(user.project);
 
-      const result = await res.json();
-      if (result.status === "success") {
-        alert("Task deleted.");
-        await loadTasks();
-      } else {
-        alert("Error: " + result.message);
-      }
+    return (
+      uname.includes(search) &&
+      (selectedRole === "" || roles.includes(selectedRole)) &&
+      (selectedProject === "" || projects.includes(selectedProject))
+    );
+  });
+
+  filtered.forEach(user => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${user.username}</td>
+      <td>${user.email}</td>
+      <td>${cleanArrayValue(user.role).join(", ")}</td>
+      <td>${cleanArrayValue(user.project).join(", ")}</td>
+      <td>
+        <button class="edit-btn" onclick="openEdit('${user.username}')">Edit</button>
+        <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+
+    function openEdit(username) {
+      const user = users.find(u => u.username === username);
+      if (!user) return;
+
+      editingUser = user.username;
+      document.getElementById("edit-email").value = user.email || "";
+      document.getElementById("edit-role").value = Array.isArray(user.role) ? user.role.join(",") : user.role;
+      document.getElementById("edit-project").value = Array.isArray(user.project) ? user.project.join(",") : user.project;
+      document.getElementById("edit-modal").style.display = "flex";
     }
 
-    async function restoreTask(subtask) {
-      const res = await fetch(`${BASE_URL}/api/restore-task`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask })
-      });
-
-      const result = await res.json();
-      if (result.status === "success") {
-        alert("Task restored.");
-        await loadTasks();
-      } else {
-        alert("Error: " + result.message);
-      }
+    function closeModal() {
+      editingUser = null;
+      document.getElementById("edit-modal").style.display = "none";
     }
 
-    document.getElementById("taskSearch").addEventListener("input", () => {
-      currentPage = 1;
-      renderTasks();
-    });
+async function saveEditUser() {
+  const username = document.getElementById("edit-username").value;
+  const email = document.getElementById("edit-email").value;
+  const passwordInput = document.getElementById("edit-password").value;
 
-    window.addEventListener("DOMContentLoaded", loadTasks);
+  // Si está vacío, se mantiene la contraseña original ya encriptada
+  const passwordToSend = passwordInput.trim() !== "" 
+    ? passwordInput 
+    : currentEditUser.password;
 
-    async function bulkDeleteTasks() {
-  const input = document.getElementById("bulkDeleteInput").value.trim();
-  const rawSubtasks = input.split(/\s+/);
-  const subtasks = rawSubtasks.filter(s => s !== "");
-  const statusDiv = document.getElementById("bulkDeleteStatus");
+  const data = {
+    username,
+    email,
+    password: passwordToSend,
+    role: selectedRoles,
+    project: selectedProjects
+  };
 
-  if (subtasks.length === 0) {
-    statusDiv.style.color = "red";
-    statusDiv.textContent = "No subtasks provided.";
-    return;
-  }
-
-  let successCount = 0;
-  let errorCount = 0;
-
-  for (const subtask of subtasks) {
-    const res = await fetch(`${BASE_URL}/api/delete-task`, {
+  try {
+    const res = await fetch(`${BASE_URL}/api/update-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtask })
+      body: JSON.stringify(data)
     });
 
     const result = await res.json();
     if (result.status === "success") {
-      successCount++;
+      closeModal();
+      await loadUsers();
     } else {
-      errorCount++;
+      alert("❌ Error updating user: " + result.message);
     }
+  } catch (err) {
+    console.error("Error updating user:", err);
   }
-
-  statusDiv.style.color = "#2ecc71";
-  statusDiv.textContent = `✅ Deleted: ${successCount}, ❌ Errors: ${errorCount}`;
-  document.getElementById("bulkDeleteInput").value = "";
-  await loadTasks(); // recarga tabla
 }
 
+    async function deleteUser(username) {
+      if (!confirm(`Delete user ${username}?`)) return;
+
+      await fetch(`${BASE_URL}/api/delete-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+      });
+
+      loadUsers();
+    }
+
+    loadUsers();
   </script>
 </body>
 </html>
