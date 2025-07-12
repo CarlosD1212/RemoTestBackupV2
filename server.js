@@ -62,30 +62,38 @@ io.on("connection", (socket) => {
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  const result = await pool.query(
-    "SELECT * FROM users WHERE username = $1 AND password = $2",
-    [username, password]
-  );
 
-  const user = result.rows[0];
+  try {
+    // 1. Busca SOLO por username
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username.toLowerCase()]
+    );
 
-  console.log("Usuario autenticado:", user);
+    const user = result.rows[0];
 
-
-  if (!user) {
-    return res.status(401).json({ status: "error", message: "Invalid credentials" });
-  }
-
-  res.json({
-    status: "success",
-    user: {
-      username: user.username,
-      role: user.role,
-      project: user.project,
-      email: user.email || "" // Asegúrate de que esta línea exista
+    // 2. Valida existencia y contraseña
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ status: "error", message: "Invalid credentials" });
     }
-  });
+
+    console.log("✅ Usuario autenticado:", user.username);
+
+    res.json({
+      status: "success",
+      user: {
+        username: user.username,
+        role: user.role,
+        project: user.project,
+        email: user.email || ""
+      }
+    });
+  } catch (err) {
+    console.error("❌ Error en /api/login:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
 });
+
 
 
 
@@ -374,22 +382,33 @@ server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
 
+const bcrypt = require("bcrypt");          //  NUEVO
+
 app.post("/api/register-users", async (req, res) => {
   const users = req.body.users || [];
 
   try {
+    // 1. Usuarios ya existentes (evita duplicados)
     const { rows: existing } = await pool.query("SELECT username FROM users");
     const existingUsers = new Set(existing.map(u => u.username.toLowerCase()));
 
-    const uniqueUsers = users.filter(u => !existingUsers.has(u.username.toLowerCase()));
+    // 2. Filtra solo los nuevos
+    const uniqueUsers = users.filter(
+      u => !existingUsers.has(u.username.toLowerCase())
+    );
+
     const inserted = [];
 
+    // 3. Inserta cada usuario con contraseña encriptada
     for (const user of uniqueUsers) {
+      const hashedPassword = await bcrypt.hash(user.password, 10);   //  NUEVO
+
       await pool.query(
-        "INSERT INTO users (username, password, email, role, project) VALUES ($1, $2, $3, $4, $5)",
+        `INSERT INTO users (username, password, email, role, project)
+         VALUES ($1, $2, $3, $4, $5)`,
         [
           user.username.toLowerCase(),
-          user.password,
+          hashedPassword,                                            //  NUEVO
           user.email || "",
           Array.isArray(user.role) ? user.role : user.role.split(","),
           Array.isArray(user.project) ? user.project : user.project.split(",")
@@ -408,3 +427,4 @@ app.post("/api/register-users", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+

@@ -217,6 +217,21 @@
       renderUsers();
     }
 
+    users = users.map(u => ({
+  ...u,
+  role: Array.isArray(u.role)
+    ? u.role
+    : typeof u.role === "string" && u.role.startsWith("{")
+      ? JSON.parse(u.role.replace(/{/g, "[").replace(/}/g, "]").replace(/"/g, '"'))
+      : [u.role],
+
+  project: Array.isArray(u.project)
+    ? u.project
+    : typeof u.project === "string" && u.project.startsWith("{")
+      ? JSON.parse(u.project.replace(/{/g, "[").replace(/}/g, "]").replace(/"/g, '"'))
+      : [u.project],
+}));
+
     function renderUsers() {
       const tbody = document.getElementById("userTableBody");
       tbody.innerHTML = "";
