@@ -317,28 +317,24 @@ app.post("/api/restore-task", async (req, res) => {
 });
 
 app.post("/api/update-user", async (req, res) => {
-  const { username, email, password, role, project } = req.body;
+  const { username, email, role, project } = req.body;
 
   try {
-    let finalPassword = password;
-
-    if (!password.startsWith("$2a$")) {
-      // No está encriptada, la encriptamos
-      const salt = await bcrypt.genSalt(10);
-      finalPassword = await bcrypt.hash(password, salt);
-    }
+    const roleArray = Array.isArray(role) ? role : role.split(",").map(r => r.trim());
+    const projectArray = Array.isArray(project) ? project : project.split(",").map(p => p.trim());
 
     await pool.query(
-      "UPDATE users SET email = $1, password = $2, role = $3, project = $4 WHERE username = $5",
-      [email, finalPassword, role, project, username]
+      "UPDATE users SET email = $1, role = $2, project = $3 WHERE username = $4",
+      [email, roleArray, projectArray, username.toLowerCase()]
     );
 
-    res.json({ status: "success" });
+    res.json({ status: "success", message: "User updated" });
   } catch (err) {
     console.error("❌ Error updating user:", err);
-    res.status(500).json({ status: "error", message: "Internal server error" });
+    res.status(500).json({ status: "error", message: "Error updating user" });
   }
 });
+
 
 
 
@@ -359,6 +355,7 @@ app.post("/api/delete-user", async (req, res) => {
     res.status(500).json({ status: "error", message: "Error deleting user" });
   }
 });
+
 
 
 app.get("/api/users", async (req, res) => {

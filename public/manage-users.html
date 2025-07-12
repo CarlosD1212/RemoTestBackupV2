@@ -2,58 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manage Users</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      margin: 0;
+      background: #f4f6f8;
       padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
     }
 
     h1 {
       text-align: center;
       color: #2c3e50;
-      margin-bottom: 2rem;
-    }
-
-    .filters {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    #filter-username, #filter-role, #filter-project {
-      padding: 10px 12px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-      transition: all 0.2s ease;
-      outline: none;
-    }
-
-    #filter-username:focus,
-    #filter-role:focus,
-    #filter-project:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      margin-bottom: 30px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      border-radius: 8px;
-      overflow: hidden;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     th, td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #e0e0e0;
+      padding: 12px;
+      border: 1px solid #ddd;
       text-align: left;
     }
 
@@ -62,27 +36,31 @@
       color: white;
     }
 
-    .edit-btn, .delete-btn {
+    button {
       padding: 6px 10px;
-      margin-right: 6px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      color: white;
       font-weight: bold;
     }
 
-    .edit-btn { background: #27ae60; }
-    .delete-btn { background: #e74c3c; }
+    .edit-btn {
+      background: #27ae60;
+      color: white;
+      margin-right: 5px;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+    }
 
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
       justify-content: center;
       align-items: center;
     }
@@ -91,231 +69,255 @@
       background: white;
       padding: 20px;
       border-radius: 10px;
-      width: 400px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      min-width: 400px;
     }
 
-    .modal-content input {
+    .modal-content h2 {
+      margin-top: 0;
+    }
+
+    .modal-content input, .modal-content select {
       width: 100%;
-      margin: 10px 0;
-      padding: 10px;
+      padding: 8px;
+      margin-bottom: 10px;
     }
 
-    .modal-buttons {
+    .modal-content .actions {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
     }
 
-    .modal-buttons button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    /* Filtros visuales */
+#filter-username,
+#filter-role,
+#filter-project {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  outline: none;
+}
 
-    .save-btn { background: #2980b9; color: white; }
-    .cancel-btn { background: #bdc3c7; }
+#filter-username:focus,
+#filter-role:focus,
+#filter-project:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
 
-    .pagination {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      gap: 10px;
-    }
 
-    .pagination button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      background: #3498db;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <h1>User Management</h1>
+  <h1>Manage Users</h1>
 
-  <div class="filters">
-    <input type="text" id="filter-username" placeholder="Search username..." />
-    <select id="filter-role"></select>
-    <select id="filter-project"></select>
-  </div>
+  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+  <input type="text" id="filter-username" placeholder="Search username..." oninput="renderUsers()">
+  <select id="filter-role" onchange="renderUsers()">
+    <option value="">All roles</option>
+  </select>
+  <select id="filter-project" onchange="renderUsers()">
+    <option value="">All projects</option>
+  </select>
+</div>
 
   <table>
     <thead>
       <tr>
         <th>Username</th>
         <th>Email</th>
-        <th>Roles</th>
-        <th>Projects</th>
+        <th>Role</th>
+        <th>Project</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody id="user-table-body"></tbody>
   </table>
 
-  <div class="pagination">
-    <button onclick="prevPage()">Prev</button>
-    <button onclick="nextPage()">Next</button>
-  </div>
-
   <div class="modal" id="edit-modal">
     <div class="modal-content">
-      <h3>Edit User</h3>
-      <input type="text" id="edit-email" placeholder="Email" />
-      <input type="text" id="edit-roles" placeholder="Roles (comma-separated)" />
-      <input type="text" id="edit-projects" placeholder="Projects (comma-separated)" />
-      <div class="modal-buttons">
-        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-        <button class="save-btn" onclick="saveUserChanges()">Save</button>
+      <h2>Edit User</h2>
+      <input type="text" id="edit-email" placeholder="Email">
+      <input type="text" id="edit-role" placeholder="Role(s) comma-separated">
+      <input type="text" id="edit-project" placeholder="Project(s) comma-separated">
+      <div class="actions">
+        <button onclick="saveUser()" class="edit-btn">Save</button>
+        <button onclick="closeModal()">Cancel</button>
       </div>
     </div>
   </div>
 
+  <div style="margin-top: 20px; text-align: center;">
+  <button onclick="prevPage()">Prev</button>
+  <button onclick="nextPage()">Next</button>
+</div>
+
   <script>
     const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
     let users = [];
-    let availableProjects = [];
-    let availableRoles = new Set();
-    let editingUser = null;
     let currentPage = 1;
-    const itemsPerPage = 40;
-
-    const cleanArrayValue = (value) => {
-      if (Array.isArray(value)) return value.map(v => v.trim());
-      if (typeof value === "string") {
-        try {
-          const parsed = JSON.parse(value);
-          if (Array.isArray(parsed)) return parsed.map(v => v.trim());
-        } catch {
-          return value.replace(/[{}\[\]"]/g, "").split(",").map(v => v.trim());
-        }
-      }
-      return [];
-    };
-
-    function editUser(username) {
-      editingUser = users.find(u => u.username === username);
-      if (!editingUser) return;
-      document.getElementById("edit-email").value = editingUser.email || "";
-      document.getElementById("edit-roles").value = cleanArrayValue(editingUser.role).join(", ");
-      document.getElementById("edit-projects").value = cleanArrayValue(editingUser.project).join(", ");
-      document.getElementById("edit-modal").style.display = "flex";
-    }
-
-    function closeModal() {
-      document.getElementById("edit-modal").style.display = "none";
-      editingUser = null;
-    }
-
-    async function saveUserChanges() {
-      const updatedUser = {
-        username: editingUser.username,
-        email: document.getElementById("edit-email").value.trim(),
-        role: document.getElementById("edit-roles").value.split(",").map(v => v.trim()),
-        project: document.getElementById("edit-projects").value.split(",").map(v => v.trim()),
-      };
-      try {
-        await fetch(`${BASE_URL}/api/update-user`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedUser),
-        });
-        closeModal();
-        await loadUsers();
-      } catch (err) {
-        alert("Failed to update user");
-        console.error(err);
-      }
-    }
-
-    function deleteUser(username) {
-      alert(`Delete ${username}`);
-    }
-
-    async function fetchProjects() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/projects`);
-        availableProjects = await res.json();
-      } catch {
-        availableProjects = ["Project A", "Project B"];
-      }
-    }
+    const itemsPerPage = 30;
+    let editingUser = null;
 
     async function loadUsers() {
       const res = await fetch(`${BASE_URL}/api/users`);
       users = await res.json();
-      users.forEach(u => {
-        cleanArrayValue(u.role).forEach(r => availableRoles.add(r));
-      });
-      renderFilters();
       renderUsers();
     }
 
-    function renderFilters() {
-      const roleSelect = document.getElementById("filter-role");
-      const projectSelect = document.getElementById("filter-project");
+    function populateFilters() {
+  const roleSet = new Set();
+  const projectSet = new Set();
 
-      roleSelect.innerHTML = '<option value="">All Roles</option>' + [...availableRoles].map(r => `<option value="${r}">${r}</option>`).join("");
-      projectSelect.innerHTML = '<option value="">All Projects</option>' + availableProjects.map(p => `<option value="${p}">${p}</option>`).join("");
-    }
+  users.forEach(user => {
+    const roles = Array.isArray(user.role) ? user.role : user.role.split(",");
+    const projects = Array.isArray(user.project) ? user.project : user.project.split(",");
 
-    function renderUsers() {
-      const tbody = document.getElementById("user-table-body");
-      tbody.innerHTML = "";
+    roles.forEach(r => roleSet.add(r.trim()));
+    projects.forEach(p => projectSet.add(p.trim()));
+  });
 
-      const search = document.getElementById("filter-username").value.toLowerCase();
-      const selectedRole = document.getElementById("filter-role").value;
-      const selectedProject = document.getElementById("filter-project").value;
+  const roleSelect = document.getElementById("filter-role");
+  const projectSelect = document.getElementById("filter-project");
 
-      const filtered = users.filter(user => {
-        const uname = user.username.toLowerCase();
-        const roles = cleanArrayValue(user.role);
-        const projects = cleanArrayValue(user.project);
+  roleSet.forEach(role => {
+    const opt = document.createElement("option");
+    opt.value = role;
+    opt.textContent = role;
+    roleSelect.appendChild(opt);
+  });
 
-        return (
-          uname.includes(search) &&
-          (selectedRole === "" || roles.includes(selectedRole)) &&
-          (selectedProject === "" || projects.includes(selectedProject))
-        );
-      });
+  projectSet.forEach(proj => {
+    const opt = document.createElement("option");
+    opt.value = proj;
+    opt.textContent = proj;
+    projectSelect.appendChild(opt);
+  });
+}
 
-      const start = (currentPage - 1) * itemsPerPage;
-      const paginatedUsers = filtered.slice(start, start + itemsPerPage);
+// Después de loadUsers:
+loadUsers().then(populateFilters);
 
-      paginatedUsers.forEach(user => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.email}</td>
-          <td>${cleanArrayValue(user.role).join(", ")}</td>
-          <td>${cleanArrayValue(user.project).join(", ")}</td>
-          <td>
-            <button class="edit-btn" onclick="editUser('${user.username}')">Edit</button>
-            <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
 
-    function nextPage() {
-      currentPage++;
-      renderUsers();
-    }
+function renderUsers() {
+  const tbody = document.getElementById("user-table-body");
+  tbody.innerHTML = "";
 
-    function prevPage() {
-      if (currentPage > 1) {
-        currentPage--;
-        renderUsers();
+  const search = document.getElementById("filter-username").value.toLowerCase();
+  const selectedRole = document.getElementById("filter-role").value;
+  const selectedProject = document.getElementById("filter-project").value;
+
+  const cleanArrayValue = (value) => {
+    if (Array.isArray(value)) return value.map(v => v.trim());
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.map(v => v.trim());
+      } catch {
+        return value.replace(/[\{\}\[\]"]/g, "").split(",").map(v => v.trim());
       }
     }
+    return [];
+  };
 
-    fetchProjects().then(loadUsers);
+  const filtered = users.filter(user => {
+    const uname = user.username.toLowerCase();
+    const roles = cleanArrayValue(user.role);
+    const projects = cleanArrayValue(user.project);
+    return (
+      uname.includes(search) &&
+      (selectedRole === "" || roles.includes(selectedRole)) &&
+      (selectedProject === "" || projects.includes(selectedProject))
+    );
+  });
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+  paginatedUsers.forEach(user => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${user.username}</td>
+      <td>${user.email}</td>
+      <td>${cleanArrayValue(user.role).join(", ")}</td>
+      <td>${cleanArrayValue(user.project).join(", ")}</td>
+      <td>
+        <button class="edit-btn" onclick="openEdit('${user.username}')">Edit</button>
+        <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+
+
+    function openEdit(username) {
+      const user = users.find(u => u.username === username);
+      if (!user) return;
+
+      editingUser = user.username;
+      document.getElementById("edit-email").value = user.email || "";
+      document.getElementById("edit-role").value = Array.isArray(user.role) ? user.role.join(",") : user.role;
+      document.getElementById("edit-project").value = Array.isArray(user.project) ? user.project.join(",") : user.project;
+      document.getElementById("edit-modal").style.display = "flex";
+    }
+
+    function closeModal() {
+      editingUser = null;
+      document.getElementById("edit-modal").style.display = "none";
+    }
+
+    async function saveUser() {
+      const updated = {
+        username: editingUser,
+        email: document.getElementById("edit-email").value,
+        role: document.getElementById("edit-role").value,
+        project: document.getElementById("edit-project").value
+      };
+
+      await fetch(`${BASE_URL}/api/update-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      });
+
+      closeModal();
+      loadUsers();
+    }
+
+    async function deleteUser(username) {
+      if (!confirm(`Delete user ${username}?`)) return;
+
+      await fetch(`${BASE_URL}/api/delete-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+      });
+
+      loadUsers();
+    }
+
+    loadUsers();
+
+    function nextPage() {
+  currentPage++;
+  renderUsers();
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderUsers();
+  }
+}
+
   </script>
 </body>
 </html>
