@@ -307,28 +307,41 @@ app.post("/api/tasks", async (req, res) => {
 app.post("/api/claim", async (req, res) => {
   const { subtask, username } = req.body;
   try {
-    const check = await pool.query(
-      `SELECT * FROM tasks WHERE claimed_by = $1 AND status = 'claimed'`,
-      [username]
-    );
-    if (check.rows.length > 0) {
-      return res.json({ status: "error", message: "Ya tienes una tarea reclamada" });
+    const userResult = await pool.query("SELECT * FROM users WHERE username = $1", [username.toLowerCase()]);
+    const user = userResult.rows[0];
+    if (!user) return res.status(404).json({ status: "error", message: "User not found" });
+
+    const userRoles = cleanPgArray(user.role);
+
+    // ✅ Este check es opcional si quieres aplicar reglas por roles
+    if (!userRoles.includes("admin")) {
+      const alreadyClaimed = await pool.query(
+        `SELECT * FROM tasks WHERE claimed_by = $1 AND status = 'claimed'`,
+        [username]
+      );
+      if (alreadyClaimed.rows.length > 0) {
+        return res.json({ status: "error", message: "Ya tienes una tarea reclamada" });
+      }
     }
+
     const result = await pool.query(
       `UPDATE tasks SET claimed_by = $1, claimed_at = NOW(), status = 'claimed' WHERE subtask = $2 AND status = 'pending' RETURNING *`,
       [username, subtask]
     );
+
     if (result.rowCount > 0) {
       io.emit("taskClaimed", { subtask, username });
       return res.json({ status: "success", message: "Tarea reclamada" });
     } else {
       return res.json({ status: "error", message: "Tarea no encontrada o ya reclamada" });
     }
+
   } catch (err) {
-    console.error("❌ Error en /api/claim:", err);
+    console.error("❌ Error en /api/claim:", err);  // ← Mira esta salida en consola para más detalle
     res.status(500).json({ status: "error", message: "Internal error in claim" });
   }
 });
+
 
 // ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
 function cleanPgArray(value) {
