@@ -110,61 +110,73 @@ app.get("/api/projects", async (req, res) => {
 });
 
 app.post("/api/projects", async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ status: "error", message: "Project name is required" });
+  const { name, levels, pause } = req.body;
+
+  if (!name || !Array.isArray(levels) || levels.length === 0) {
+    return res.status(400).json({ status: "error", message: "Project name and levels are required." });
   }
+
   try {
-    const existing = await pool.query("SELECT 1 FROM projects WHERE name = $1", [name]);
-    if (existing.rowCount > 0) {
-      return res.json({ status: "success", inserted: 0, skipped: 1 });
+    // Verifica si ya existe el proyecto
+    const check = await pool.query("SELECT * FROM projects WHERE name = $1", [name]);
+    if (check.rows.length > 0) {
+      return res.json({ status: "duplicate", message: "Project already exists." });
     }
 
-    await pool.query("INSERT INTO projects (name) VALUES ($1)", [name]);
-    res.json({ status: "success", inserted: 1, skipped: 0 });
+    // Inserta el nuevo proyecto con niveles y estado de pausa
+    await pool.query(
+      "INSERT INTO projects (name, levels, pause) VALUES ($1, $2, $3)",
+      [name, levels, pause || "disabled"]
+    );
+
+    return res.json({ status: "success", message: "Project created." });
   } catch (err) {
-    console.error("❌ Error adding project:", err);
-    res.status(500).json({ status: "error", message: "Could not add project" });
+    console.error("Error saving project:", err);
+    return res.status(500).json({ status: "error", message: "Server error." });
   }
 });
 
 
 app.get("/api/tasks", async (req, res) => {
-  const username = (req.query.username || "").trim().toLowerCase();
-
-  if (!username) {
-    return res.status(400).json({ status: "error", message: "Missing username" });
-  }
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ error: "Username required" });
 
   try {
-    const userResult = await pool.query("SELECT role, project FROM users WHERE username = $1", [username]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ status: "error", message: "User not found" });
-    }
-
+    // Obtener usuario
+    const userResult = await pool.query("SELECT * FROM users WHERE username = $1", [username.toLowerCase()]);
     const user = userResult.rows[0];
-    const roles = Array.isArray(user.role) ? user.role : user.role?.split(",") || [];
-    const projects = Array.isArray(user.project) ? user.project : user.project?.split(",") || [];
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    // ✅ Si es admin, ver todas las tareas
-    if (roles.includes("admin")) {
-      const all = await pool.query("SELECT * FROM tasks");
-      return res.json(all.rows);
+    const userRoles = Array.isArray(user.role) ? user.role : user.role.split(",");
+    const userProject = user.project;
+
+    // Si es admin, ve todo
+    if (userRoles.includes("admin")) {
+      const allTasks = await pool.query("SELECT * FROM tasks WHERE status != 'finished'");
+      return res.json(allTasks.rows);
     }
 
-    // ✅ Si no es admin, filtrar por roles y proyectos
-    const query = `
-      SELECT * FROM tasks
-      WHERE level = ANY($1::text[]) AND project = ANY($2::text[])
-    `;
-    const filtered = await pool.query(query, [roles, projects]);
-    res.json(filtered.rows);
+    // Obtener niveles permitidos del proyecto
+    const projResult = await pool.query("SELECT levels FROM projects WHERE name = $1", [userProject]);
+    const projectLevels = projResult.rows[0]?.levels || [];
 
-  } catch (err) {
-    console.error("❌ Error en /api/tasks:", err);
-    res.status(500).json({ status: "error", message: "Failed to load tasks" });
+    // Filtrar tareas por proyecto y nivel
+    const tasks = await pool.query(
+      "SELECT * FROM tasks WHERE project = $1 AND status != 'finished'",
+      [userProject]
+    );
+
+    const filteredTasks = tasks.rows.filter(task =>
+      userRoles.includes(task.level) && projectLevels.includes(task.level)
+    );
+
+    res.json(filteredTasks);
+  } catch (error) {
+    console.error("Error loading tasks:", error);
+    res.status(500).json({ error: "Error loading tasks" });
   }
 });
+
 
 
 app.get("/api/tasks", async (req, res) => {

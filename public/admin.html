@@ -363,9 +363,39 @@
         <input type="text" id="newProject" required autocomplete="off" />
       </div>
 
+      <h3>Assign Levels</h3><br>
+<div id="level-checkboxes" style="display: flex; flex-direction: column; gap: 8px; font-family: 'Segoe UI', sans-serif;">
+  <label style="display: flex; align-items: center; gap: 8px; width: 60px;">
+    <input type="checkbox" value="-1" style="margin: 0; width: 16px; height: 16px;">
+    <span style="display: inline-block; width: 20px; text-align: right;">-1</span>
+  </label>
+  <label style="display: flex; align-items: center; gap: 8px; width: 60px;">
+    <input type="checkbox" value="0" style="margin: 0; width: 16px; height: 16px;">
+    <span style="display: inline-block; width: 20px; text-align: right;">0</span>
+  </label>
+  <label style="display: flex; align-items: center; gap: 8px; width: 60px;">
+    <input type="checkbox" value="1" style="margin: 0; width: 16px; height: 16px;">
+    <span style="display: inline-block; width: 20px; text-align: right;">1</span>
+  </label>
+  <label style="display: flex; align-items: center; gap: 8px; width: 60px;">
+    <input type="checkbox" value="10" style="margin: 0; width: 16px; height: 16px;">
+    <span style="display: inline-block; width: 20px; text-align: right;">10</span>
+  </label>
+</div><br>
+
+<div class="form-group">
+  <label for="pauseButton">Pause Button:</label>
+  <select id="pauseButton" required>
+    <option value="enabled">Enabled</option>
+    <option value="disabled" selected>Disabled</option>
+  </select>
+</div>
+
       <button type="submit" class="submit-btn" id="addProjectBtn">
         <i class="fas fa-plus"></i> Add Project
       </button>
+
+      
     </form>
 
     <!-- Task Upload -->
@@ -526,40 +556,58 @@
       window.location.href = "manage-users.html";
     }
 
-    document.getElementById("projectForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("addProjectBtn");
-      btn.classList.add("btn-loading");
+document.getElementById("projectForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("addProjectBtn");
+  btn.classList.add("btn-loading");
 
-      const newProject = document.getElementById("newProject").value.trim();
-      if (!newProject) {
-        alert("Please enter a project name.");
-        btn.classList.remove("btn-loading");
-        return;
-      }
+  const newProject = document.getElementById("newProject").value.trim();
+  const pauseState = document.getElementById("pauseButton").value;   // ⬅️ nuevo
 
-      try {
-        const res = await fetch(PROJECT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: newProject })
-        });
+  if (!newProject) {
+    alert("Please enter a project name.");
+    btn.classList.remove("btn-loading");
+    return;
+  }
 
-        const json = await res.json();
-        if (json.status === "success") {
-          alert("✅ Project added successfully.");
-          document.getElementById("projectForm").reset();
-          loadProjects();
-        } else {
-          alert("❌ Error adding project: " + (json.message || ""));
-        }
-      } catch (error) {
-        console.error("Project error:", error);
-        alert("❌ Error adding project. Please try again.");
-      } finally {
-        btn.classList.remove("btn-loading");
-      }
+  try {
+    const checkboxes = document.querySelectorAll('#level-checkboxes input[type="checkbox"]');
+    const selectedLevels = Array.from(checkboxes)
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+
+    if (selectedLevels.length === 0) {
+      alert("Please select at least one level for the project.");
+      btn.classList.remove("btn-loading");
+      return;
+    }
+
+    const res = await fetch(PROJECT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: newProject,
+        levels: selectedLevels,
+        pause: pauseState            // ⬅️ enviamos enabled | disabled
+      })
     });
+
+    const json = await res.json();
+    if (json.status === "success") {
+      alert("✅ Project added successfully.");
+      document.getElementById("projectForm").reset();
+      loadProjects();
+    } else {
+      alert("❌ Error adding project: " + (json.message || ""));
+    }
+  } catch (error) {
+    console.error("Project error:", error);
+    alert("❌ Error adding project. Please try again.");
+  } finally {
+    btn.classList.remove("btn-loading");
+  }
+});
+
 
     window.addEventListener("DOMContentLoaded", () => {
       loadProjects();
