@@ -6,6 +6,13 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
 
+console.log("🔧 Conectando a PostgreSQL con:");
+console.log("HOST:", process.env.PGHOST);
+console.log("PORT:", process.env.PGPORT);
+console.log("USER:", process.env.PGUSER);
+console.log("DATABASE:", process.env.PGDATABASE);
+console.log("PASSWORD:", process.env.PGPASSWORD);
+
 const pool = new Pool({
   user:     process.env.PGUSER,      // postgres
   host:     process.env.PGHOST,      // yamanote.proxy.rlwy.net
