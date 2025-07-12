@@ -14,11 +14,11 @@ console.log("DATABASE:", process.env.PGDATABASE);
 console.log("PASSWORD:", process.env.PGPASSWORD);
 
 const pool = new Pool({
-  user:     process.env.PGUSER,      // postgres
-  host:     process.env.PGHOST,      // yamanote.proxy.rlwy.net
-  database: process.env.PGDATABASE,  // railway
-  password: process.env.PGPASSWORD,  // ********
-  port:     process.env.PGPORT,      // 57774
+  user: 'postgres',
+  host: 'metro.proxy.rlwy.net',       // <- el host público real
+  database: 'railway',
+  password: 'UhzxAqGbEuJSRihbzMIREGvLHtFWOwQr',
+  port: 23376,
   ssl: { rejectUnauthorized: false }
 });
 
