@@ -399,17 +399,17 @@ app.post("/api/register-users", async (req, res) => {
     for (const user of uniqueUsers) {
       const hashedPassword = await bcrypt.hash(user.password, 10);   //  NUEVO
 
-      await pool.query(
-        `INSERT INTO users (username, password, email, role, project)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          user.username.toLowerCase(),
-          hashedPassword,                                            //  NUEVO
-          user.email || "",
-          Array.isArray(user.role) ? user.role : user.role.split(","),
-          Array.isArray(user.project) ? user.project : user.project.split(",")
-        ]
-      );
+await pool.query(
+  "INSERT INTO users (username, password, email, role, project) VALUES ($1, $2, $3, $4, $5)",
+  [
+    user.username.toLowerCase(),
+    hashedPassword,
+    user.email || "",
+    Array.isArray(user.role) ? user.role.join(",") : user.role,
+    Array.isArray(user.project) ? user.project.join(",") : user.project
+  ]
+);
+
       inserted.push(user.username.toLowerCase());
     }
 
