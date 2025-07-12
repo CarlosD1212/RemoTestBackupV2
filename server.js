@@ -75,9 +75,9 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ status: "error", message: "Invalid credentials" });
     }
 
-    // 👉 Aquí conviertes role y project en arrays (aunque vengan como string de PostgreSQL)
-    const userRoles = typeof user.role === "string" ? user.role.split(",") : user.role;
-    const userProjects = typeof user.project === "string" ? user.project.split(",") : user.project;
+    // ✅ Usa cleanPgArray aquí
+    const userRoles = cleanPgArray(user.role);
+    const userProjects = cleanPgArray(user.project);
 
     res.json({
       status: "success",
@@ -93,6 +93,18 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
+// ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
+function cleanPgArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => String(v).trim().toLowerCase());
+  return value
+    .replace(/[\{\}"]/g, "")
+    .split(",")
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 
 
 
@@ -318,6 +330,17 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
+// ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
+function cleanPgArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => String(v).trim().toLowerCase());
+  return value
+    .replace(/[\{\}"]/g, "")
+    .split(",")
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function getNextLevel(currentLevel, allowedLevels) {
   const sequence = ["-1", "0", "1", "10"];
   const idx = sequence.indexOf(String(currentLevel));
@@ -391,6 +414,17 @@ app.post("/api/mark-finished", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
+
+// ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
+function cleanPgArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => String(v).trim().toLowerCase());
+  return value
+    .replace(/[\{\}"]/g, "")
+    .split(",")
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+}
 
 
 
