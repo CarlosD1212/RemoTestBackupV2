@@ -410,19 +410,23 @@
       </div>
 
       <div class="form-group">
-        <label for="taskLevel">Select Level:</label>
-        <select id="taskLevel" required>
-          <option value="">Select Level</option>
-          <option value="-1">-1</option>
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="10">10</option>
-        </select>
-      </div>
+
+
+      <div style="background:#f9f9f9;border-left:4px solid #3498db;padding:10px;margin-top:10px;border-radius:6px">
+  <strong>📋 Format example:</strong><br>
+  <code style="display:block;margin-top:6px">
+    subtask123 batch001 1<br>
+    subtask456 batch002 10<br>
+    subtask789 batch003 0
+  </code>
+  <small style="color:#555">
+    ➤ Subtask, Batch and Level must be separated by spaces. One task per line.
+  </small>
+</div>
 
       <div class="form-group">
         <label for="tasks">Paste tasks below (Subtask and Batch only):</label>
-        <textarea id="tasks" placeholder="e.g. 123456 batchA" required></textarea>
+        <textarea id="tasks" placeholder="Paste Values" required></textarea>
       </div>
 
       <button type="submit" class="submit-btn" id="uploadTasksBtn">
