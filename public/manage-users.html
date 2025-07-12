@@ -2,270 +2,701 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Users</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --warning-color: #e6a544;
+      --warning-hover: #d68910;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --purple-color: #9b59b6;
+      --purple-hover: #8e44ad;
+      --dark-color: #2c3e50;
+      --dark-hover: #1a252f;
+      --light-bg: #f8f9fa;
+      --white: #ffffff;
+      --border-color: #dfe6e9;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --text-light: #7f8c8d;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
       padding: 2rem;
-      max-width: 1000px;
+      max-width: 1400px;
       margin: auto;
     }
 
     h1 {
       text-align: center;
-      color: #2c3e50;
-      margin-bottom: 30px;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
+      font-weight: 600;
+      font-size: 2.2rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.5rem auto 0;
+      border-radius: 3px;
+    }
+
+    /* Header Section */
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* Filtros */
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .filters input, 
+    .filters select {
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      outline: none;
+      min-width: 200px;
+      transition: var(--transition);
+    }
+
+    .filters input:focus, 
+    .filters select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    /* Tabla */
+    .table-container {
+      overflow-x: auto;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background: var(--white);
     }
 
     th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
+      padding: 15px;
+      border-bottom: 1px solid var(--border-color);
       text-align: left;
     }
 
     th {
-      background: #3498db;
-      color: white;
+      background: var(--primary-color);
+      color: var(--white);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
     }
 
-    button {
-      padding: 6px 10px;
+    tr:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+
+    /* Botones */
+    .btn {
+      padding: 8px 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--border-radius);
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
     }
 
-    .edit-btn {
-      background: #27ae60;
-      color: white;
-      margin-right: 5px;
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
     }
 
-    .delete-btn {
-      background: #e74c3c;
-      color: white;
+    .btn:active {
+      transform: translateY(0);
     }
 
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success-color);
+      color: var(--white);
+    }
+
+    .btn-success:hover {
+      background: var(--success-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+
+    .btn-warning {
+      background: var(--warning-color);
+      color: var(--white);
+    }
+
+    .btn-warning:hover {
+      background: var(--warning-hover);
+    }
+
+    .btn-light {
+      background: var(--light-bg);
+      color: var(--text-dark);
+    }
+
+    .btn-light:hover {
+      background: #e9ecef;
+    }
+
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
     }
 
     .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      min-width: 400px;
-    }
-
-    .modal-content h2 {
-      margin-top: 0;
-    }
-
-    .modal-content input, .modal-content select {
+      background: var(--white);
+      padding: 25px;
+      border-radius: var(--border-radius);
       width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
-    .modal-content .actions {
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: var(--transition);
+    }
+
+    .close-modal:hover {
+      color: var(--danger-color);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-medium);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+    }
+
+    .modal-footer {
       display: flex;
       justify-content: flex-end;
+      gap: 12px;
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Multi-select */
+    .multi-select-display {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+      min-height: 40px;
+      padding: 8px;
+      border-radius: var(--border-radius);
+      background: var(--light-bg);
+    }
+
+    .multi-select-display span {
+      background: var(--primary-color);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .multi-select-display .remove-item {
+      cursor: pointer;
+      font-size: 12px;
+      transition: var(--transition);
+    }
+
+    .multi-select-display .remove-item:hover {
+      color: #ffcccc;
+    }
+
+    /* Paginación */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
       gap: 10px;
     }
 
-    /* Filtros visuales */
-#filter-username,
-#filter-role,
-#filter-project {
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
-  outline: none;
-}
+    .pagination-info {
+      margin: 0 15px;
+      color: var(--text-light);
+      font-size: 14px;
+    }
 
-#filter-username:focus,
-#filter-role:focus,
-#filter-project:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
+    /* Status messages */
+    .alert {
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid transparent;
+    }
 
+    .alert-success {
+      background: rgba(46, 204, 113, 0.1);
+      color: #27ae60;
+      border-left-color: var(--success-color);
+    }
 
+    .alert-error {
+      background: rgba(231, 76, 60, 0.1);
+      color: var(--danger-hover);
+      border-left-color: var(--danger-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .filters {
+        flex-direction: column;
+      }
+      
+      .filters input, 
+      .filters select {
+        width: 100%;
+      }
+      
+      .modal-content {
+        width: 95%;
+        padding: 20px 15px;
+      }
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--light-bg);
+      color: var(--text-dark);
+    }
+
+    .badge-primary {
+      background: var(--primary-color);
+      color: var(--white);
+    }
+
+    .badge-success {
+      background: var(--success-color);
+      color: var(--white);
+    }
+
+    .badge-warning {
+      background: var(--warning-color);
+      color: var(--white);
+    }
+
+    .badge-danger {
+      background: var(--danger-color);
+      color: var(--white);
+    }
+
+    .badge-purple {
+      background: var(--purple-color);
+      color: var(--white);
+    }
+
+    .badge-dark {
+      background: var(--dark-color);
+      color: var(--white);
+    }
+
+    /* Password field */
+    .password-field {
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state i {
+      font-size: 50px;
+      margin-bottom: 15px;
+      color: #d1d5db;
+    }
   </style>
 </head>
 <body>
-  <h1>Manage Users</h1>
+  <h1><i class="fas fa-users-cog"></i> User Management</h1>
 
-  <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-  <input type="text" id="filter-username" placeholder="Search username..." oninput="renderUsers()">
-  <select id="filter-role" onchange="renderUsers()">
-    <option value="">All roles</option>
-  </select>
-  <select id="filter-project" onchange="renderUsers()">
-    <option value="">All projects</option>
-  </select>
-</div>
+  <!-- Status Message -->
+  <div id="status-message" style="display: none;"></div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Project</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="user-table-body"></tbody>
-  </table>
+  <!-- Filtros -->
+  <div class="filters">
+    <input type="text" id="filter-username" placeholder="Search username..." oninput="renderUsers()">
+    <input type="text" id="filter-email" placeholder="Search email..." oninput="renderUsers()">
+    <select id="filter-role" onchange="renderUsers()">
+      <option value="">All roles</option>
+    </select>
+    <select id="filter-project" onchange="renderUsers()">
+      <option value="">All projects</option>
+    </select>
+    <button class="btn btn-primary" onclick="loadUsers()">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
 
+  <!-- Tabla -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Roles</th>
+          <th>Projects</th>
+          <th>Password</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body">
+        <!-- Loading state -->
+        <tr id="loading-state">
+          <td colspan="6" style="text-align: center; padding: 40px;">
+            <div style="display: inline-block; padding: 20px; background: var(--light-bg); border-radius: var(--border-radius);">
+              <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color);"></i>
+              <p style="margin-top: 10px;">Loading users...</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <button class="btn btn-light" onclick="prevPage()" id="prev-btn" disabled>
+      <i class="fas fa-chevron-left"></i> Previous
+    </button>
+    <span class="pagination-info" id="page-info">Page 1</span>
+    <button class="btn btn-light" onclick="nextPage()" id="next-btn">
+      Next <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Modal de edición -->
   <div class="modal" id="edit-modal">
     <div class="modal-content">
-      <h2>Edit User</h2>
-      <input type="text" id="edit-email" placeholder="Email">
-      <input type="text" id="edit-role" placeholder="Role(s) comma-separated">
-      <input type="text" id="edit-project" placeholder="Project(s) comma-separated">
-      <div class="actions">
-        <button onclick="saveUser()" class="edit-btn">Save</button>
-        <button onclick="closeModal()">Cancel</button>
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-user-edit"></i> Edit User</h2>
+        <button class="close-modal" onclick="closeModal()">×</button>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-username">Username</label>
+        <input type="text" id="edit-username" class="form-control" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-email">Email</label>
+        <input type="email" id="edit-email" class="form-control" placeholder="user@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Roles</label>
+        <div id="edit-roles-list" class="multi-select-display"></div>
+        <select id="edit-role-select" class="form-control" onchange="addRole()" multiple>
+          <option value="" disabled>Select roles to add</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Projects</label>
+        <div id="edit-projects-list" class="multi-select-display"></div>
+        <select id="edit-project-select" class="form-control" onchange="addProject()" multiple>
+          <option value="" disabled>Select projects to add</option>
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-light" onclick="closeModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button class="btn btn-primary" onclick="saveUser()" id="save-btn">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
       </div>
     </div>
   </div>
 
-  <div style="margin-top: 20px; text-align: center;">
-  <button onclick="prevPage()">Prev</button>
-  <button onclick="nextPage()">Next</button>
-</div>
+  <!-- Confirmation Modal -->
+  <div class="modal" id="confirm-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Confirm</h2>
+        <button class="close-modal" onclick="closeConfirmModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">Are you sure you want to delete this user?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" onclick="closeConfirmModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button class="btn btn-danger" onclick="confirmAction()" id="confirm-btn">
+          <i class="fas fa-check"></i> Confirm
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
     let users = [];
-    let currentPage = 1;
-    const itemsPerPage = 30;
     let editingUser = null;
+    let currentPage = 1;
+    const itemsPerPage = 15;
+    let selectedRoles = [];
+    let selectedProjects = [];
+    let availableRoles = [];
+    let availableProjects = [];
+    let pendingAction = null;
+    let actionUser = null;
 
-    async function loadUsers() {
-      const res = await fetch(`${BASE_URL}/api/users`);
-      users = await res.json();
-      renderUsers();
-    }
-
-    function populateFilters() {
-  const roleSet = new Set();
-  const projectSet = new Set();
-
-  users.forEach(user => {
-    const roles = Array.isArray(user.role) ? user.role : user.role.split(",");
-    const projects = Array.isArray(user.project) ? user.project : user.project.split(",");
-
-    roles.forEach(r => roleSet.add(r.trim()));
-    projects.forEach(p => projectSet.add(p.trim()));
-  });
-
-  const roleSelect = document.getElementById("filter-role");
-  const projectSelect = document.getElementById("filter-project");
-
-  roleSet.forEach(role => {
-    const opt = document.createElement("option");
-    opt.value = role;
-    opt.textContent = role;
-    roleSelect.appendChild(opt);
-  });
-
-  projectSet.forEach(proj => {
-    const opt = document.createElement("option");
-    opt.value = proj;
-    opt.textContent = proj;
-    projectSelect.appendChild(opt);
-  });
-}
-
-// Después de loadUsers:
-loadUsers().then(populateFilters);
-
-
-function renderUsers() {
-  const tbody = document.getElementById("user-table-body");
-  tbody.innerHTML = "";
-
-  const search = document.getElementById("filter-username").value.toLowerCase();
-  const selectedRole = document.getElementById("filter-role").value;
-  const selectedProject = document.getElementById("filter-project").value;
-
-  const cleanArrayValue = (value) => {
-    if (Array.isArray(value)) return value.map(v => v.trim());
-    if (typeof value === "string") {
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed.map(v => v.trim());
-      } catch {
+    /* --- Helpers --- */
+    function cleanArrayValue(value) {
+      if (!value) return [];
+      if (Array.isArray(value)) return value.map(v => v.trim());
+      if (typeof value === "string") {
+        try {
+          const p = JSON.parse(value);
+          if (Array.isArray(p)) return p.map(v => v.trim());
+        } catch {}
         return value.replace(/[\{\}\[\]"]/g, "").split(",").map(v => v.trim());
       }
+      return [];
     }
-    return [];
-  };
 
-  const filtered = users.filter(user => {
-    const uname = user.username.toLowerCase();
-    const roles = cleanArrayValue(user.role);
-    const projects = cleanArrayValue(user.project);
-    return (
-      uname.includes(search) &&
-      (selectedRole === "" || roles.includes(selectedRole)) &&
-      (selectedProject === "" || projects.includes(selectedProject))
-    );
-  });
+    function showStatusMessage(message, type = 'success') {
+      const statusEl = document.getElementById('status-message');
+      statusEl.innerHTML = `
+        <div class="alert alert-${type}">
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+          ${message}
+        </div>
+      `;
+      statusEl.style.display = 'block';
+      
+      setTimeout(() => {
+        statusEl.style.opacity = '0';
+        setTimeout(() => statusEl.style.display = 'none', 300);
+      }, 3000);
+    }
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedUsers = filtered.slice(startIndex, startIndex + itemsPerPage);
+    /* --- Filtros dinámicos --- */
+    function populateFilters() {
+      const roleSet = new Set();
+      const projectSet = new Set();
+      
+      users.forEach(u => {
+        cleanArrayValue(u.role).forEach(r => roleSet.add(r));
+        cleanArrayValue(u.project).forEach(p => projectSet.add(p));
+      });
+      
+      const roleSel = document.getElementById("filter-role");
+      const projSel = document.getElementById("filter-project");
+      
+      roleSel.innerHTML = `<option value="">All roles</option>`;
+      projSel.innerHTML = `<option value="">All projects</option>`;
+      
+      [...roleSet].sort().forEach(r => 
+        roleSel.insertAdjacentHTML("beforeend", `<option value="${r}">${r}</option>`));
+      
+      [...projectSet].sort().forEach(p => 
+        projSel.insertAdjacentHTML("beforeend", `<option value="${p}">${p}</option>`));
+    }
 
-  paginatedUsers.forEach(user => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${user.username}</td>
-      <td>${user.email}</td>
-      <td>${cleanArrayValue(user.role).join(", ")}</td>
-      <td>${cleanArrayValue(user.project).join(", ")}</td>
-      <td>
-        <button class="edit-btn" onclick="openEdit('${user.username}')">Edit</button>
-        <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+    /* --- Modal selects --- */
+    function populateModalSelects() {
+      const roleSelect = document.getElementById("edit-role-select");
+      const projectSelect = document.getElementById("edit-project-select");
 
+      roleSelect.innerHTML = '<option value="" disabled>Select roles to add</option>';
+      projectSelect.innerHTML = '<option value="" disabled>Select projects to add</option>';
 
+      availableRoles.sort().forEach(role => {
+        if (!selectedRoles.includes(role)) {
+          const opt = document.createElement("option");
+          opt.value = role;
+          opt.textContent = role;
+          roleSelect.appendChild(opt);
+        }
+      });
 
-
+      availableProjects.sort().forEach(proj => {
+        if (!selectedProjects.includes(proj)) {
+          const opt = document.createElement("option");
+          opt.value = proj;
+          opt.textContent = proj;
+          projectSelect.appendChild(opt);
+        }
+      });
+    }
 
     function openEdit(username) {
       const user = users.find(u => u.username === username);
       if (!user) return;
 
       editingUser = user.username;
+      document.getElementById("edit-username").value = user.username;
       document.getElementById("edit-email").value = user.email || "";
-      document.getElementById("edit-role").value = Array.isArray(user.role) ? user.role.join(",") : user.role;
-      document.getElementById("edit-project").value = Array.isArray(user.project) ? user.project.join(",") : user.project;
+
+      selectedRoles = cleanArrayValue(user.role);
+      selectedProjects = cleanArrayValue(user.project);
+
+      populateModalSelects();
+      renderSelectedItems();
       document.getElementById("edit-modal").style.display = "flex";
     }
 
@@ -274,50 +705,283 @@ function renderUsers() {
       document.getElementById("edit-modal").style.display = "none";
     }
 
+    function renderSelectedItems() {
+      const roleList = document.getElementById("edit-roles-list");
+      const projectList = document.getElementById("edit-projects-list");
+
+      roleList.innerHTML = selectedRoles.map(r => `
+        <span>
+          ${r}
+          <i class="remove-item fas fa-times" onclick="removeRole('${r}')"></i>
+        </span>
+      `).join('');
+
+      projectList.innerHTML = selectedProjects.map(p => `
+        <span>
+          ${p}
+          <i class="remove-item fas fa-times" onclick="removeProject('${p}')"></i>
+        </span>
+      `).join('');
+
+      populateModalSelects();
+    }
+
+    function addRole() {
+      const select = document.getElementById("edit-role-select");
+      const value = select.value;
+      if (value && !selectedRoles.includes(value)) {
+        selectedRoles.push(value);
+        renderSelectedItems();
+      }
+      select.value = "";
+    }
+
+    function addProject() {
+      const select = document.getElementById("edit-project-select");
+      const value = select.value;
+      if (value && !selectedProjects.includes(value)) {
+        selectedProjects.push(value);
+        renderSelectedItems();
+      }
+      select.value = "";
+    }
+
+    function removeRole(value) {
+      selectedRoles = selectedRoles.filter(r => r !== value);
+      renderSelectedItems();
+    }
+
+    function removeProject(value) {
+      selectedProjects = selectedProjects.filter(p => p !== value);
+      renderSelectedItems();
+    }
+
     async function saveUser() {
-      const updated = {
-        username: editingUser,
-        email: document.getElementById("edit-email").value,
-        role: document.getElementById("edit-role").value,
-        project: document.getElementById("edit-project").value
-      };
+      const saveBtn = document.getElementById("save-btn");
+      const originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+      saveBtn.disabled = true;
 
-      await fetch(`${BASE_URL}/api/update-user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated)
-      });
+      try {
+        const updated = {
+          username: editingUser,
+          email: document.getElementById("edit-email").value,
+          role: selectedRoles.join(","),
+          project: selectedProjects.join(",")
+        };
 
-      closeModal();
-      loadUsers();
+        const response = await fetch(`${BASE_URL}/api/update-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update user');
+        }
+
+        showStatusMessage('User updated successfully!');
+        closeModal();
+        await loadUsers();
+      } catch (error) {
+        console.error('Error updating user:', error);
+        showStatusMessage('Failed to update user. Please try again.', 'error');
+      } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+      }
     }
 
+    /* --- Confirmation Modal --- */
+    function showConfirmModal(message, action, username) {
+      pendingAction = action;
+      actionUser = username;
+      document.getElementById("confirm-message").textContent = message;
+      document.getElementById("confirm-modal").style.display = "flex";
+    }
+
+    function closeConfirmModal() {
+      pendingAction = null;
+      actionUser = null;
+      document.getElementById("confirm-modal").style.display = "none";
+    }
+
+    async function confirmAction() {
+      if (pendingAction === 'delete') {
+        await deleteUser(actionUser);
+      }
+      closeConfirmModal();
+    }
+
+    /* --- Eliminar --- */
     async function deleteUser(username) {
-      if (!confirm(`Delete user ${username}?`)) return;
+      const confirmBtn = document.getElementById("confirm-btn");
+      const originalText = confirmBtn.innerHTML;
+      confirmBtn.innerHTML = '<span class="spinner"></span> Deleting...';
+      confirmBtn.disabled = true;
 
-      await fetch(`${BASE_URL}/api/delete-user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
-      });
+      try {
+        const response = await fetch(`${BASE_URL}/api/delete-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username })
+        });
 
-      loadUsers();
+        if (!response.ok) {
+          throw new Error('Failed to delete user');
+        }
+
+        showStatusMessage('User deleted successfully!');
+        await loadUsers();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        showStatusMessage('Failed to delete user. Please try again.', 'error');
+      } finally {
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+      }
     }
 
-    loadUsers();
+    /* --- Render --- */
+    function renderUsers() {
+      const tbody = document.getElementById("user-table-body");
+      const searchU = document.getElementById("filter-username").value.toLowerCase();
+      const searchE = document.getElementById("filter-email").value.toLowerCase();
+      const selRole = document.getElementById("filter-role").value;
+      const selProj = document.getElementById("filter-project").value;
 
+      const filtered = users.filter(u => {
+        const uname = u.username.toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const roles = cleanArrayValue(u.role);
+        const projects = cleanArrayValue(u.project);
+        
+        return uname.includes(searchU) && 
+               email.includes(searchE) &&
+               (selRole === "" || roles.includes(selRole)) &&
+               (selProj === "" || projects.includes(selProj));
+      });
+
+      const isFiltering = searchU || searchE || selRole || selProj;
+      let toRender = [];
+      
+      if (isFiltering) {
+        currentPage = 1;
+        toRender = filtered;
+      } else {
+        const start = (currentPage - 1) * itemsPerPage;
+        toRender = filtered.slice(start, start + itemsPerPage);
+      }
+
+      // Update pagination info
+      document.getElementById("page-info").textContent = 
+        `Page ${currentPage} of ${Math.ceil(filtered.length / itemsPerPage)}`;
+      
+      // Enable/disable pagination buttons
+      document.getElementById("prev-btn").disabled = currentPage <= 1;
+      document.getElementById("next-btn").disabled = 
+        currentPage >= Math.ceil(filtered.length / itemsPerPage);
+
+      // Render users
+      if (toRender.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-user-slash"></i>
+              <h3>No users found</h3>
+              <p>Try adjusting your search or filters</p>
+            </td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = toRender.map(u => `
+          <tr>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.email || '<span class="badge">No email</span>'}</td>
+            <td>${cleanArrayValue(u.role).map(r => `<span class="badge badge-primary">${r}</span>`).join(' ')}</td>
+            <td>${cleanArrayValue(u.project).map(p => `<span class="badge badge-success">${p}</span>`).join(' ')}</td>
+            <td class="password-field">${u.password ? "•".repeat(8) : '<span class="badge">No password</span>'}</td>
+            <td>
+              <button class="btn btn-success btn-sm" onclick="openEdit('${u.username}')">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="showConfirmModal('Are you sure you want to delete ${u.username}?', 'delete', '${u.username}')">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    /* --- Paginación --- */
     function nextPage() {
-  currentPage++;
-  renderUsers();
-}
+      const totalPages = Math.ceil(users.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderUsers();
+      }
+    }
 
-function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    renderUsers();
-  }
-}
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderUsers();
+      }
+    }
 
+    /* --- Cargar usuarios --- */
+    async function loadUsers() {
+      const loadingRow = document.getElementById("loading-state");
+      if (loadingRow) loadingRow.style.display = "table-row";
+      
+      try {
+        const response = await fetch(`${BASE_URL}/api/users`);
+        if (!response.ok) {
+          throw new Error('Failed to load users');
+        }
+        
+        users = await response.json();
+        
+        // Extract available roles and projects
+        const roleSet = new Set();
+        const projectSet = new Set();
+        
+        users.forEach(u => {
+          cleanArrayValue(u.role).forEach(r => roleSet.add(r));
+          cleanArrayValue(u.project).forEach(p => projectSet.add(p));
+        });
+        
+        availableRoles = [...roleSet];
+        availableProjects = [...projectSet];
+
+        populateFilters();
+        renderUsers();
+      } catch (error) {
+        console.error('Error loading users:', error);
+        showStatusMessage('Failed to load users. Please try again.', 'error');
+        
+        document.getElementById("user-table-body").innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h3>Error loading users</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadUsers()">
+                <i class="fas fa-sync-alt"></i> Retry
+              </button>
+            </td>
+          </tr>
+        `;
+      } finally {
+        if (loadingRow) loadingRow.style.display = "none";
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+    });
   </script>
 </body>
 </html>

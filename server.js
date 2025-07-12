@@ -336,14 +336,6 @@ app.post("/api/update-user", async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
 app.post("/api/delete-user", async (req, res) => {
   const { username } = req.body;
 
