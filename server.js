@@ -214,6 +214,40 @@ app.get("/api/tasks", async (req, res) => {
   }
 });
 
+app.post("/api/tasks", async (req, res) => {
+  const tasks = req.body.tasks || [];
+
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return res.status(400).json({ status: "error", message: "No tasks provided" });
+  }
+
+  try {
+    const inserted = [];
+
+    for (const task of tasks) {
+      const { subtask, batch, level, status, project } = task;
+
+      // Evita duplicados por subtask
+      const exists = await pool.query("SELECT 1 FROM tasks WHERE subtask = $1", [subtask]);
+      if (exists.rows.length > 0) continue;
+
+      await pool.query(
+        `INSERT INTO tasks (subtask, batch, level, status, project)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [subtask, batch, level, status || 'pending', project]
+      );
+
+      inserted.push(subtask);
+    }
+
+    res.json({ status: "success", inserted, skipped: tasks.length - inserted.length });
+  } catch (err) {
+    console.error("❌ Error saving tasks:", err);
+    res.status(500).json({ status: "error", message: "Internal error saving tasks" });
+  }
+});
+
+
 
 
 app.post("/api/claim", async (req, res) => {
