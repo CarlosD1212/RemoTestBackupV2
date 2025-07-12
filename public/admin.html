@@ -506,30 +506,27 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
   btn.classList.add("btn-loading");
 
   const project = document.getElementById("projectName").value;
-  const level   = document.getElementById("taskLevel").value;
   const taskLines = document.getElementById("tasks").value.trim().split("\n");
 
-  if (!project || !level) {
-    alert("Please select both Project and Level.");
+  if (!project) {
+    alert("Please select a Project.");
     btn.classList.remove("btn-loading");
     return;
   }
 
-  // Convierte cada línea en { subtask, batch, level, project }
   const tasks = taskLines
     .map(line => line.trim().split(/\s+/))
-    .filter(parts => parts.length === 2)
-    .map(([subtask, batch]) => ({ subtask, batch, level, project }));
+    .filter(parts => parts.length === 3)
+    .map(([subtask, batch, level]) => ({ subtask, batch, level, project }));
 
   if (tasks.length === 0) {
-    alert("Please paste valid task data (Subtask and Batch only).");
+    alert("Please paste valid task data (Subtask, Batch, and Level).");
     btn.classList.remove("btn-loading");
     return;
   }
 
   try {
-    // ⬇️  Aquí ya usamos el nuevo endpoint
-    const res = await fetch("/api/tasks", {
+    const res = await fetch(TASK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tasks })
@@ -537,9 +534,7 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
 
     const result = await res.json();
     if (result.status === "success") {
-      alert(
-        `✅ Inserted: ${result.inserted.length}  |  ⚠️ Skipped (duplicates): ${result.skipped}`
-      );
+      alert(`✅ Inserted: ${result.inserted} | ⚠️ Duplicates skipped: ${result.skipped}`);
       document.getElementById("taskForm").reset();
     } else {
       alert("❌ Error uploading tasks: " + (result.message || ""));
