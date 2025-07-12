@@ -218,55 +218,67 @@ app.post("/api/tasks", async (req, res) => {
   const { tasks } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
-    return res.status(400).json({ status: "error", message: "No tasks received." });
+    return res.status(400).json({ status: "error", message: "No tasks provided." });
   }
 
   try {
-    // Agrupar por proyecto
-    const projects = [...new Set(tasks.map(t => t.project))];
+    /* 1️⃣  Obtener niveles permitidos por proyecto (solo una vez por cada proyecto) */
     const projectLevelsMap = {};
+    const projects = [...new Set(tasks.map(t => t.project))];
 
-    // Consultar niveles permitidos de cada proyecto
     for (const name of projects) {
-      const result = await pool.query("SELECT levels FROM projects WHERE name = $1", [name]);
-      if (!result.rows[0]) {
-        return res.status(400).json({ status: "error", message: `Project '${name}' not found.` });
-      }
-      projectLevelsMap[name] = result.rows[0].levels;
+      const r = await pool.query("SELECT levels FROM projects WHERE name = $1", [name]);
+      projectLevelsMap[name] = r.rows[0]?.levels || [];
     }
 
-    // Validar que el level de cada tarea esté permitido
+    /* 2️⃣  Clasificar tareas */
+    const validTasks   = [];
+    const invalidTasks = [];   // nivel no permitido
+
     for (const task of tasks) {
-      const allowedLevels = projectLevelsMap[task.project];
-      if (!allowedLevels.includes(task.level)) {
-        return res.status(400).json({
-          status: "error",
-          message: `Invalid level '${task.level}' for project '${task.project}'. Allowed levels: ${allowedLevels.join(", ")}`
-        });
+      const allowed = projectLevelsMap[task.project] || [];
+      if (allowed.includes(task.level)) {
+        validTasks.push(task);
+      } else {
+        invalidTasks.push(task);
       }
     }
 
-    // Verificar duplicados
-    const existing = await pool.query(
+    if (validTasks.length === 0) {
+      return res.json({
+        status: "success",
+        inserted: 0,
+        skipped: 0,
+        invalid: invalidTasks.length,
+        message: "No valid tasks to insert – all levels not permitted for the project(s)."
+      });
+    }
+
+    /* 3️⃣  Evitar subtareas duplicadas */
+    const subList = validTasks.map(t => t.subtask);
+    const dupCheck = await pool.query(
       "SELECT subtask FROM tasks WHERE subtask = ANY($1::text[])",
-      [tasks.map(t => t.subtask)]
+      [subList]
     );
-    const existingSubtasks = new Set(existing.rows.map(r => r.subtask));
+    const duplicates = new Set(dupCheck.rows.map(r => r.subtask));
 
-    const newTasks = tasks.filter(t => !existingSubtasks.has(t.subtask));
+    const tasksToInsert = validTasks.filter(t => !duplicates.has(t.subtask));
 
-    // Insertar las nuevas
-    for (const t of newTasks) {
+    /* 4️⃣  Insertar las tareas válidas y no duplicadas */
+    for (const t of tasksToInsert) {
       await pool.query(
-        "INSERT INTO tasks (subtask, batch, level, project, status) VALUES ($1, $2, $3, $4, 'pending')",
+        `INSERT INTO tasks (subtask, batch, level, project, status)
+         VALUES ($1, $2, $3, $4, 'pending')`,
         [t.subtask, t.batch, t.level, t.project]
       );
     }
 
+    /* 5️⃣  Respuesta resumen */
     res.json({
       status: "success",
-      inserted: newTasks,
-      skipped: existingSubtasks.size
+      inserted: tasksToInsert.length,
+      skipped: duplicates.size,
+      invalid: invalidTasks.length
     });
 
   } catch (err) {
@@ -274,6 +286,7 @@ app.post("/api/tasks", async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error while saving tasks." });
   }
 });
+
 
 
 

@@ -536,12 +536,18 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({ tasks })
     });
 
-    const result = await res.json();
-    if (result.status === "success") {
-      alert(`✅ Inserted: ${result.inserted} | ⚠️ Duplicates skipped: ${result.skipped}`);
-      document.getElementById("taskForm").reset();
-    } else {
-      alert("❌ Error uploading tasks: " + (result.message || ""));
+const result = await res.json();
+if (result.status === "success") {
+  alert(
+    `📥 Task Upload Summary:
+———————————————
+✅ Inserted tasks: ${result.inserted}
+⚠️ Skipped (duplicates): ${result.skipped}
+🚫 Skipped (invalid levels): ${result.invalid}`
+  );
+  document.getElementById("taskForm").reset();
+} else {
+  alert("❌ Error uploading tasks: " + (result.message || ""));
     }
   } catch (error) {
     console.error("Upload error:", error);
