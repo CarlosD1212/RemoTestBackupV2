@@ -318,6 +318,19 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
+function getNextLevel(currentLevel, allowedLevels) {
+  const sequence = ["-1", "0", "1", "10"];
+  const idx = sequence.indexOf(String(currentLevel));
+  if (idx === -1) return null;
+
+  // busca el siguiente en la secuencia que esté permitido
+  for (let i = idx + 1; i < sequence.length; i++) {
+    if (allowedLevels.includes(sequence[i])) return sequence[i];
+  }
+  return null;
+}
+
+/* 🚀 Endpoint actualizado */
 app.post("/api/mark-finished", async (req, res) => {
   const {
     subtask,
@@ -331,15 +344,18 @@ app.post("/api/mark-finished", async (req, res) => {
   } = req.body;
 
   try {
-    const taskResult = await pool.query("SELECT * FROM tasks WHERE subtask = $1", [subtask]);
+    // 1) Verifica existencia de la tarea
+    const taskResult = await pool.query(
+      "SELECT * FROM tasks WHERE subtask = $1",
+      [subtask]
+    );
     if (taskResult.rows.length === 0) {
       return res.status(404).json({ status: "error", message: "Task not found" });
     }
-
     const task = taskResult.rows[0];
-
     const project = task.project || "unknown";
 
+    // 2) Mueve la tarea al historial
     await pool.query(
       `INSERT INTO task_history 
         (subtask, level, review_option, email, claimed_at, finished_at, project, data_type)
@@ -347,17 +363,34 @@ app.post("/api/mark-finished", async (req, res) => {
       [subtask, level, review_option, email, claimed_at, finished_at, project, data_type || null]
     );
 
+    // 3) Marca la original como finished
     await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
+
+    /* 4️⃣  Calcula el siguiente nivel permitido */
+    const projRes = await pool.query("SELECT levels FROM projects WHERE name = $1", [project]);
+    const allowedLevels = projRes.rows[0]?.levels || [];
+    const nextLevel = getNextLevel(level, allowedLevels);
+
+    /* 5️⃣  Si existe un nivel siguiente válido, crea la nueva tarea */
+    if (nextLevel) {
+      await pool.query(
+        `INSERT INTO tasks (subtask, batch, level, project, status)
+         VALUES ($1, $2, $3, $4, 'pending')`,
+        [task.subtask, task.batch, nextLevel, project]
+      );
+    }
 
     io.emit("taskFinished", { subtask });
 
-    res.json({ status: "success" });
+    res.json({
+      status: "success",
+      nextLevelCreated: nextLevel ? nextLevel : null
+    });
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
     res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
-
 
 
 
