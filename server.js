@@ -64,7 +64,6 @@ app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // 1. Busca SOLO por username
     const result = await pool.query(
       "SELECT * FROM users WHERE username = $1",
       [username.toLowerCase()]
@@ -72,39 +71,29 @@ app.post("/api/login", async (req, res) => {
 
     const user = result.rows[0];
 
-    // 2. Valida existencia y contraseña
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ status: "error", message: "Invalid credentials" });
     }
 
-    console.log("✅ Usuario autenticado:", user.username);
+    // 👉 Aquí conviertes role y project en arrays (aunque vengan como string de PostgreSQL)
+    const userRoles = typeof user.role === "string" ? user.role.split(",") : user.role;
+    const userProjects = typeof user.project === "string" ? user.project.split(",") : user.project;
 
-const normalizeField = (field) => {
-  if (Array.isArray(field)) return field;
-  if (typeof field === "string" && field.startsWith("{") && field.endsWith("}")) {
-    return field
-      .replace(/^{|}$/g, "")
-      .split(",")
-      .map(f => f.trim().replace(/^"|"$/g, ""));
-  }
-  return [field];
-};
-
-res.json({
-  status: "success",
-  user: {
-    username: user.username,
-    role: normalizeField(user.role),
-    project: normalizeField(user.project),
-    email: user.email || ""
-  }
-});
-
+    res.json({
+      status: "success",
+      user: {
+        username: user.username,
+        role: userRoles,
+        project: userProjects,
+        email: user.email || ""
+      }
+    });
   } catch (err) {
     console.error("❌ Error en /api/login:", err);
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
 
 
 
@@ -178,46 +167,41 @@ app.get("/api/tasks", async (req, res) => {
 });
 
 
-app.post("/api/tasks", async (req, res) => {
-  const { tasks } = req.body;
-
-  if (!Array.isArray(tasks) || tasks.length === 0) {
-    return res.status(400).json({ status: "error", message: "No tasks provided" });
-  }
-
+app.get("/api/tasks", async (req, res) => {
   try {
-    const client = await pool.connect();
+    // 1. Obtén los datos del usuario (vía query, token o sesión)
+    //    Aquí supongo que los recibes como parámetros de consulta:
+    const { role, project } = req.query;   // role = "admin,10"  |  project = "Project Alpha,Project Beta"
 
-    const existingSubtasksRes = await client.query(
-      "SELECT subtask FROM tasks WHERE subtask = ANY($1)",
-      [tasks.map(t => t.subtask)]
-    );
-    const existingSubtasks = existingSubtasksRes.rows.map(r => r.subtask);
+    // 2. Convierte a arrays para manejarlos cómodamente
+    const userRoles = Array.isArray(role) ? role : role.split(",");
+    const userProjects = Array.isArray(project) ? project : project.split(",");
 
-    const newTasks = tasks.filter(t => !existingSubtasks.includes(t.subtask));
+    // 3. Construye la consulta según privilegios
+    let query  = "SELECT * FROM tasks";
+    const cond = [];
+    const vals = [];
 
-    let inserted = 0;
+    if (!userRoles.includes("admin")) {
+      cond.push(`level    = ANY($1::text[])`);
+      vals.push(userRoles);
 
-    for (const task of newTasks) {
-      await client.query(
-        "INSERT INTO tasks (subtask, batch, level, project, status) VALUES ($1, $2, $3, $4, 'pending')",
-        [task.subtask, task.batch, task.level, task.project]
-      );
-      inserted++;
+      cond.push(`project  = ANY($2::text[])`);
+      vals.push(userProjects);
     }
 
-    client.release();
+    if (cond.length) query += " WHERE " + cond.join(" AND ");
 
-    res.json({
-      status: "success",
-      inserted,
-      skipped: existingSubtasks.length
-    });
+    // 4. Ejecuta la consulta
+    const result = await pool.query(query, vals);
+    res.json(result.rows);
+
   } catch (err) {
-    console.error("❌ Error inserting tasks:", err);
-    res.status(500).json({ status: "error", message: "Server error" });
+    console.error("❌ Error en /api/tasks:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
 
 
 app.post("/api/claim", async (req, res) => {
