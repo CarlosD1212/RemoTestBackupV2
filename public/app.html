@@ -497,39 +497,42 @@ function sortTasksForDisplay(tasks) {
 }
 
 function renderPage(page) {
-  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+  // 1️⃣  Variables globales/LS (deben ir antes de cualquier uso)
+  const pausedTask  = localStorage.getItem("pausedTask")  || "";
+  const myClaimed   = localStorage.getItem("lastClaimedTask") || "";
 
+  // 2️⃣  Paginación
   const start = (page - 1) * TASKS_PER_PAGE;
-  const end = start + TASKS_PER_PAGE;
+  const end   = start + TASKS_PER_PAGE;
   const tasksToShow = allTasks.slice(start, end);
 
-  if (myClaimedTask) {
-    const indexInPage = tasksToShow.findIndex(t => t.Subtask === myClaimedTask);
-    if (indexInPage > 0) {
-      const [claimedTask] = tasksToShow.splice(indexInPage, 1);
-      tasksToShow.unshift(claimedTask);
+  // 3️⃣  Mover al frente la tarea reclamada en la página actual
+  if (myClaimed) {
+    const idx = tasksToShow.findIndex(t => t.Subtask === myClaimed);
+    if (idx > -1) {
+      const [claimed] = tasksToShow.splice(idx, 1);
+      tasksToShow.unshift(claimed);
     }
   }
 
-console.log("pausedTask:", pausedTask);
-console.log("myClaimed:", myClaimed);
+  // 4️⃣  Limpia contenedor antes de renderizar
+  taskContainer.innerHTML = "";
 
-taskContainer.innerHTML = "";
+  // 5️⃣  Recorre tareas
+  tasksToShow.forEach(task => {
+    const isMine            = task.ClaimedBy === currentUser.username;
+    const isPausedMine      = task.Subtask === pausedTask && isMine;
+    const isClaimedByOther  = task.ClaimedBy && !isMine;
 
- const pausedTask = localStorage.getItem("pausedTask") || "";
- const myClaimed = localStorage.getItem("lastClaimedTask") || "";
+    const isOtherBlocked =
+      !isMine &&
+      (
+        (myClaimed && task.Subtask !== myClaimed) ||
+        (pausedTask && !isPausedMine)
+      );
 
-tasksToShow.forEach(task => {
-  const isMine = task.ClaimedBy === currentUser.username;
-  const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
-  const isClaimedByOther = task.ClaimedBy && !isMine;
+    // ... ⬅️  aquí sigue todo tu código de creación de tarjetas
 
-const isOtherBlocked =
-  !isMine &&
-  (
-    (myClaimed && task.Subtask !== myClaimed) || 
-    (pausedTask && !isPausedMine)
-  );
 
   const card = document.createElement("div");
   card.className = "task-card";
