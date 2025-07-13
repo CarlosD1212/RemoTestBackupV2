@@ -165,7 +165,22 @@ app.get("/api/tasks", async (req, res) => {
     // Si es admin, ve todo
     if (userRoles.includes("admin")) {
       const allTasks = await pool.query("SELECT * FROM tasks WHERE status != 'finished'");
-      return res.json(allTasks.rows);
+
+      // Obtener configuración de pausa para cada proyecto
+      const projectsUsed = [...new Set(allTasks.rows.map(t => t.project))];
+      const projCfg = await pool.query(
+        "SELECT name, pause FROM projects WHERE name = ANY($1::text[])",
+        [projectsUsed]
+      );
+      const projectPauseMap = Object.fromEntries(projCfg.rows.map(r => [r.name, r.pause]));
+
+      // Añadir campo pause_enabled
+      const tasksWithPause = allTasks.rows.map(t => ({
+        ...t,
+        pause_enabled: projectPauseMap[t.project] === 'enabled'
+      }));
+
+      return res.json(tasksWithPause);
     }
 
     // Obtener niveles permitidos del proyecto
@@ -182,49 +197,28 @@ app.get("/api/tasks", async (req, res) => {
       userRoles.includes(task.level) && projectLevels.includes(task.level)
     );
 
-    res.json(filteredTasks);
+    // Obtener configuración de pausa para el proyecto
+    const projCfg = await pool.query(
+      "SELECT name, pause FROM projects WHERE name = ANY($1::text[])",
+      [filteredTasks.map(t => t.project)]
+    );
+    const projectPauseMap = Object.fromEntries(
+      projCfg.rows.map(r => [r.name, r.pause])
+    );
+
+    const tasksWithPause = filteredTasks.map(t => ({
+      ...t,
+      pause_enabled: projectPauseMap[t.project] === 'enabled'
+    }));
+
+    res.json(tasksWithPause);
   } catch (error) {
-    console.error("Error loading tasks:", error);
+    console.error("❌ Error loading tasks:", error);
     res.status(500).json({ error: "Error loading tasks" });
   }
 });
 
 
-
-app.get("/api/tasks", async (req, res) => {
-  try {
-    // 1. Obtén los datos del usuario (vía query, token o sesión)
-    //    Aquí supongo que los recibes como parámetros de consulta:
-    const { role, project } = req.query;   // role = "admin,10"  |  project = "Project Alpha,Project Beta"
-
-    // 2. Convierte a arrays para manejarlos cómodamente
-    const userRoles = Array.isArray(role) ? role : role.split(",");
-    const userProjects = Array.isArray(project) ? project : project.split(",");
-
-    // 3. Construye la consulta según privilegios
-    let query  = "SELECT * FROM tasks";
-    const cond = [];
-    const vals = [];
-
-    if (!userRoles.includes("admin")) {
-      cond.push(`level    = ANY($1::text[])`);
-      vals.push(userRoles);
-
-      cond.push(`project  = ANY($2::text[])`);
-      vals.push(userProjects);
-    }
-
-    if (cond.length) query += " WHERE " + cond.join(" AND ");
-
-    // 4. Ejecuta la consulta
-    const result = await pool.query(query, vals);
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error("❌ Error en /api/tasks:", err);
-    res.status(500).json({ status: "error", message: "Internal server error" });
-  }
-});
 
 app.post("/api/tasks", async (req, res) => {
   const { tasks } = req.body;
@@ -343,6 +337,53 @@ app.post("/api/claim", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal error in claim" });
   }
 });
+
+app.post("/api/pause", async (req, res) => {
+  console.log("✅ /api/pause llamado");
+  const { subtask, username } = req.body;
+
+  if (!subtask || !username) {
+    return res.status(400).json({ status: "error", message: "Missing subtask or username" });
+  }
+
+  try {
+    // Verificar que la tarea está reclamada por ese usuario
+    const taskCheck = await pool.query(
+      "SELECT * FROM tasks WHERE subtask = $1 AND claimedby = $2 AND status = 'claimed'",
+      [subtask, username]
+    );
+
+    if (taskCheck.rowCount === 0) {
+      return res.status(403).json({ status: "error", message: "Task not claimed by this user or already paused/finished" });
+    }
+
+    // Verificar que el usuario no tenga otra tarea en pausa
+    const pausedCheck = await pool.query(
+      "SELECT * FROM tasks WHERE claimedby = $1 AND status = 'paused'",
+      [username]
+    );
+
+    if (pausedCheck.rowCount > 0) {
+      return res.status(403).json({ status: "error", message: "You already have a paused task" });
+    }
+
+    // Actualizar la tarea a estado 'paused'
+    await pool.query(
+      "UPDATE tasks SET status = 'paused' WHERE subtask = $1 AND claimedby = $2",
+      [subtask, username]
+    );
+
+    // Emitir evento en tiempo real (opcional si usas Socket.IO)
+    io.emit("taskPaused", { subtask, username });
+
+    res.json({ status: "success", message: "Task paused successfully" });
+  } catch (err) {
+    console.error("❌ Error pausing task:", err);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+
+  });
+
 
 
 // ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
@@ -543,6 +584,8 @@ app.post("/api/delete-user", async (req, res) => {
     res.status(500).json({ status: "error", message: "Error deleting user" });
   }
 });
+
+
 
 
 

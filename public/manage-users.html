@@ -137,76 +137,86 @@
     }
 
     /* Botones */
-    .btn {
-      padding: 8px 14px;
-      border: none;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: var(--transition);
-    }
+.btn {
+  padding: 8px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+  text-decoration: none;
+  border-radius: 0;
+  box-shadow: none !important;
+}
 
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
+.btn:hover {
+  transform: none;
+  text-decoration: underline;
+}
 
-    .btn:active {
-      transform: translateY(0);
-    }
+.btn-sm {
+  font-size: 13px;
+}
 
-    .btn-sm {
-      padding: 6px 10px;
-      font-size: 13px;
-    }
+/* Colores para cada tipo de botón */
+.btn-primary {
+  color: var(--primary-color);
+}
 
-    .btn-primary {
-      background: var(--primary-color);
-      color: var(--white);
-    }
+.btn-primary:hover {
+  color: var(--primary-hover);
+}
 
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
+.btn-success {
+  color: var(--success-color);
+}
 
-    .btn-success {
-      background: var(--success-color);
-      color: var(--white);
-    }
+.btn-success:hover {
+  color: var(--success-hover);
+}
 
-    .btn-success:hover {
-      background: var(--success-hover);
-    }
+.btn-danger {
+  color: var(--danger-color);
+}
 
-    .btn-danger {
-      background: var(--danger-color);
-      color: var(--white);
-    }
+.btn-danger:hover {
+  color: var(--danger-hover);
+}
 
-    .btn-danger:hover {
-      background: var(--danger-hover);
-    }
+.btn-warning {
+  color: var(--warning-color);
+}
 
-    .btn-warning {
-      background: var(--warning-color);
-      color: var(--white);
-    }
+.btn-warning:hover {
+  color: var(--warning-hover);
+}
 
-    .btn-warning:hover {
-      background: var(--warning-hover);
-    }
+.btn-purple {
+  color: var(--purple-color);
+}
 
-    .btn-light {
-      background: var(--light-bg);
-      color: var(--text-dark);
-    }
+.btn-purple:hover {
+  color: var(--purple-hover);
+}
 
-    .btn-light:hover {
-      background: #e9ecef;
-    }
+.btn-dark {
+  color: var(--dark-color);
+}
+
+.btn-dark:hover {
+  color: var(--dark-hover);
+}
+
+.btn-light {
+  color: var(--text-light);
+}
+
+.btn-light:hover {
+  color: var(--text-medium);
+}
 
     /* Modal */
     .modal {
@@ -390,46 +400,53 @@
       }
     }
 
-    /* Badges */
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 500;
-      background: var(--light-bg);
-      color: var(--text-dark);
-    }
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
+  border: 1px solid currentColor;
+  color: var(--text-dark);
+  transition: var(--transition);
+}
 
-    .badge-primary {
-      background: var(--primary-color);
-      color: var(--white);
-    }
+/* Colores para badges sin fondo */
+.badge-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
 
-    .badge-success {
-      background: var(--success-color);
-      color: var(--white);
-    }
+.badge-success {
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
 
-    .badge-warning {
-      background: var(--warning-color);
-      color: var(--white);
-    }
+.badge-warning {
+  color: var(--warning-color);
+  border-color: var(--warning-color);
+}
 
-    .badge-danger {
-      background: var(--danger-color);
-      color: var(--white);
-    }
+.badge-danger {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
 
-    .badge-purple {
-      background: var(--purple-color);
-      color: var(--white);
-    }
+.badge-purple {
+  color: var(--purple-color);
+  border-color: var(--purple-color);
+}
 
-    .badge-dark {
-      background: var(--dark-color);
-      color: var(--white);
-    }
+.badge-dark {
+  color: var(--dark-color);
+  border-color: var(--dark-color);
+}
+
+/* Efecto hover opcional */
+.badge:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
 
     /* Password field */
     .password-field {
@@ -464,6 +481,14 @@
       margin-bottom: 15px;
       color: #d1d5db;
     }
+
+    td .btn {
+  margin-right: 12px; /* Ajusta este valor según necesites */
+}
+
+td .btn:last-child {
+  margin-right: 0; /* Elimina el margen del último botón */
+}
   </style>
 </head>
 <body>

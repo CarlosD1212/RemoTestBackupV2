@@ -298,6 +298,21 @@
       font-weight: bold;
       color: white;
     }
+
+.pause-btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  background: #f39c12;
+  color: #fff;
+  transition: var(--transition);
+}
+.pause-btn:hover:not(:disabled) {
+  background: #e67e22;
+}
   </style>
 
 
@@ -359,6 +374,7 @@
      const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
     const CLAIM_URL = BASE_URL + "/api/claim";
     const FINISH_URL = BASE_URL + "/api/mark-finished";
+    const PAUSE_URL = BASE_URL + "/api/pause";
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     const taskContainer = document.getElementById("task-container");
     const modal = document.getElementById("modal");
@@ -395,16 +411,17 @@ async function loadTasks() {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
     const data = await res.json();
 
-    allTasks = data
-      .filter(task => task.status?.toLowerCase() !== "finished")
-      .map(task => ({
-        Subtask: task.subtask,
-        Batch: task.batch,
-        Level: task.level,
-        Status: task.status,
-        ClaimedBy: task.claimed_by,
-        Project: task.project
-      }));
+allTasks = data
+  .filter(task => task.status?.toLowerCase() !== "finished")
+  .map(task => ({
+    Subtask: task.subtask,
+    Batch: task.batch,
+    Level: task.level,
+    Status: task.status,
+    ClaimedBy: task.claimed_by,
+    Project: task.project,
+    PauseEnabled: task.pause_enabled
+  }));
 
       allTasks = sortTasksForDisplay(allTasks);
 
@@ -484,9 +501,8 @@ function renderPage(page) {
 
   const start = (page - 1) * TASKS_PER_PAGE;
   const end = start + TASKS_PER_PAGE;
-  const tasksToShow = allTasks.slice(start, end); // Usamos allTasks sin ordenar globalmente
+  const tasksToShow = allTasks.slice(start, end);
 
-  // Mover la tarea reclamada a la primera posición SOLO dentro de la página actual
   if (myClaimedTask) {
     const indexInPage = tasksToShow.findIndex(t => t.Subtask === myClaimedTask);
     if (indexInPage > 0) {
@@ -512,189 +528,180 @@ function renderPage(page) {
 
     if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
-card.innerHTML = `
-  <div style="display: flex; align-items: center; margin-bottom: 4px;">
-    <b style="margin-right: 4px;">Subtask:</b>
-    <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
-    
-  </div>
-<div style="display: flex; align-items: center; margin-bottom: 2px;">
-  <b style="margin-right: 4px;">Batch:</b>
-  <span class="batch-text" data-full="${task.Batch}" title="Click to copy">${truncate(task.Batch)}</span>
-</div>
-  <div style="margin-bottom: 2px;">
-    <b>Level:</b> ${task.Level}
-  </div>
-  <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
-  ${isMine && currentUser.email ? `
-    <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
-      Email: ${currentUser.email}
-    </div>
-  ` : ""}
-<div style="margin-bottom: 6px;">
-  <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
-    ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
-  </span>
-</div>
+    card.innerHTML = `
+      <div style="display: flex; align-items: center; margin-bottom: 4px;">
+        <b style="margin-right: 4px;">Subtask:</b>
+        <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
+      </div>
+      <div style="display: flex; align-items: center; margin-bottom: 2px;">
+        <b style="margin-right: 4px;">Batch:</b>
+        <span class="batch-text" data-full="${task.Batch}" title="Click to copy">${truncate(task.Batch)}</span>
+      </div>
+      <div style="margin-bottom: 2px;">
+        <b>Level:</b> ${task.Level}
+      </div>
+      <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
+      ${isMine && currentUser.email ? `
+        <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
+          Email: ${currentUser.email}
+        </div>
+      ` : ""}
+      <div style="margin-bottom: 6px;">
+        <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
+          ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
+        </span>
+      </div>
+      <div class="actions"></div>
+    `;
 
-  <div class="actions"></div>
-`;
+    const actions = card.querySelector(".actions");
 
-        const actions = card.querySelector(".actions");
+    const claimBtn = document.createElement("button");
+    claimBtn.className = "claim-btn";
 
-        const claimBtn = document.createElement("button");
-        claimBtn.className = "claim-btn";
-
-        if (isMine) {
-          claimBtn.textContent = "Open Task";
-          claimBtn.classList.add("open-task");
-          claimBtn.onclick = () => window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-        } else {
-          claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
-          claimBtn.disabled = isClaimedByOther || isOtherBlocked;
-
-claimBtn.onclick = async () => {
-  const already = localStorage.getItem("lastClaimedTask");
-  if (already && already !== task.Subtask) {
-    alert("You already claimed another task.");
-    return;
-  }
-
-  localStorage.setItem("lastClaimedTask", task.Subtask);
-  localStorage.setItem("claimedAt", new Date().toISOString());
-  showModal("Wait, reserved your task...");
-
-  const res = await fetch(CLAIM_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-  });
-
-  const result = await res.json();
-  if (result.status === "success") {
-    modalMessage.textContent = "Claim your task in Open Task";
-
-    // 🔥 Esta llamada será suficiente y ya calcula la página correcta
-    
-    setTimeout(() => {
-      hideModal();
-      loadTasks(); // ✅ no sobrescribas currentPage después de esto
-    }, 1200);
-
-  } else {
-    alert("Claim failed.");
-    localStorage.removeItem("lastClaimedTask");
-    hideModal();
-    loadTasks(); // fallback
-  }
-};
-
-  populateProjectFilter();
- }
-        
- 
-
-// Crear el selector
-const select = document.createElement("select");
-select.className = "review-select";
-select.disabled = !isMine;
-select.innerHTML = `
-  <option value="">Review option</option>
-  <option value="Good Task">Good Task</option>
-  <option value="Bad Task">Bad Task</option>
-  <option value="Attribute Error">Attribute Error</option>
-  <option value="Geometry Error">Geometry Error</option>
-  <option value="Spammer Task">Spammer Task</option>
-  <option value="Missing objects">Missing objects</option>
-  <option value="Poor positioning">Poor positioning</option>
-`;
-
-// Crear botones opcionales por separado
-const optionalContainer = document.createElement("div");
-optionalContainer.className = "optional-review-buttons";
-
-["Good data!", "Bad data!"].forEach(label => {
-  const btn = document.createElement("button");
-  btn.textContent = label;
-  btn.className = "optional-review";
-  btn.dataset.value = label;
-  if (!isMine) btn.disabled = true;
-  optionalContainer.appendChild(btn);
-});
-
-// Luego agregar ambos al contenedor de la tarjeta:
-card.appendChild(select);
-card.appendChild(optionalContainer);
-
-        const finishBtn = document.createElement("button");
-        finishBtn.className = "finish-btn";
-        finishBtn.textContent = "Finish";
-        finishBtn.disabled = true;
-
-        select.onchange = () => finishBtn.disabled = !select.value;
-
-  
-
-finishBtn.onclick = async () => {
-  if (!currentUser.email || currentUser.email.trim() === "") {
-    alert("Your account does not have an email assigned. Please contact an admin.");
-    return;
-  }
-  if (!select.value || select.value.trim() === "") {
-    alert("Please select a review option before finishing.");
-    return;
-  }
-
-  const payload = {
-    subtask: task.Subtask,
-    level: task.Level,
-    review_option: select.value,
-    email: currentUser.email.trim(),
-    claimed_at: localStorage.getItem("claimedAt"),
-    finished_at: new Date().toISOString(),
-    username: currentUser.username,
-    data_type: ""
-  };
-
-  try {
-    const res = await fetch(FINISH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-
-    if (result.status === "success") {
-      socket.emit("taskFinished", { subtask: task.Subtask });   // ⬅️ emite para otros
-
-      // Limpia estado local.
-      localStorage.removeItem("lastClaimedTask");
-      localStorage.removeItem("claimedAt");
-
-      // Recarga completa para que:
-      // 1. Desaparezca la tarjeta terminada.
-      // 2. Aparezca la tarjeta del siguiente nivel (si existe).
-      // 3. Se reseteen filtros y paginación coherentemente.
-      window.location.reload();                                  // ⬅️ NUEVO
+    if (isMine) {
+      claimBtn.textContent = "Open Task";
+      claimBtn.classList.add("open-task");
+      claimBtn.onclick = () =>
+        window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
     } else {
-      alert("Error finishing task: " + result.message);
+      claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
+      claimBtn.disabled = isClaimedByOther || isOtherBlocked;
+
+      claimBtn.onclick = async () => {
+        const already = localStorage.getItem("lastClaimedTask");
+        if (already && already !== task.Subtask) {
+          alert("You already claimed another task.");
+          return;
+        }
+
+        localStorage.setItem("lastClaimedTask", task.Subtask);
+        localStorage.setItem("claimedAt", new Date().toISOString());
+        showModal("Wait, reserved your task...");
+
+        const res = await fetch(CLAIM_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+        });
+
+        const result = await res.json();
+        if (result.status === "success") {
+          modalMessage.textContent = "Claim your task in Open Task";
+          setTimeout(() => {
+            hideModal();
+            loadTasks();
+          }, 1200);
+        } else {
+          alert("Claim failed.");
+          localStorage.removeItem("lastClaimedTask");
+          hideModal();
+          loadTasks();
+        }
+      };
+
+      populateProjectFilter();
     }
-  } catch (error) {
-    console.error("❌ Error in FINISH:", error);
-    alert("An unexpected error occurred");
-  }
-};
 
+    const select = document.createElement("select");
+    select.className = "review-select";
+    select.disabled = !isMine;
+    select.innerHTML = `
+      <option value="">Review option</option>
+      <option value="Good Task">Good Task</option>
+      <option value="Bad Task">Bad Task</option>
+      <option value="Attribute Error">Attribute Error</option>
+      <option value="Geometry Error">Geometry Error</option>
+      <option value="Spammer Task">Spammer Task</option>
+      <option value="Missing objects">Missing objects</option>
+      <option value="Poor positioning">Poor positioning</option>
+    `;
 
+    const optionalContainer = document.createElement("div");
+    optionalContainer.className = "optional-review-buttons";
 
+    ["Good data!", "Bad data!"].forEach(label => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.className = "optional-review";
+      btn.dataset.value = label;
+      if (!isMine) btn.disabled = true;
+      optionalContainer.appendChild(btn);
+    });
 
+    const finishBtn = document.createElement("button");
+    finishBtn.className = "finish-btn";
+    finishBtn.textContent = "Finish";
+    finishBtn.disabled = true;
+    select.onchange = () => finishBtn.disabled = !select.value;
 
-        actions.appendChild(claimBtn);
-        actions.appendChild(select);
-        actions.appendChild(optionalContainer);
-        actions.appendChild(finishBtn);
-        taskContainer.appendChild(card);
-      });
+    finishBtn.onclick = async () => {
+      if (!currentUser.email || currentUser.email.trim() === "") {
+        alert("Your account does not have an email assigned. Please contact an admin.");
+        return;
+      }
+      if (!select.value || select.value.trim() === "") {
+        alert("Please select a review option before finishing.");
+        return;
+      }
+
+      const payload = {
+        subtask: task.Subtask,
+        level: task.Level,
+        review_option: select.value,
+        email: currentUser.email.trim(),
+        claimed_at: localStorage.getItem("claimedAt"),
+        finished_at: new Date().toISOString(),
+        username: currentUser.username,
+        data_type: ""
+      };
+
+      try {
+        const res = await fetch(FINISH_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.status === "success") {
+          socket.emit("taskFinished", { subtask: task.Subtask });
+
+          localStorage.removeItem("lastClaimedTask");
+          localStorage.removeItem("claimedAt");
+
+          window.location.reload();
+        } else {
+          alert("Error finishing task: " + result.message);
+        }
+      } catch (error) {
+        console.error("❌ Error in FINISH:", error);
+        alert("An unexpected error occurred");
+      }
+    };
+
+    const pauseBtn = document.createElement("button");
+    pauseBtn.className = "pause-btn";
+    pauseBtn.textContent = "Pause";
+    pauseBtn.style.marginTop = "8px";
+
+    if (isMine) {
+      pauseBtn.style.display = "block";
+      pauseBtn.disabled = !task.PauseEnabled;
+      pauseBtn.onclick = () => {
+        alert(`Task "${task.Subtask}" paused! (implement logic here)`);
+      };
+    } else {
+      pauseBtn.style.display = "none";
+    }
+
+    actions.appendChild(claimBtn);
+    actions.appendChild(select);
+    actions.appendChild(optionalContainer);
+    actions.appendChild(finishBtn);
+    actions.appendChild(pauseBtn);
+    taskContainer.appendChild(card);
+  });
 
       renderPagination();
 
@@ -731,7 +738,7 @@ finishBtn.onclick = async () => {
       });
     }
 
-      function finishTask(subtask) {
+    function finishTask(subtask) {
     const card = document.querySelector(`[data-subtask="${subtask}"]`);
     const select = card.querySelector(".review-select");
     const selectedReview = select.value.trim();
