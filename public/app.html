@@ -886,8 +886,11 @@ socket.on("taskFinished", ({ subtask }) => {
     });
   }
 
-  // 🔃 Recargar tareas para mostrar la nueva tarjeta generada automáticamente
-  setTimeout(loadTasks, 300);
+  // 🕒 Esperar un poco más antes de recargar tareas para asegurar que ya fue insertada
+  setTimeout(() => {
+    console.log("♻️ Reloading tasks after finish...");
+    loadTasks();
+  }, 1000); // ⏱ aumenta el delay de 300ms a 1000ms
 });
 
     const filterProject = document.getElementById("filter-project");
