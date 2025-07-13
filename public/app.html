@@ -873,18 +873,17 @@ socket.on("taskFinished", ({ subtask }) => {
     localStorage.removeItem("claimedAt");
   }
 
+  // Eliminar tarjeta terminada
   const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
   if (card) card.remove();
 
-  // 🔄 Reactivar tarjetas si ya no tengo ninguna tarea reclamada
-  const stillClaimed = localStorage.getItem("lastClaimedTask");
-  if (!stillClaimed) {
-    document.querySelectorAll(".task-card.disabled").forEach(c => {
-      c.classList.remove("disabled");
-      const btn = c.querySelector(".claim-btn");
-      if (btn) btn.disabled = false;
-    });
-  }
+  // Recargar tareas después de una breve espera
+  setTimeout(() => {
+    loadTasks();  // 🔄 Recarga las nuevas tareas, incluyendo la del siguiente nivel
+    applyFilters(); // 🔍 Vuelve a aplicar los filtros activos si existen
+  }, 600); // puedes ajustar este tiempo si es necesario
+});
+
 
   // 🕒 Esperar un poco más antes de recargar tareas para asegurar que ya fue insertada
   setTimeout(() => {
