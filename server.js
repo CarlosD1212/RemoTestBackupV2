@@ -369,6 +369,7 @@ function getNextLevel(currentLevel, allowedLevels) {
 }
 
 /* 🚀 Endpoint actualizado */
+/* 🚀 Endpoint /api/mark-finished (versión final) */
 app.post("/api/mark-finished", async (req, res) => {
   const {
     subtask,
@@ -382,87 +383,69 @@ app.post("/api/mark-finished", async (req, res) => {
   } = req.body;
 
   try {
-    // Obtener la tarea original
-    const taskResult = await pool.query("SELECT * FROM tasks WHERE subtask = $1", [subtask]);
+    /* 1. Verificar que la tarea exista */
+    const taskResult = await pool.query(
+      "SELECT * FROM tasks WHERE subtask = $1",
+      [subtask]
+    );
     if (taskResult.rows.length === 0) {
       return res.status(404).json({ status: "error", message: "Task not found" });
     }
-
-    const task = taskResult.rows[0];
+    const task    = taskResult.rows[0];
     const project = task.project || "unknown";
 
-    // 1. Guardar en historial
-await pool.query(
-  `INSERT INTO history (subtask, level, review_option, email, claim_time, finished_at, project, data_type)
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-  [subtask, level, review_option, email, claimed_at, finished_at, project, data_type || null]
-);
+    /* 2. Guardar en history */
+    await pool.query(
+      `INSERT INTO history
+        (subtask, level, review_option, email, claim_time, finished_at, project, data_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [subtask, level, review_option, email, claimed_at, finished_at, project, data_type || null]
+    );
 
+    /* 3. Marcar como finished */
+    await pool.query(
+      "UPDATE tasks SET status = 'finished' WHERE subtask = $1",
+      [subtask]
+    );
 
-    // 2. Marcar la tarea original como finalizada
-    await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
+    /* 4. Emitir evento en tiempo real */
+    io.emit("taskFinished", { subtask });
 
-    // 3. Obtener niveles permitidos por el proyecto
-    const projectResult = await pool.query(
+    /* 5. Calcular siguiente nivel permitido y, si aplica, crear nueva tarea */
+    const projRes = await pool.query(
       "SELECT levels FROM projects WHERE name = $1",
       [project]
     );
-
-    if (projectResult.rows.length === 0) {
-      console.warn(`⚠️ Proyecto "${project}" no encontrado en tabla 'projects'`);
-      return res.json({ status: "success", message: "Task marked as finished (project not found)" });
-    }
-
-    const allowedLevels = projectResult.rows[0].levels || [];
-    const levelsArray = Array.isArray(allowedLevels)
-      ? allowedLevels.map(Number)
-      : allowedLevels.replace(/[{}]/g, "").split(",").map(l => parseInt(l));
-
-    // 4. Secuencia ordenada
-    const levelOrder = [-1, 0, 1, 10];
-    const currentIndex = levelOrder.indexOf(Number(level));
-
-    if (currentIndex !== -1) {
-      // Buscar el siguiente nivel permitido
-      let nextLevel = null;
-      for (let i = currentIndex + 1; i < levelOrder.length; i++) {
-        if (levelsArray.includes(levelOrder[i])) {
-          nextLevel = levelOrder[i];
-          break;
-        }
-      }
-
-      if (nextLevel !== null) {
-        // 5. Generar nueva tarea con siguiente nivel permitido
-        const newSubtask = `${subtask}-L${nextLevel}-${Date.now()}`;
-        await pool.query(
-          `INSERT INTO tasks (subtask, batch, level, status, project, created_at)
-           VALUES ($1, $2, $3, 'pending', $4, NOW())`,
-          [newSubtask, task.batch, nextLevel, project]
-        );
-
-        io.emit("taskCreated", {
-          subtask: newSubtask,
-          batch: task.batch,
-          level: nextLevel,
-          status: "pending",
-          project
-        });
-
-        console.log(`✅ Tarea duplicada al nivel ${nextLevel}: ${newSubtask}`);
-      } else {
-        console.log(`ℹ️ No hay siguiente nivel permitido para duplicar la tarea.`);
+    const allowedLevels = projRes.rows[0]?.levels || [];
+    const ordered = [-1, 0, 1, 10];
+    const idx     = ordered.indexOf(Number(level));
+    let nextLevel = null;
+    for (let i = idx + 1; i < ordered.length; i++) {
+      if (allowedLevels.includes(ordered[i])) {
+        nextLevel = ordered[i];
+        break;
       }
     }
 
-    io.emit("taskFinished", { subtask });
+    if (nextLevel !== null) {
+      await pool.query(
+        `INSERT INTO tasks (subtask, batch, level, project, status)
+         VALUES ($1,$2,$3,$4,'pending')`,
+        [task.subtask, task.batch, nextLevel, project]
+      );
+    }
 
-    res.json({ status: "success" });
+    return res.json({
+      status: "success",
+      nextLevelCreated: nextLevel
+    });
+
   } catch (err) {
     console.error("❌ Error en /api/mark-finished:", err);
-    res.status(500).json({ status: "error", message: "Internal error" });
+    return res.status(500).json({ status: "error", message: "Internal error" });
   }
 });
+
 
 
 // ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
