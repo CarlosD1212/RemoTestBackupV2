@@ -640,7 +640,6 @@ finishBtn.onclick = async () => {
     alert("Your account does not have an email assigned. Please contact an admin.");
     return;
   }
-
   if (!select.value || select.value.trim() === "") {
     alert("Please select a review option before finishing.");
     return;
@@ -653,8 +652,8 @@ finishBtn.onclick = async () => {
     email: currentUser.email.trim(),
     claimed_at: localStorage.getItem("claimedAt"),
     finished_at: new Date().toISOString(),
-    username: currentUser.username,  // ✅ importante para backend
-    data_type: "" // si se usa luego
+    username: currentUser.username,
+    data_type: ""
   };
 
   try {
@@ -663,23 +662,29 @@ finishBtn.onclick = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
     const result = await res.json();
 
     if (result.status === "success") {
+      socket.emit("taskFinished", { subtask: task.Subtask });   // ⬅️ emite para otros
+
+      // Limpia estado local.
       localStorage.removeItem("lastClaimedTask");
       localStorage.removeItem("claimedAt");
 
-      const card = document.querySelector(`.task-card[data-subtask="${task.Subtask}"]`);
-      if (card) card.remove();
+      // Recarga completa para que:
+      // 1. Desaparezca la tarjeta terminada.
+      // 2. Aparezca la tarjeta del siguiente nivel (si existe).
+      // 3. Se reseteen filtros y paginación coherentemente.
+      window.location.reload();                                  // ⬅️ NUEVO
     } else {
-      alert("Error finishing task");
+      alert("Error finishing task: " + result.message);
     }
   } catch (error) {
-    console.error("❌ Error en FINISH:", error);
+    console.error("❌ Error in FINISH:", error);
     alert("An unexpected error occurred");
   }
 };
+
 
 
 
