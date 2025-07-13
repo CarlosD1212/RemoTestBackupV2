@@ -866,18 +866,29 @@ socket.on("activeUsers", (usernames) => {
   });
 
   // Evento: tarea finalizada
-  socket.on("taskFinished", ({ subtask }) => {
-    const claimed = localStorage.getItem("lastClaimedTask");
-    if (claimed === subtask) {
-      localStorage.removeItem("lastClaimedTask");
-      localStorage.removeItem("claimedAt");
-    }
+socket.on("taskFinished", ({ subtask }) => {
+  const claimed = localStorage.getItem("lastClaimedTask");
+  if (claimed === subtask) {
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+  }
 
-    const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
-    if (card) card.remove();
+  const card = document.querySelector(`.task-card[data-subtask="${subtask}"]`);
+  if (card) card.remove();
 
-    setTimeout(loadTasks, 300);
-  });
+  // 🔄 Reactivar tarjetas si ya no tengo ninguna tarea reclamada
+  const stillClaimed = localStorage.getItem("lastClaimedTask");
+  if (!stillClaimed) {
+    document.querySelectorAll(".task-card.disabled").forEach(c => {
+      c.classList.remove("disabled");
+      const btn = c.querySelector(".claim-btn");
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  // 🔃 Recargar tareas para mostrar la nueva tarjeta generada automáticamente
+  setTimeout(loadTasks, 300);
+});
 
     const filterProject = document.getElementById("filter-project");
   const filterLevel = document.getElementById("filter-level");
