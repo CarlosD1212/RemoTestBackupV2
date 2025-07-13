@@ -511,19 +511,25 @@ function renderPage(page) {
     }
   }
 
-  taskContainer.innerHTML = "";
+console.log("pausedTask:", pausedTask);
+console.log("myClaimed:", myClaimed);
+
+taskContainer.innerHTML = "";
+
+ const pausedTask = localStorage.getItem("pausedTask") || "";
+ const myClaimed = localStorage.getItem("lastClaimedTask") || "";
 
 tasksToShow.forEach(task => {
   const isMine = task.ClaimedBy === currentUser.username;
-  const pausedTask = localStorage.getItem("pausedTask") || "";
-  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
-  const isPausedMine = task.Subtask === pausedTask && isMine;
+  const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
   const isClaimedByOther = task.ClaimedBy && !isMine;
 
-  const isOtherBlocked =
-    !isMine &&
-    (!isPausedMine && (myClaimedTask || pausedTask)) &&
-    task.Subtask !== myClaimedTask;
+const isOtherBlocked =
+  !isMine &&
+  (
+    (myClaimed && task.Subtask !== myClaimed) || 
+    (pausedTask && !isPausedMine)
+  );
 
   const card = document.createElement("div");
   card.className = "task-card";
