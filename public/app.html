@@ -685,35 +685,36 @@ tasksToShow.forEach(task => {
     }
   };
 
-  const pauseBtn = document.createElement("button");
-  pauseBtn.className = "pause-btn";
-  pauseBtn.textContent = "Pause";
-  pauseBtn.style.marginTop = "8px";
+const pauseBtn = document.createElement("button");
+pauseBtn.className = "pause-btn";
+pauseBtn.textContent = "Pause";
+pauseBtn.style.marginTop = "8px";
 
-  if (isMine && task.PauseEnabled === "enabled") {
-    pauseBtn.style.display = "block";
-    pauseBtn.disabled = false;
+if (isMine) {
+  pauseBtn.style.display = "block";
+  pauseBtn.disabled = !task.PauseEnabled;
 
-    pauseBtn.onclick = async () => {
-      const res = await fetch(PAUSE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-      });
+  pauseBtn.onclick = async () => {
+    const res = await fetch(PAUSE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+    });
 
-      const result = await res.json();
-      if (result.status === "success") {
-        localStorage.setItem("pausedTask", task.Subtask);
-        localStorage.removeItem("lastClaimedTask");
-        localStorage.removeItem("claimedAt");
-        loadTasks();
-      } else {
-        alert("Failed to pause the task.");
-      }
-    };
-  } else {
-    pauseBtn.style.display = "none";
-  }
+    const result = await res.json();
+    if (result.status === "success") {
+      localStorage.setItem("pausedTask", task.Subtask);
+      localStorage.removeItem("lastClaimedTask");
+      localStorage.removeItem("claimedAt");
+      loadTasks(); // Recarga para desbloquear
+    } else {
+      alert("Failed to pause the task.");
+    }
+  };
+} else {
+  pauseBtn.style.display = "none";
+}
+
 
   actions.appendChild(claimBtn);
   actions.appendChild(select);
