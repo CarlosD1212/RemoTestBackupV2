@@ -740,17 +740,24 @@ finishBtn.onclick = async () => {
     const optionalValues = Array.from(optionalButtons).map(btn => btn.dataset.value);
     const combinedReview = [selectedReview, ...optionalValues].join(", ");
 
-    fetch(`${BASE_URL}/api/mark-finished`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtask, review: combinedReview, username: currentUser.username })
-    })
-    .then(res => res.json())
-    .then(json => {
-      if (json.status === "success") {
-        card.remove(); // o card.style.display = "none";
-      }
-    });
+fetch("/api/mark-finished", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+})
+.then(res => res.json())
+.then(data => {
+  if (data.status === "success") {
+    // 💡 Recarga completa para actualizar tareas y estado
+    window.location.reload();
+  } else {
+    alert("❌ Failed to finish task: " + data.message);
+  }
+})
+.catch(err => {
+  console.error("❌ Finish error:", err);
+  alert("❌ Error finishing task.");
+});
   }
 
     function renderPagination() {
