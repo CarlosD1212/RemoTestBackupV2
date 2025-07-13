@@ -414,7 +414,16 @@
 async function loadTasks() {
   try {
     const res = await fetch(`${BASE_URL}/api/tasks?username=${currentUser.username}`);
+
+    
+
     const data = await res.json();
+
+    console.log("Tareas cargadas:", data.map(t => ({
+  subtask: t.subtask,
+  status: t.status,
+  claimed_by: t.claimed_by
+})));
 
 allTasks = data
   .filter(task => task.status?.toLowerCase() !== "finished")
@@ -506,7 +515,14 @@ function renderPage(page) {
 
   const start = (page - 1) * TASKS_PER_PAGE;
   const end = start + TASKS_PER_PAGE;
-  const tasksToShow = allTasks.slice(start, end);
+  const idsInPage  = new Set();
+const tasksToShow = allTasks
+  .slice(start, end)
+  .filter(t => {
+    if (idsInPage.has(t.Subtask)) return false;
+    idsInPage.add(t.Subtask);
+    return true;
+  });
 
   if (myClaimedTask) {
     const indexInPage = tasksToShow.findIndex(t => t.Subtask === myClaimedTask);
@@ -520,17 +536,20 @@ taskContainer.innerHTML = "";
 
 
 tasksToShow.forEach(task => {
-  const isMine = task.ClaimedBy === currentUser.username;
-  const pausedTask = localStorage.getItem("pausedTask") || "";
-  const myClaimed = localStorage.getItem("lastClaimedTask") || "";
-  const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
-  const isClaimedByOther = task.ClaimedBy && !isMine;
+const isMine = task.ClaimedBy === currentUser.username;
+const myClaimed = localStorage.getItem("lastClaimedTask") || "";
+const pausedTask = localStorage.getItem("pausedTask") || "";
+const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
+const isClaimedByOther = task.ClaimedBy && !isMine;
 
 const isOtherBlocked =
-  !isMine &&
-  (
-    (myClaimed && task.Subtask !== myClaimed) || 
-    (pausedTask && !isPausedMine)
+  !isMine && (
+    // Si YO tengo una tarea reclamada, bloqueo las demás
+    (myClaimed && task.Subtask !== myClaimed) ||
+
+    // Si la tarjeta es la PAUSADA de OTRO usuario, la bloqueo;
+    // si la pausó el mismo usuario, NO la bloqueo.
+    (pausedTask && task.Subtask === pausedTask && !isPausedMine)
   );
 
   const card = document.createElement("div");
@@ -541,8 +560,17 @@ const isOtherBlocked =
   card.setAttribute("data-status", task.Status?.toLowerCase() || "");
   card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-  if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
-
+if (isClaimedByOther || isOtherBlocked) {
+  card.classList.add("disabled");
+}
+ else {
+  card.classList.remove("disabled");  // 🔓 Asegura que se desbloquee si no está bloqueada
+}
+if (isPausedMine) {
+  card.classList.add("paused-by-user");
+} else {
+  card.classList.remove("paused-by-user");
+}
   card.innerHTML = `
     <div style="display: flex; align-items: center; margin-bottom: 4px;">
       <b style="margin-right: 4px;">Subtask:</b>
@@ -574,12 +602,12 @@ const isOtherBlocked =
   const claimBtn = document.createElement("button");
   claimBtn.className = "claim-btn";
 
-  if (isMine && myClaimedTask === task.Subtask) {
-    claimBtn.textContent = "Open Task";
-    claimBtn.classList.add("open-task");
-    claimBtn.onclick = () =>
-      window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-  } else {
+if (isMine && (myClaimedTask === task.Subtask || isPausedMine)) {
+  claimBtn.textContent = "Open Task";
+  claimBtn.classList.add("open-task");
+  claimBtn.onclick = () =>
+    window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
+} else {
     claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
     claimBtn.disabled = isClaimedByOther || isOtherBlocked;
 
@@ -712,10 +740,9 @@ pauseBtn.onclick = async () => {
   const result = await res.json();
   if (result.status === "success") {
     /* ⬇️ guarda subtask + level */
-    localStorage.setItem(
-      "pausedTask",
-      JSON.stringify({ subtask: task.Subtask, level: task.Level })
-    );
+localStorage.setItem("pausedTask", task.Subtask);
+
+    
     localStorage.removeItem("lastClaimedTask");
     localStorage.removeItem("claimedAt");
     loadTasks();

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Projects</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 2rem;
+      color: #2c3e50;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #34495e;
+    }
+
+    .project-card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 12px;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+
+    .level-options {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .level-options label {
+      font-weight: normal;
+    }
+
+    .actions {
+      text-align: right;
+      margin-top: 16px;
+    }
+
+    .save-btn {
+      background: #3498db;
+      color: white;
+      padding: 10px 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .save-btn:hover {
+      background: #2980b9;
+    }
+
+    .message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Manage Projects</h1>
+
+<div id="project-list"></div>
+
+<div class="message" id="message"></div>
+
+<script>
+  const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+  const LEVEL_OPTIONS = ["-1", "0", "1", "10"];
+
+  async function loadProjects() {
+    const res = await fetch(`${BASE_URL}/api/projects`);
+    const data = await res.json();
+
+    const container = document.getElementById("project-list");
+    container.innerHTML = "";
+
+    for (const project of data) {
+      const card = document.createElement("div");
+      card.className = "project-card";
+
+      card.innerHTML = `
+        <label>Project Name</label>
+        <input type="text" class="project-name" value="${project.name}" />
+
+        <label>Levels</label>
+        <div class="level-options">
+          ${LEVEL_OPTIONS.map(level => `
+            <label>
+              <input type="checkbox" value="${level}" ${project.levels.includes(level) ? "checked" : ""}/> ${level}
+            </label>
+          `).join('')}
+        </div>
+
+        <label>Pause Button</label>
+        <select class="pause-option">
+          <option value="disabled" ${project.pause === "disabled" ? "selected" : ""}>Disabled</option>
+          <option value="enabled" ${project.pause === "enabled" ? "selected" : ""}>Enabled</option>
+        </select>
+
+        <div class="actions">
+          <button class="save-btn">Save Changes</button>
+        </div>
+      `;
+
+      const saveBtn = card.querySelector(".save-btn");
+      saveBtn.onclick = async () => {
+        const newName = card.querySelector(".project-name").value.trim();
+        const pause = card.querySelector(".pause-option").value;
+        const levels = Array.from(card.querySelectorAll(".level-options input:checked"))
+                            .map(cb => cb.value);
+
+        const res = await fetch(`${BASE_URL}/api/update-project`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            originalName: project.name,
+            newName,
+            levels,
+            pause
+          })
+        });
+
+        const result = await res.json();
+        const msg = document.getElementById("message");
+        if (result.status === "success") {
+          msg.textContent = "Project updated successfully!";
+          msg.style.color = "green";
+          loadProjects(); // recargar para actualizar nombres si cambiaron
+        } else {
+          msg.textContent = "Error: " + result.message;
+          msg.style.color = "red";
+        }
+      };
+
+      container.appendChild(card);
+    }
+  }
+
+  loadProjects();
+</script>
+</body>
+</html>

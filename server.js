@@ -188,10 +188,16 @@ app.get("/api/tasks", async (req, res) => {
     const projectLevels = projResult.rows[0]?.levels || [];
 
     // Filtrar tareas por proyecto y nivel
-    const tasks = await pool.query(
-      "SELECT * FROM tasks WHERE project = $1 AND status != 'finished'",
-      [userProject]
-    );
+const tasks = await pool.query(
+  `SELECT * FROM tasks
+   WHERE project = $1
+     AND (
+       status = 'pending'
+       OR status = 'claimed'
+       OR (status = 'paused' AND claimed_by = $2)
+     )`,
+  [userProject, username]
+);
 
     const filteredTasks = tasks.rows.filter(task =>
       userRoles.includes(task.level) && projectLevels.includes(task.level)
@@ -590,8 +596,19 @@ app.post("/api/delete-user", async (req, res) => {
   }
 });
 
-
-
+app.get("/api/projects", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT name, levels, pause FROM projects");
+    res.json(result.rows.map(p => ({
+      name: p.name,
+      levels: Array.isArray(p.levels) ? p.levels.map(String) : [],
+      pause: p.pause || "disabled"
+    })));
+  } catch (err) {
+    console.error("❌ Error /api/projects:", err);
+    res.status(500).json({ status: "error", message: "Error loading projects" });
+  }
+});
 
 
 app.get("/api/users", async (req, res) => {
