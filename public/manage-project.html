@@ -20,43 +20,27 @@
       color: #34495e;
     }
 
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
     .project-card {
       background: white;
       padding: 20px;
-      margin-bottom: 20px;
+      margin-top: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 12px;
-    }
-
-    input[type="text"],
-    select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-top: 4px;
     }
 
     .level-options {
       display: flex;
       gap: 10px;
       margin-top: 6px;
-    }
-
-    .level-options label {
-      font-weight: normal;
-    }
-
-    .actions {
-      text-align: right;
-      margin-top: 16px;
+      flex-wrap: wrap;
     }
 
     .save-btn {
@@ -67,7 +51,7 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      margin-top: 20px;
     }
 
     .save-btn:hover {
@@ -77,7 +61,7 @@
     .message {
       text-align: center;
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -85,80 +69,108 @@
 
 <h1>Manage Projects</h1>
 
-<div id="project-list"></div>
+<label for="projectSelector">Select Project:</label>
+<select id="projectSelector">
+  <option value="">-- Choose a Project --</option>
+</select>
+
+<div id="editor" class="project-card" style="display: none;">
+  <label>
+    <input type="checkbox" id="keepName" checked />
+    Do not change project name
+  </label>
+
+  <label for="newProjectName">New Project Name (optional):</label>
+  <input type="text" id="newProjectName" disabled />
+
+  <label>Levels:</label>
+  <div class="level-options" id="levelOptions"></div>
+
+  <label>Pause Button:</label>
+  <select id="pauseSelect">
+    <option value="disabled">Disabled</option>
+    <option value="enabled">Enabled</option>
+  </select>
+
+  <button class="save-btn" onclick="saveChanges()">Save Changes</button>
+</div>
 
 <div class="message" id="message"></div>
 
 <script>
   const BASE_URL = "https://remo-task-manager-production.up.railway.app";
-  const LEVEL_OPTIONS = ["-1", "0", "1", "10"];
+  const LEVELS = ["-1", "0", "1", "10"];
+  let allProjects = [];
+
+  const projectSelector = document.getElementById("projectSelector");
+  const editor = document.getElementById("editor");
+  const newNameInput = document.getElementById("newProjectName");
+  const keepNameCheckbox = document.getElementById("keepName");
+  const levelContainer = document.getElementById("levelOptions");
+  const pauseSelect = document.getElementById("pauseSelect");
+  const messageDiv = document.getElementById("message");
+
+  keepNameCheckbox.addEventListener("change", () => {
+    newNameInput.disabled = keepNameCheckbox.checked;
+  });
 
   async function loadProjects() {
     const res = await fetch(`${BASE_URL}/api/projects`);
-    const data = await res.json();
+    allProjects = await res.json();
 
-    const container = document.getElementById("project-list");
-    container.innerHTML = "";
+    allProjects.forEach(p => {
+      const option = document.createElement("option");
+      option.value = p.name;
+      option.textContent = p.name;
+      projectSelector.appendChild(option);
+    });
+  }
 
-    for (const project of data) {
-      const card = document.createElement("div");
-      card.className = "project-card";
+  projectSelector.addEventListener("change", () => {
+    const selected = allProjects.find(p => p.name === projectSelector.value);
+    if (!selected) return;
 
-      card.innerHTML = `
-        <label>Project Name</label>
-        <input type="text" class="project-name" value="${project.name}" />
+    newNameInput.value = "";
+    keepNameCheckbox.checked = true;
+    newNameInput.disabled = true;
 
-        <label>Levels</label>
-        <div class="level-options">
-          ${LEVEL_OPTIONS.map(level => `
-            <label>
-              <input type="checkbox" value="${level}" ${project.levels.includes(level) ? "checked" : ""}/> ${level}
-            </label>
-          `).join('')}
-        </div>
+    pauseSelect.value = selected.pause;
+    levelContainer.innerHTML = "";
+    LEVELS.forEach(level => {
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" value="${level}" ${selected.levels.includes(level) ? 'checked' : ''}/> ${level}`;
+      levelContainer.appendChild(label);
+    });
 
-        <label>Pause Button</label>
-        <select class="pause-option">
-          <option value="disabled" ${project.pause === "disabled" ? "selected" : ""}>Disabled</option>
-          <option value="enabled" ${project.pause === "enabled" ? "selected" : ""}>Enabled</option>
-        </select>
+    editor.style.display = "block";
+    messageDiv.textContent = "";
+  });
 
-        <div class="actions">
-          <button class="save-btn">Save Changes</button>
-        </div>
-      `;
+  async function saveChanges() {
+    const originalName = projectSelector.value;
+    const newName = keepNameCheckbox.checked ? originalName : newNameInput.value.trim();
+    const pause = pauseSelect.value;
+    const levels = Array.from(levelContainer.querySelectorAll("input:checked")).map(cb => cb.value);
 
-      const saveBtn = card.querySelector(".save-btn");
-      saveBtn.onclick = async () => {
-        const newName = card.querySelector(".project-name").value.trim();
-        const pause = card.querySelector(".pause-option").value;
-        const levels = Array.from(card.querySelectorAll(".level-options input:checked"))
-                            .map(cb => cb.value);
+    if (!originalName) {
+      alert("Select a project first.");
+      return;
+    }
 
-        const res = await fetch(`${BASE_URL}/api/update-project`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            originalName: project.name,
-            newName,
-            levels,
-            pause
-          })
-        });
+    const res = await fetch(`${BASE_URL}/api/update-project`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ originalName, newName, pause, levels })
+    });
 
-        const result = await res.json();
-        const msg = document.getElementById("message");
-        if (result.status === "success") {
-          msg.textContent = "Project updated successfully!";
-          msg.style.color = "green";
-          loadProjects(); // recargar para actualizar nombres si cambiaron
-        } else {
-          msg.textContent = "Error: " + result.message;
-          msg.style.color = "red";
-        }
-      };
-
-      container.appendChild(card);
+    const json = await res.json();
+    if (json.status === "success") {
+      messageDiv.textContent = "✅ Project updated successfully.";
+      messageDiv.style.color = "green";
+      await loadProjects();
+    } else {
+      messageDiv.textContent = "❌ " + (json.message || "Update failed.");
+      messageDiv.style.color = "red";
     }
   }
 
