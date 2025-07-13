@@ -513,222 +513,216 @@ function renderPage(page) {
 
   taskContainer.innerHTML = "";
 
-  tasksToShow.forEach(task => {
-    const isMine = task.ClaimedBy === currentUser.username;
-    const isClaimedByOther = task.ClaimedBy && !isMine;
-    const pausedTask = localStorage.getItem("pausedTask") || "";
-    const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
+tasksToShow.forEach(task => {
+  const isMine = task.ClaimedBy === currentUser.username;
+  const pausedTask = localStorage.getItem("pausedTask") || "";
+  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
+  const isPausedMine = task.Subtask === pausedTask && isMine;
+  const isClaimedByOther = task.ClaimedBy && !isMine;
 
-    const isOtherBlocked =
+  const isOtherBlocked =
     !isMine &&
-   (!isPausedMine && (myClaimedTask || pausedTask)) &&
+    (!isPausedMine && (myClaimedTask || pausedTask)) &&
     task.Subtask !== myClaimedTask;
-    
 
-    const card = document.createElement("div");
-    card.className = "task-card";
-    card.setAttribute("data-subtask", task.Subtask);
-    card.setAttribute("data-project", task.Project?.toLowerCase() || "");
-    card.setAttribute("data-level", task.Level?.toString().toLowerCase() || "");
-    card.setAttribute("data-status", task.Status?.toLowerCase() || "");
-    card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
+  const card = document.createElement("div");
+  card.className = "task-card";
+  card.setAttribute("data-subtask", task.Subtask);
+  card.setAttribute("data-project", task.Project?.toLowerCase() || "");
+  card.setAttribute("data-level", task.Level?.toString().toLowerCase() || "");
+  card.setAttribute("data-status", task.Status?.toLowerCase() || "");
+  card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-    if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
+  if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
-    card.innerHTML = `
-      <div style="display: flex; align-items: center; margin-bottom: 4px;">
-        <b style="margin-right: 4px;">Subtask:</b>
-        <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
+  card.innerHTML = `
+    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+      <b style="margin-right: 4px;">Subtask:</b>
+      <span class="subtask-text" data-full="${task.Subtask}" title="Click to copy">${truncate(task.Subtask)}</span>
+    </div>
+    <div style="display: flex; align-items: center; margin-bottom: 2px;">
+      <b style="margin-right: 4px;">Batch:</b>
+      <span class="batch-text" data-full="${task.Batch}" title="Click to copy">${truncate(task.Batch)}</span>
+    </div>
+    <div style="margin-bottom: 2px;">
+      <b>Level:</b> ${task.Level}
+    </div>
+    <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
+    ${isMine && currentUser.email ? `
+      <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
+        Email: ${currentUser.email}
       </div>
-      <div style="display: flex; align-items: center; margin-bottom: 2px;">
-        <b style="margin-right: 4px;">Batch:</b>
-        <span class="batch-text" data-full="${task.Batch}" title="Click to copy">${truncate(task.Batch)}</span>
-      </div>
-      <div style="margin-bottom: 2px;">
-        <b>Level:</b> ${task.Level}
-      </div>
-      <div class="claim-info" style="font-size: 0.8rem; color: #555; margin-top: 4px;"></div>
-      ${isMine && currentUser.email ? `
-        <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
-          Email: ${currentUser.email}
-        </div>
-      ` : ""}
-      <div style="margin-bottom: 6px;">
-        <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
-          ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
-        </span>
-      </div>
-      <div class="actions"></div>
-    `;
+    ` : ""}
+    <div style="margin-bottom: 6px;">
+      <span class="project-badge-inline" style="background-color: ${getColorFromProject(task.Project)};" title="${task.Project}">
+        ${task.Project.length > 18 ? task.Project.slice(0, 18) + '…' : task.Project}
+      </span>
+    </div>
+    <div class="actions"></div>
+  `;
 
-    const actions = card.querySelector(".actions");
+  const actions = card.querySelector(".actions");
 
-    const claimBtn = document.createElement("button");
-    claimBtn.className = "claim-btn";
+  const claimBtn = document.createElement("button");
+  claimBtn.className = "claim-btn";
 
-    if (isMine) {
-      claimBtn.textContent = "Open Task";
-      claimBtn.classList.add("open-task");
-      claimBtn.onclick = () =>
-        window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-    } else {
-      claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
-      claimBtn.disabled = isClaimedByOther || isOtherBlocked;
+  if (isMine && myClaimedTask === task.Subtask) {
+    claimBtn.textContent = "Open Task";
+    claimBtn.classList.add("open-task");
+    claimBtn.onclick = () =>
+      window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
+  } else {
+    claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
+    claimBtn.disabled = isClaimedByOther || isOtherBlocked;
 
-      claimBtn.onclick = async () => {
-        const already = localStorage.getItem("lastClaimedTask");
-        if (already && already !== task.Subtask) {
-          alert("You already claimed another task.");
-          return;
-        }
+    claimBtn.onclick = async () => {
+      const already = localStorage.getItem("lastClaimedTask");
+      if (already && already !== task.Subtask) {
+        alert("You already claimed another task.");
+        return;
+      }
 
-        localStorage.setItem("lastClaimedTask", task.Subtask);
-        localStorage.setItem("claimedAt", new Date().toISOString());
-        showModal("Wait, reserved your task...");
+      localStorage.setItem("lastClaimedTask", task.Subtask);
+      localStorage.setItem("claimedAt", new Date().toISOString());
+      showModal("Wait, reserved your task...");
 
-        const res = await fetch(CLAIM_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-        });
+      const res = await fetch(CLAIM_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+      });
 
-        const result = await res.json();
-        if (result.status === "success") {
-          modalMessage.textContent = "Claim your task in Open Task";
-          setTimeout(() => {
-            hideModal();
-            loadTasks();
-          }, 1200);
-        } else {
-          alert("Claim failed.");
-          localStorage.removeItem("lastClaimedTask");
+      const result = await res.json();
+      if (result.status === "success") {
+        modalMessage.textContent = "Claim your task in Open Task";
+        setTimeout(() => {
           hideModal();
           loadTasks();
-        }
-      };
-
-      populateProjectFilter();
-    }
-
-    const select = document.createElement("select");
-    select.className = "review-select";
-    select.disabled = !isMine;
-    select.innerHTML = `
-      <option value="">Review option</option>
-      <option value="Good Task">Good Task</option>
-      <option value="Bad Task">Bad Task</option>
-      <option value="Attribute Error">Attribute Error</option>
-      <option value="Geometry Error">Geometry Error</option>
-      <option value="Spammer Task">Spammer Task</option>
-      <option value="Missing objects">Missing objects</option>
-      <option value="Poor positioning">Poor positioning</option>
-    `;
-
-    const optionalContainer = document.createElement("div");
-    optionalContainer.className = "optional-review-buttons";
-
-    ["Good data!", "Bad data!"].forEach(label => {
-      const btn = document.createElement("button");
-      btn.textContent = label;
-      btn.className = "optional-review";
-      btn.dataset.value = label;
-      if (!isMine) btn.disabled = true;
-      optionalContainer.appendChild(btn);
-    });
-
-    const finishBtn = document.createElement("button");
-    finishBtn.className = "finish-btn";
-    finishBtn.textContent = "Finish";
-    finishBtn.disabled = true;
-    select.onchange = () => finishBtn.disabled = !select.value;
-
-    finishBtn.onclick = async () => {
-      if (!currentUser.email || currentUser.email.trim() === "") {
-        alert("Your account does not have an email assigned. Please contact an admin.");
-        return;
-      }
-      if (!select.value || select.value.trim() === "") {
-        alert("Please select a review option before finishing.");
-        return;
-      }
-
-      const payload = {
-        subtask: task.Subtask,
-        level: task.Level,
-        review_option: select.value,
-        email: currentUser.email.trim(),
-        claimed_at: localStorage.getItem("claimedAt"),
-        finished_at: new Date().toISOString(),
-        username: currentUser.username,
-        data_type: ""
-      };
-
-      try {
-        const res = await fetch(FINISH_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-
-        if (result.status === "success") {
-          socket.emit("taskFinished", { subtask: task.Subtask });
-
-          localStorage.removeItem("lastClaimedTask");
-          localStorage.removeItem("claimedAt");
-
-          window.location.reload();
-        } else {
-          alert("Error finishing task: " + result.message);
-        }
-      } catch (error) {
-        console.error("❌ Error in FINISH:", error);
-        alert("An unexpected error occurred");
+        }, 1200);
+      } else {
+        alert("Claim failed.");
+        localStorage.removeItem("lastClaimedTask");
+        hideModal();
+        loadTasks();
       }
     };
 
-    const pauseBtn = document.createElement("button");
-    pauseBtn.className = "pause-btn";
-    pauseBtn.textContent = "Pause";
-    pauseBtn.style.marginTop = "8px";
+    populateProjectFilter();
+  }
 
-    if (isMine) {
-      pauseBtn.style.display = "block";
-      pauseBtn.disabled = !task.PauseEnabled;
-pauseBtn.onclick = async () => {
-  const res = await fetch(PAUSE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+  const select = document.createElement("select");
+  select.className = "review-select";
+  select.disabled = !isMine;
+  select.innerHTML = `
+    <option value="">Review option</option>
+    <option value="Good Task">Good Task</option>
+    <option value="Bad Task">Bad Task</option>
+    <option value="Attribute Error">Attribute Error</option>
+    <option value="Geometry Error">Geometry Error</option>
+    <option value="Spammer Task">Spammer Task</option>
+    <option value="Missing objects">Missing objects</option>
+    <option value="Poor positioning">Poor positioning</option>
+  `;
+
+  const optionalContainer = document.createElement("div");
+  optionalContainer.className = "optional-review-buttons";
+  ["Good data!", "Bad data!"].forEach(label => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = "optional-review";
+    btn.dataset.value = label;
+    if (!isMine) btn.disabled = true;
+    optionalContainer.appendChild(btn);
   });
 
-  const result = await res.json();
-  if (result.status === "success") {
-    // Guarda la tarea pausada
-    localStorage.setItem("pausedTask", task.Subtask);
+  const finishBtn = document.createElement("button");
+  finishBtn.className = "finish-btn";
+  finishBtn.textContent = "Finish";
+  finishBtn.disabled = true;
+  select.onchange = () => finishBtn.disabled = !select.value;
 
-    // Libera la tarea activa actual
-    localStorage.removeItem("lastClaimedTask");
-    localStorage.removeItem("claimedAt");
-
-    // Recarga la vista para desbloquear nuevas tareas
-    loadTasks();
-  } else {
-    alert("Failed to pause the task.");
-  }
-};
-
-    } else {
-      pauseBtn.style.display = "none";
+  finishBtn.onclick = async () => {
+    if (!currentUser.email || currentUser.email.trim() === "") {
+      alert("Your account does not have an email assigned. Please contact an admin.");
+      return;
+    }
+    if (!select.value || select.value.trim() === "") {
+      alert("Please select a review option before finishing.");
+      return;
     }
 
-    actions.appendChild(claimBtn);
-    actions.appendChild(select);
-    actions.appendChild(optionalContainer);
-    actions.appendChild(finishBtn);
-    actions.appendChild(pauseBtn);
-    taskContainer.appendChild(card);
-  });
+    const payload = {
+      subtask: task.Subtask,
+      level: task.Level,
+      review_option: select.value,
+      email: currentUser.email.trim(),
+      claimed_at: localStorage.getItem("claimedAt"),
+      finished_at: new Date().toISOString(),
+      username: currentUser.username,
+      data_type: ""
+    };
+
+    try {
+      const res = await fetch(FINISH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.status === "success") {
+        socket.emit("taskFinished", { subtask: task.Subtask });
+        localStorage.removeItem("lastClaimedTask");
+        localStorage.removeItem("claimedAt");
+        localStorage.removeItem("pausedTask");
+        window.location.reload();
+      } else {
+        alert("Error finishing task: " + result.message);
+      }
+    } catch (error) {
+      console.error("❌ Error in FINISH:", error);
+      alert("An unexpected error occurred");
+    }
+  };
+
+  const pauseBtn = document.createElement("button");
+  pauseBtn.className = "pause-btn";
+  pauseBtn.textContent = "Pause";
+  pauseBtn.style.marginTop = "8px";
+
+  if (isMine && task.PauseEnabled === "enabled") {
+    pauseBtn.style.display = "block";
+    pauseBtn.disabled = false;
+
+    pauseBtn.onclick = async () => {
+      const res = await fetch(PAUSE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+      });
+
+      const result = await res.json();
+      if (result.status === "success") {
+        localStorage.setItem("pausedTask", task.Subtask);
+        localStorage.removeItem("lastClaimedTask");
+        localStorage.removeItem("claimedAt");
+        loadTasks();
+      } else {
+        alert("Failed to pause the task.");
+      }
+    };
+  } else {
+    pauseBtn.style.display = "none";
+  }
+
+  actions.appendChild(claimBtn);
+  actions.appendChild(select);
+  actions.appendChild(optionalContainer);
+  actions.appendChild(finishBtn);
+  actions.appendChild(pauseBtn);
+  taskContainer.appendChild(card);
+});
+
 
       renderPagination();
 
