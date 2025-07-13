@@ -343,46 +343,51 @@ app.post("/api/pause", async (req, res) => {
   const { subtask, username } = req.body;
 
   if (!subtask || !username) {
-    return res.status(400).json({ status: "error", message: "Missing subtask or username" });
+    return res
+      .status(400)
+      .json({ status: "error", message: "Missing subtask or username" });
   }
 
   try {
-    // Verificar que la tarea está reclamada por ese usuario
+    // ✔ comprueba que la tarea está reclamada por ese usuario
     const taskCheck = await pool.query(
-      "SELECT * FROM tasks WHERE subtask = $1 AND claimedby = $2 AND status = 'claimed'",
+      `SELECT * FROM tasks
+       WHERE subtask = $1 AND claimed_by = $2 AND status = 'claimed'`,
       [subtask, username]
     );
-
     if (taskCheck.rowCount === 0) {
-      return res.status(403).json({ status: "error", message: "Task not claimed by this user or already paused/finished" });
+      return res
+        .status(403)
+        .json({ status: "error", message: "Task not claimed by this user or already paused/finished" });
     }
 
-    // Verificar que el usuario no tenga otra tarea en pausa
+    // ✔ verifica que el usuario no tenga otra tarea en pausa
     const pausedCheck = await pool.query(
-      "SELECT * FROM tasks WHERE claimedby = $1 AND status = 'paused'",
+      "SELECT 1 FROM tasks WHERE claimed_by = $1 AND status = 'paused'",
       [username]
     );
-
     if (pausedCheck.rowCount > 0) {
-      return res.status(403).json({ status: "error", message: "You already have a paused task" });
+      return res
+        .status(403)
+        .json({ status: "error", message: "You already have a paused task" });
     }
 
-    // Actualizar la tarea a estado 'paused'
+    // ✔ actualiza la tarea a estado ‘paused’
     await pool.query(
-      "UPDATE tasks SET status = 'paused' WHERE subtask = $1 AND claimedby = $2",
+      `UPDATE tasks
+       SET status = 'paused'
+       WHERE subtask = $1 AND claimed_by = $2`,
       [subtask, username]
     );
 
-    // Emitir evento en tiempo real (opcional si usas Socket.IO)
-    io.emit("taskPaused", { subtask, username });
-
+    io.emit("taskPaused", { subtask, username });   // evento opcional
     res.json({ status: "success", message: "Task paused successfully" });
   } catch (err) {
     console.error("❌ Error pausing task:", err);
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
+});
 
-  });
 
 
 
