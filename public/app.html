@@ -516,7 +516,14 @@ function renderPage(page) {
   tasksToShow.forEach(task => {
     const isMine = task.ClaimedBy === currentUser.username;
     const isClaimedByOther = task.ClaimedBy && !isMine;
-    const isOtherBlocked = myClaimedTask && task.Subtask !== myClaimedTask && !isMine;
+    const pausedTask = localStorage.getItem("pausedTask") || "";
+    const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
+
+    const isOtherBlocked =
+    !isMine &&
+   (!isPausedMine && (myClaimedTask || pausedTask)) &&
+    task.Subtask !== myClaimedTask;
+    
 
     const card = document.createElement("div");
     card.className = "task-card";
@@ -688,9 +695,29 @@ function renderPage(page) {
     if (isMine) {
       pauseBtn.style.display = "block";
       pauseBtn.disabled = !task.PauseEnabled;
-      pauseBtn.onclick = () => {
-        alert(`Task "${task.Subtask}" paused! (implement logic here)`);
-      };
+pauseBtn.onclick = async () => {
+  const res = await fetch(PAUSE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+  });
+
+  const result = await res.json();
+  if (result.status === "success") {
+    // Guarda la tarea pausada
+    localStorage.setItem("pausedTask", task.Subtask);
+
+    // Libera la tarea activa actual
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+
+    // Recarga la vista para desbloquear nuevas tareas
+    loadTasks();
+  } else {
+    alert("Failed to pause the task.");
+  }
+};
+
     } else {
       pauseBtn.style.display = "none";
     }
