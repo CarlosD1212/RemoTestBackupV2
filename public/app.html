@@ -313,6 +313,11 @@
 .pause-btn:hover:not(:disabled) {
   background: #e67e22;
 }
+
+.task-card.paused-by-user {
+  border: 2px dashed #f1c40f;
+  background: #fffde7;
+}
   </style>
 
 
@@ -497,43 +502,36 @@ function sortTasksForDisplay(tasks) {
 }
 
 function renderPage(page) {
-  // 1️⃣  Variables globales/LS (deben ir antes de cualquier uso)
-  const pausedTask  = localStorage.getItem("pausedTask")  || "";
-  const myClaimed   = localStorage.getItem("lastClaimedTask") || "";
+  const myClaimedTask = localStorage.getItem("lastClaimedTask") || "";
 
-  // 2️⃣  Paginación
   const start = (page - 1) * TASKS_PER_PAGE;
-  const end   = start + TASKS_PER_PAGE;
+  const end = start + TASKS_PER_PAGE;
   const tasksToShow = allTasks.slice(start, end);
 
-  // 3️⃣  Mover al frente la tarea reclamada en la página actual
-  if (myClaimed) {
-    const idx = tasksToShow.findIndex(t => t.Subtask === myClaimed);
-    if (idx > -1) {
-      const [claimed] = tasksToShow.splice(idx, 1);
-      tasksToShow.unshift(claimed);
+  if (myClaimedTask) {
+    const indexInPage = tasksToShow.findIndex(t => t.Subtask === myClaimedTask);
+    if (indexInPage > 0) {
+      const [claimedTask] = tasksToShow.splice(indexInPage, 1);
+      tasksToShow.unshift(claimedTask);
     }
   }
 
-  // 4️⃣  Limpia contenedor antes de renderizar
-  taskContainer.innerHTML = "";
+taskContainer.innerHTML = "";
+
 
 tasksToShow.forEach(task => {
   const isMine = task.ClaimedBy === currentUser.username;
   const pausedTask = localStorage.getItem("pausedTask") || "";
   const myClaimed = localStorage.getItem("lastClaimedTask") || "";
-  const isPausedMine = task.Subtask === pausedTask && isMine;
+  const isPausedMine = task.Subtask === pausedTask && task.ClaimedBy === currentUser.username;
   const isClaimedByOther = task.ClaimedBy && !isMine;
 
-  const hasClaimed = !!myClaimed;
-  const hasPaused = !!pausedTask;
-
-  const isOtherBlocked =
-    !isMine &&
-    (
-      (hasClaimed && task.Subtask !== myClaimed) ||
-      (hasPaused && !isPausedMine && task.Subtask === pausedTask)
-    );
+const isOtherBlocked =
+  !isMine &&
+  (
+    (myClaimed && task.Subtask !== myClaimed) || 
+    (pausedTask && !isPausedMine)
+  );
 
   const card = document.createElement("div");
   card.className = "task-card";
@@ -543,9 +541,7 @@ tasksToShow.forEach(task => {
   card.setAttribute("data-status", task.Status?.toLowerCase() || "");
   card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-  if (isClaimedByOther || isOtherBlocked) {
-    card.classList.add("disabled");
-  }
+  if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
 
   card.innerHTML = `
     <div style="display: flex; align-items: center; margin-bottom: 4px;">
@@ -706,23 +702,27 @@ if (isMine) {
   pauseBtn.style.display = "block";
   pauseBtn.disabled = !task.PauseEnabled;
 
-  pauseBtn.onclick = async () => {
-    const res = await fetch(PAUSE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-    });
+pauseBtn.onclick = async () => {
+  const res = await fetch(PAUSE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+  });
 
-    const result = await res.json();
-    if (result.status === "success") {
-      localStorage.setItem("pausedTask", task.Subtask);
-      localStorage.removeItem("lastClaimedTask");
-      localStorage.removeItem("claimedAt");
-      loadTasks(); // Recarga para desbloquear
-    } else {
-      alert("Failed to pause the task.");
-    }
-  };
+  const result = await res.json();
+  if (result.status === "success") {
+    /* ⬇️ guarda subtask + level */
+    localStorage.setItem(
+      "pausedTask",
+      JSON.stringify({ subtask: task.Subtask, level: task.Level })
+    );
+    localStorage.removeItem("lastClaimedTask");
+    localStorage.removeItem("claimedAt");
+    loadTasks();
+  } else {
+    alert("Failed to pause the task.");
+  }
+};
 } else {
   pauseBtn.style.display = "none";
 }
