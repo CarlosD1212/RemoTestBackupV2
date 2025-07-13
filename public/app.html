@@ -524,12 +524,15 @@ function renderPage(page) {
     const isPausedMine      = task.Subtask === pausedTask && isMine;
     const isClaimedByOther  = task.ClaimedBy && !isMine;
 
-    const isOtherBlocked =
-      !isMine &&
-      (
-        (myClaimed && task.Subtask !== myClaimed) ||
-        (pausedTask && !isPausedMine)
-      );
+const hasClaimed = !!myClaimed;
+const hasPaused = !!pausedTask;
+
+const isOtherBlocked =
+  !isMine &&
+  (
+    (hasClaimed && task.Subtask !== myClaimed) ||       // Si hay una tarea reclamada
+    (hasPaused && !isPausedMine && task.Subtask === pausedTask) // Evita duplicar la pausada para otros
+  );
 
     // ... ⬅️  aquí sigue todo tu código de creación de tarjetas
 
