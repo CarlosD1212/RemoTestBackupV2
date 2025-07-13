@@ -884,14 +884,6 @@ socket.on("taskFinished", ({ subtask }) => {
   }, 600); // puedes ajustar este tiempo si es necesario
 });
 
-
-  // 🕒 Esperar un poco más antes de recargar tareas para asegurar que ya fue insertada
-  setTimeout(() => {
-    console.log("♻️ Reloading tasks after finish...");
-    loadTasks();
-  }, 1000); // ⏱ aumenta el delay de 300ms a 1000ms
-});
-
     const filterProject = document.getElementById("filter-project");
   const filterLevel = document.getElementById("filter-level");
   const filterStatus = document.getElementById("filter-status");
