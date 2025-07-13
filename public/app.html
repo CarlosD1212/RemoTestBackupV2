@@ -518,24 +518,22 @@ function renderPage(page) {
   // 4️⃣  Limpia contenedor antes de renderizar
   taskContainer.innerHTML = "";
 
-  // 5️⃣  Recorre tareas
-  tasksToShow.forEach(task => {
-    const isMine            = task.ClaimedBy === currentUser.username;
-    const isPausedMine      = task.Subtask === pausedTask && isMine;
-    const isClaimedByOther  = task.ClaimedBy && !isMine;
+tasksToShow.forEach(task => {
+  const isMine = task.ClaimedBy === currentUser.username;
+  const pausedTask = localStorage.getItem("pausedTask") || "";
+  const myClaimed = localStorage.getItem("lastClaimedTask") || "";
+  const isPausedMine = task.Subtask === pausedTask && isMine;
+  const isClaimedByOther = task.ClaimedBy && !isMine;
 
-const hasClaimed = !!myClaimed;
-const hasPaused = !!pausedTask;
+  const hasClaimed = !!myClaimed;
+  const hasPaused = !!pausedTask;
 
-const isOtherBlocked =
-  !isMine &&
-  (
-    (hasClaimed && task.Subtask !== myClaimed) ||       // Si hay una tarea reclamada
-    (hasPaused && !isPausedMine && task.Subtask === pausedTask) // Evita duplicar la pausada para otros
-  );
-
-    // ... ⬅️  aquí sigue todo tu código de creación de tarjetas
-
+  const isOtherBlocked =
+    !isMine &&
+    (
+      (hasClaimed && task.Subtask !== myClaimed) ||
+      (hasPaused && !isPausedMine && task.Subtask === pausedTask)
+    );
 
   const card = document.createElement("div");
   card.className = "task-card";
@@ -545,7 +543,9 @@ const isOtherBlocked =
   card.setAttribute("data-status", task.Status?.toLowerCase() || "");
   card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-  if (isClaimedByOther || isOtherBlocked) card.classList.add("disabled");
+  if (isClaimedByOther || isOtherBlocked) {
+    card.classList.add("disabled");
+  }
 
   card.innerHTML = `
     <div style="display: flex; align-items: center; margin-bottom: 4px;">
