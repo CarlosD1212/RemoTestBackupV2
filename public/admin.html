@@ -477,12 +477,12 @@
 
         selects.forEach(select => {
           select.innerHTML = `<option value="">Select Project</option>`;
-          projects.forEach(name => {
-            const option = document.createElement("option");
-            option.value = name;
-            option.textContent = name;
-            select.appendChild(option);
-          });
+projects.forEach(p => {
+  const option = document.createElement("option");
+  option.value = p.name;
+  option.textContent = p.name;
+  select.appendChild(option);
+});
         });
       } catch (error) {
         console.error("Error loading projects:", error);
