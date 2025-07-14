@@ -121,6 +121,26 @@ app.post("/api/update-project", async (req, res) => {
   }
 });
 
+app.post("/api/projects", async (req, res) => {
+  const { name, levels, pause } = req.body;
+
+  if (!name || !Array.isArray(levels) || levels.length === 0) {
+    return res.status(400).json({ status: "error", message: "Missing project name or levels" });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO projects (name, levels, pause) VALUES ($1, $2, $3)",
+      [name, levels, pause || "disabled"]
+    );
+
+    res.json({ status: "success", message: "Project created" });
+  } catch (err) {
+    console.error("❌ Error saving project:", err);
+    res.status(500).json({ status: "error", message: "Error saving project" });
+  }
+});
+
 
 app.get("/api/tasks", async (req, res) => {
   const { username } = req.query;
