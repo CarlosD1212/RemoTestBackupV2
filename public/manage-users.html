@@ -634,9 +634,8 @@ td .btn:last-child {
    /* ---------- Cargar lista maestra de proyectos ---------- */
 async function loadProjectsMaster() {
   try {
-    const res  = await fetch(`${BASE_URL}/api/projects`);
-    const list = await res.json();          // [{ name, levels, pause }, ...]
-    // Guarda solo los nombres en availableProjects
+    const res = await fetch(`${BASE_URL}/api/projects`);
+    const list = await res.json(); // [{ name, levels, pause }, ...]
     availableProjects = list.map(p => p.name);
   } catch (err) {
     console.error("Error loading master projects:", err);
@@ -1001,7 +1000,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         
         availableRoles = [...roleSet];
-        availableProjects = [...projectSet];
+        availableProjects = Array.from(new Set([
+  ...availableProjects,   // los que vinieron de loadProjectsMaster()
+  ...projectSet           // los que encontramos en los usuarios
+]));
 
         populateFilters();
         renderUsers();
@@ -1027,9 +1029,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      loadUsers();
-    });
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProjectsMaster();   // ✅ primero proyectos
+  loadUsers();                  // ✅ luego usuarios
+});
   </script>
 </body>
 </html>
