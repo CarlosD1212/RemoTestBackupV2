@@ -131,16 +131,17 @@
 
   <table id="historyTable">
     <thead>
-      <tr>
-        <th>Subtask</th>
-        <th>Level</th>
-        <th>Review</th>
-        <th>Email</th>
-        <th>Claimed At</th>
-        <th>Finished At</th>
-        <th>Project</th>
-        <th>Data Type</th>
-      </tr>
+  <tr>
+    <th>Subtask</th>
+    <th>Batch</th> <!-- NUEVO -->
+    <th>Level</th>
+    <th>Review</th>
+    <th>Email</th>
+    <th>Claimed At</th>
+    <th>Finished At</th>
+    <th>Project</th>
+    <th>Data Type</th>
+  </tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -227,14 +228,15 @@
       pageItems.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${row.subtask}</td>
-          <td>${row.level}</td>
-          <td>${row.review_option}</td>
-          <td>${row.email}</td>
-          <td>${new Date(row.claimed_at).toLocaleString()}</td>
-          <td>${new Date(row.finished_at).toLocaleString()}</td>
-          <td>${row.project}</td>
-          <td>${row.data_type || '-'}</td>
+  <td>${row.subtask}</td>
+  <td>${row.batch || '-'}</td> <!-- NUEVO -->
+  <td>${row.level}</td>
+  <td>${row.review_option}</td>
+  <td>${row.email}</td>
+  <td>${new Date(row.claimed_at).toLocaleString()}</td>
+  <td>${new Date(row.finished_at).toLocaleString()}</td>
+  <td>${row.project}</td>
+  <td>${row.data_type || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -253,19 +255,20 @@
     }
 
     function exportCSV() {
-      let csv = "Subtask,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
-      historyData.forEach(row => {
-        csv += [
-          row.subtask,
-          row.level,
-          `"${row.review_option}"`,
-          row.email,
-          new Date(row.claimed_at).toLocaleString(),
-          new Date(row.finished_at).toLocaleString(),
-          row.project,
-          row.data_type || "-"
-        ].join(",") + "\n";
-      });
+let csv = "Subtask,Batch,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
+historyData.forEach(row => {
+  csv += [
+    row.subtask,
+    row.batch || "-",
+    row.level,
+    `"${row.review_option}"`,
+    row.email,
+    new Date(row.claimed_at).toLocaleString(),
+    new Date(row.finished_at).toLocaleString(),
+    row.project,
+    row.data_type || "-"
+  ].join(",") + "\n";
+});
 
       const blob = new Blob([csv], { type: "text/csv" });
       const link = document.createElement("a");
