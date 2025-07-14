@@ -121,6 +121,21 @@ app.get("/api/projects", async (req, res) => {
   }
 });
 
+app.post("/api/update-project", async (req, res) => {
+  const { originalName, newName, levels, pause } = req.body;
+
+  try {
+    await pool.query(
+      "UPDATE projects SET name = $1, levels = $2, pause = $3 WHERE name = $4",
+      [newName, levels, pause, originalName]
+    );
+    res.json({ status: "success", message: "Project updated" });
+  } catch (err) {
+    console.error("Error updating project:", err);
+    res.status(500).json({ status: "error", message: "Error updating project" });
+  }
+});
+
 
 app.get("/api/tasks", async (req, res) => {
   const { username } = req.query;
