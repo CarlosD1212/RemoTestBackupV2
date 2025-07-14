@@ -689,6 +689,7 @@ if (isMine && (myClaimedTask === task.Subtask || isPausedMine)) {
 
     const payload = {
       subtask: task.Subtask,
+       batch:   task.Batch,
       level: task.Level,
       review_option: select.value,
       email: currentUser.email.trim(),
