@@ -664,29 +664,38 @@ td .btn:last-child {
     let actionUser = null;
 
    /* ---------- Cargar lista maestra de proyectos ---------- */
+/* ---------- Cargar lista maestra de proyectos ---------- */
 async function loadProjectsMaster() {
   try {
-    const res = await fetch(`${BASE_URL}/api/projects`);
-    const list = await res.json(); // [{ name, levels, pause }, ...]
-    availableProjects = list.map(p => p.name);
+    const res   = await fetch(`${BASE_URL}/api/projects`);
+    const list  = await res.json();          // puede ser [{name,…}] o ["Alpha",…]
+    // Normalizo a array de strings
+    availableProjects = list.map(p => typeof p === "string" ? p : p.name);
 
-    // Insertar los proyectos en los select
-    ["project", "projectName"].forEach(id => {
-      const select = document.getElementById(id);
-      if (!select) return;
+    /* IDs que realmente existen en el HTML de manage-users */
+    const targetSelectIds = [
+      "project",              // alta de usuario nuevo (si lo tienes)
+      "projectName",          // otro formulario
+      "edit-project-select"   // *** modal de edición ***
+    ];
 
-      select.innerHTML = `<option value="">Select Project</option>`;
+    targetSelectIds.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;       // se ignora si no existe en la página
+
+      sel.innerHTML = `<option value="">Select Project</option>`;
       availableProjects.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
       });
     });
   } catch (err) {
     console.error("Error loading master projects:", err);
   }
 }
+
 
 
     /* --- Helpers --- */
