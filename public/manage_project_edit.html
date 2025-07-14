@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Projects</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {text-align:center;color:#2c3e50;margin-bottom:40px;font-weight:600;}
+    .card {max-width:800px;margin:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:30px;}
+    label{display:block;font-weight:600;margin-top:20px}
+    select, input[type="text"]{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-top:6px}
+    .levels{display:flex;gap:12px;margin-top:8px}
+    .levels label{font-weight:500}
+    .toggle{display:flex;align-items:center;gap:10px;margin-top:16px}
+    button{margin-top:28px;padding:12px 20px;border:none;border-radius:6px;background:#3498db;color:#fff;font-weight:bold;cursor:pointer;transition:.3s ease;background:#3498db}
+    button:hover{background:#2980b9}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <h1>Manage Projects</h1>
+  <div class="card">
+    <label for="projectSelect">Select Project</label>
+    <select id="projectSelect" onchange="populateEditor()">
+      <option value="">-- Choose Project --</option>
+    </select>
+
+    <div id="editor" class="hidden">
+      <label for="projectName">Project Name</label>
+      <input type="text" id="projectName" />
+
+      <label>Allowed Levels</label>
+      <div class="levels">
+        <label><input type="checkbox" value="-1" class="levelChk"/> -1</label>
+        <label><input type="checkbox" value="0"  class="levelChk"/> 0</label>
+        <label><input type="checkbox" value="1"  class="levelChk"/> 1</label>
+        <label><input type="checkbox" value="10" class="levelChk"/> 10</label>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="pauseSwitch" />
+        <label for="pauseSwitch">Enable Pause</label>
+      </div>
+
+      <button onclick="saveProject()"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+
+<script>
+const API_BASE="https://remotestbackupv2-production.up.railway.app";
+let projects=[]; // cache
+
+// 1️⃣  Cargar lista de proyectos al inicio
+async function loadProjects(){
+  try{
+    const res=await fetch(`${API_BASE}/api/projects`);
+    projects=await res.json(); // [{name,levels,pause}]
+    const sel=document.getElementById('projectSelect');
+    projects.forEach(p=>{
+      const opt=document.createElement('option');
+      opt.value=p.name; // usaremos nombre como id clave
+      opt.textContent=p.name;
+      sel.appendChild(opt);
+    });
+  }catch(err){alert('Error loading projects');console.error(err);}
+}
+
+// 2️⃣  Rellenar el editor cuando se seleccione un proyecto
+function populateEditor(){
+  const sel=document.getElementById('projectSelect');
+  const name=sel.value;
+  const editor=document.getElementById('editor');
+  if(!name){editor.classList.add('hidden');return;}
+  const proj=projects.find(p=>p.name===name);
+  if(!proj){alert('Project not found');return;}
+  document.getElementById('projectName').value=proj.name;
+  const allowed=(Array.isArray(proj.levels)?proj.levels:proj.levels?.replace(/[{}]/g,'').split(',')).map(s=>s.trim());
+  document.querySelectorAll('.levelChk').forEach(cb=>cb.checked=allowed.includes(cb.value));
+  document.getElementById('pauseSwitch').checked=proj.pause==='enabled';
+  editor.classList.remove('hidden');
+}
+
+// 3️⃣  Guardar cambios
+async function saveProject(){
+  const original=document.getElementById('projectSelect').value;
+  const newName=document.getElementById('projectName').value.trim();
+  const levels=Array.from(document.querySelectorAll('.levelChk:checked')).map(cb=>cb.value);
+  const pause=document.getElementById('pauseSwitch').checked?'enabled':'disabled';
+  if(!newName||levels.length===0){return alert('Name and at least one level are required');}
+  try{
+    const res=await fetch(`${API_BASE}/api/update-project`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({originalName:original,newName,levels,pause})
+    });
+    const json=await res.json();
+    if(json.status==='success'){
+      alert('Project updated');
+      location.reload();
+    }else{
+      alert('Error: '+json.message);
+    }
+  }catch(err){alert('Server error');console.error(err);}  
+}
+
+// inicializar
+loadProjects();
+</script>
+</body>
+</html>

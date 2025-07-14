@@ -4,118 +4,337 @@
   <meta charset="UTF-8" />
   <title>Task History</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
     :root {
       --primary-color: #3498db;
       --primary-hover: #2980b9;
-      --light-bg: #f0f2f5;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --warning-color: #e6a544;
+      --warning-hover: #d68910;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --purple-color: #9b59b6;
+      --purple-hover: #8e44ad;
+      --dark-color: #2c3e50;
+      --dark-hover: #1a252f;
+      --light-bg: #f8f9fa;
       --white: #ffffff;
-      --text-dark: #2c3e50;
       --border-color: #dfe6e9;
-      --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-      --radius: 10px;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --text-light: #7f8c8d;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
       --transition: all 0.3s ease;
     }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--light-bg);
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--light-bg);
       color: var(--text-dark);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1800px;
+      margin: auto;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
       font-weight: 600;
+      font-size: 2.2rem;
+      position: relative;
+      padding-bottom: 0.5rem;
     }
 
-    .controls {
+    h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.5rem auto 0;
+      border-radius: 3px;
+    }
+
+    /* Filtros */
+    .filters {
       display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
       flex-wrap: wrap;
-      gap: 10px;
       justify-content: center;
-      margin-bottom: 20px;
     }
 
-    .controls select, .controls input {
-      padding: 10px;
-      border-radius: 6px;
+    .filters input, 
+    .filters select {
+      padding: 12px 15px;
+      font-size: 15px;
       border: 1px solid var(--border-color);
-      font-size: 14px;
-      background: white;
-    }
-
-    .controls button {
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: bold;
-      padding: 10px 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
+      border-radius: var(--border-radius);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      outline: none;
+      min-width: 200px;
       transition: var(--transition);
     }
 
-    .controls button:hover {
-      background-color: var(--primary-hover);
+    .filters input:focus, 
+    .filters select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    /* Tabla */
+    .table-container {
+      overflow-x: auto;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       background: var(--white);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
     }
 
     th, td {
-      padding: 12px 14px;
+      padding: 15px;
+      border-bottom: 1px solid var(--border-color);
       text-align: left;
-      font-size: 14px;
-      border-bottom: 1px solid #eee;
     }
 
     th {
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: bold;
+      background: var(--primary-color);
+      color: var(--white);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+    tr:hover {
+      background-color: rgba(52, 152, 219, 0.05);
     }
 
+    /* Botones */
+    .btn {
+  padding: 8px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+  text-decoration: none;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.btn:hover {
+  transform: none;
+  text-decoration: underline;
+}
+
+ /* Colores para cada tipo de botón */
+.btn-primary {
+  color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  color: var(--primary-hover);
+}
+
+.btn-success {
+  color: var(--success-color);
+}
+
+.btn-success:hover {
+  color: var(--success-hover);
+}
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: none;
+      border: 1px solid currentColor;
+    }
+
+    .badge-primary {
+      color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .badge-success {
+      color: var(--success-color);
+      border-color: var(--success-color);
+    }
+
+    .badge-warning {
+      color: var(--warning-color);
+      border-color: var(--warning-color);
+    }
+
+    .badge-danger {
+      color: var(--danger-color);
+      border-color: var(--danger-color);
+    }
+
+    /* Paginación */
     .pagination {
       display: flex;
       justify-content: center;
+      align-items: center;
       margin-top: 20px;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .pagination button {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
+    .pagination-info {
+      margin: 0 15px;
+      color: var(--text-light);
+      font-size: 14px;
     }
 
     .pagination button:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
+
+    /* Status messages */
+    .alert {
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid transparent;
     }
+
+    .alert-success {
+      background: rgba(46, 204, 113, 0.1);
+      color: #27ae60;
+      border-left-color: var(--success-color);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state i {
+      font-size: 50px;
+      margin-bottom: 15px;
+      color: #d1d5db;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .filters {
+        flex-direction: column;
+      }
+      
+      .filters input, 
+      .filters select {
+        width: 100%;
+      }
+    }
+
+    /* Status indicators */
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .status-completed {
+      background-color: var(--success-color);
+    }
+
+    .status-pending {
+      background-color: var(--warning-color);
+    }
+
+    .status-failed {
+      background-color: var(--danger-color);
+    }
+    .btn-danger {
+  color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  color: var(--danger-hover);
+}
+
+.btn-warning {
+  color: var(--warning-color);
+}
+
+.btn-warning:hover {
+  color: var(--warning-hover);
+}
+
+.btn-purple {
+  color: var(--purple-color);
+}
+
+.btn-purple:hover {
+  color: var(--purple-hover);
+}
+
+.btn-dark {
+  color: var(--dark-color);
+}
+
+.btn-dark:hover {
+  color: var(--dark-hover);
+}
+
+.btn-light {
+  color: var(--text-light);
+}
+
+.btn-light:hover {
+  color: var(--text-medium);
+}
   </style>
 </head>
 <body>
-  <h1>Task History</h1>
+  <h1><i class="fas fa-history"></i> Task History</h1>
 
-  <div class="controls">
+  <!-- Status Message -->
+  <div id="status-message" style="display: none;"></div>
+
+  <!-- Filtros -->
+  <div class="filters">
     <select id="projectFilter">
       <option value="">All Projects</option>
     </select>
@@ -125,45 +344,98 @@
     <select id="dataTypeFilter">
       <option value="">All Data Types</option>
     </select>
-    <input type="text" id="emailFilter" placeholder="Filter by Email">
-    <button onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export to CSV</button>
+    <input type="text" id="emailFilter" placeholder="Filter by Email" oninput="renderTable()">
+    <button class="btn btn-primary" onclick="loadHistory()">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+    <button class="btn btn-success" onclick="exportCSV()">
+      <i class="fas fa-file-csv"></i> Export CSV
+    </button>
   </div>
 
-  <table id="historyTable">
-    <thead>
-  <tr>
-    <th>Subtask</th>
-    <th>Batch</th> <!-- NUEVO -->
-    <th>Level</th>
-    <th>Review</th>
-    <th>Email</th>
-    <th>Claimed At</th>
-    <th>Finished At</th>
-    <th>Project</th>
-    <th>Data Type</th>
-  </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Tabla -->
+  <div class="table-container">
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>Subtask</th>
+          <th>Batch</th>
+          <th>Level</th>
+          <th>Review</th>
+          <th>Email</th>
+          <th>Claimed At</th>
+          <th>Finished At</th>
+          <th>Project</th>
+          <th>Data Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loading state -->
+        <tr id="loading-state">
+          <td colspan="9" style="text-align: center; padding: 40px;">
+            <div style="display: inline-block; padding: 20px; background: var(--light-bg); border-radius: var(--border-radius);">
+              <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color);"></i>
+              <p style="margin-top: 10px;">Loading task history...</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
+  <!-- Paginación -->
   <div class="pagination">
-    <button onclick="prevPage()" id="prevBtn">Prev</button>
-    <button onclick="nextPage()" id="nextBtn">Next</button>
+    <button class="btn btn-primary" onclick="prevPage()" id="prevBtn" disabled>
+      <i class="fas fa-chevron-left"></i> Previous
+    </button>
+    <span class="pagination-info" id="page-info">Page 1</span>
+    <button class="btn btn-primary" onclick="nextPage()" id="nextBtn">
+      Next <i class="fas fa-chevron-right"></i>
+    </button>
   </div>
 
   <script>
-     const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
+    const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
     const rowsPerPage = 50;
     let currentPage = 1;
     let historyData = [];
 
     async function loadHistory() {
-      const res = await fetch(`${BASE_URL}/api/history`);
-      const result = await res.json();
-      historyData = result.tasks || [];
-
-      populateFilters();
-      renderTable();
+      const loadingRow = document.getElementById("loading-state");
+      const tbody = document.querySelector("#historyTable tbody");
+      
+      loadingRow.style.display = "table-row";
+      tbody.innerHTML = "";
+      
+      try {
+        const res = await fetch(`${BASE_URL}/api/history`);
+        if (!res.ok) throw new Error('Failed to load history');
+        
+        const result = await res.json();
+        historyData = result.tasks || [];
+        
+        populateFilters();
+        renderTable();
+        showStatusMessage('Task history loaded successfully!');
+      } catch (error) {
+        console.error('Error loading history:', error);
+        showStatusMessage('Failed to load task history. Please try again.', 'error');
+        
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-state">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h3>Error loading task history</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="loadHistory()">
+                <i class="fas fa-sync-alt"></i> Retry
+              </button>
+            </td>
+          </tr>
+        `;
+      } finally {
+        loadingRow.style.display = "none";
+      }
     }
 
     function populateFilters() {
@@ -184,12 +456,13 @@
       document.getElementById("projectFilter").onchange = resetAndRender;
       document.getElementById("reviewFilter").onchange = resetAndRender;
       document.getElementById("dataTypeFilter").onchange = resetAndRender;
-      document.getElementById("emailFilter").oninput = resetAndRender;
     }
 
     function fillSelect(id, set) {
       const select = document.getElementById(id);
-      set.forEach(val => {
+      select.innerHTML = `<option value="">All ${id.replace('Filter', '').replace(/([A-Z])/g, ' $1').trim()}</option>`;
+      
+      [...set].sort().forEach(val => {
         const opt = document.createElement("option");
         opt.value = val;
         opt.textContent = val;
@@ -219,27 +492,46 @@
       });
 
       const totalPages = Math.ceil(filtered.length / rowsPerPage);
-      document.getElementById("prevBtn").disabled = currentPage === 1;
-      document.getElementById("nextBtn").disabled = currentPage === totalPages;
+      document.getElementById("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById("prevBtn").disabled = currentPage <= 1;
+      document.getElementById("nextBtn").disabled = currentPage >= totalPages || filtered.length === 0;
 
       const start = (currentPage - 1) * rowsPerPage;
       const pageItems = filtered.slice(start, start + rowsPerPage);
 
-      pageItems.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-  <td>${row.subtask}</td>
-  <td>${row.batch || '-'}</td> <!-- NUEVO -->
-  <td>${row.level}</td>
-  <td>${row.review_option}</td>
-  <td>${row.email}</td>
-  <td>${new Date(row.claimed_at).toLocaleString()}</td>
-  <td>${new Date(row.finished_at).toLocaleString()}</td>
-  <td>${row.project}</td>
-  <td>${row.data_type || '-'}</td>
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-state">
+              <i class="fas fa-history"></i>
+              <h3>No tasks found</h3>
+              <p>Try adjusting your filters</p>
+            </td>
+          </tr>
         `;
-        tbody.appendChild(tr);
-      });
+      } else {
+        pageItems.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.subtask}</td>
+            <td>${row.batch || '<span class="badge badge-warning">-</span>'}</td>
+            <td><span class="badge badge-primary">${row.level}</span></td>
+            <td>${row.review_option}</td>
+            <td>${row.email || '<span class="badge badge-warning">No email</span>'}</td>
+            <td>${formatDateTime(row.claimed_at)}</td>
+            <td>${formatDateTime(row.finished_at)}</td>
+            <td>${row.project}</td>
+            <td>${row.data_type || '<span class="badge badge-warning">-</span>'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return '<span class="badge badge-danger">N/A</span>';
+      const date = new Date(dateString);
+      return date.toLocaleString();
     }
 
     function prevPage() {
@@ -255,26 +547,44 @@
     }
 
     function exportCSV() {
-let csv = "Subtask,Batch,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
-historyData.forEach(row => {
-  csv += [
-    row.subtask,
-    row.batch || "-",
-    row.level,
-    `"${row.review_option}"`,
-    row.email,
-    new Date(row.claimed_at).toLocaleString(),
-    new Date(row.finished_at).toLocaleString(),
-    row.project,
-    row.data_type || "-"
-  ].join(",") + "\n";
-});
+      let csv = "Subtask,Batch,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
+      historyData.forEach(row => {
+        csv += [
+          `"${row.subtask}"`,
+          row.batch || "-",
+          row.level,
+          `"${row.review_option}"`,
+          row.email || "",
+          new Date(row.claimed_at).toISOString(),
+          new Date(row.finished_at).toISOString(),
+          `"${row.project}"`,
+          row.data_type || "-"
+        ].join(",") + "\n";
+      });
 
       const blob = new Blob([csv], { type: "text/csv" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "task_history.csv";
+      link.download = `task_history_${new Date().toISOString().slice(0,10)}.csv`;
       link.click();
+      
+      showStatusMessage('CSV export started successfully!');
+    }
+
+    function showStatusMessage(message, type = 'success') {
+      const statusEl = document.getElementById('status-message');
+      statusEl.innerHTML = `
+        <div class="alert alert-${type}">
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+          ${message}
+        </div>
+      `;
+      statusEl.style.display = 'block';
+      
+      setTimeout(() => {
+        statusEl.style.opacity = '0';
+        setTimeout(() => statusEl.style.display = 'none', 300);
+      }, 3000);
     }
 
     window.addEventListener("DOMContentLoaded", loadHistory);
