@@ -781,6 +781,17 @@ function populateModalSelects() {
   }
 }
 
+async function loadRolesMaster() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/roles`);
+    const list = await res.json(); // ["admin", "1", "10", ...]
+    availableRoles = list;
+  } catch (err) {
+    console.error("Error loading master roles:", err);
+  }
+}
+
+
     function openEdit(username) {
       const user = users.find(u => u.username === username);
       if (!user) return;
@@ -1082,8 +1093,11 @@ function populateModalSelects() {
 
     // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadProjectsMaster();   // ✅ primero proyectos
-  loadUsers();                  // ✅ luego usuarios
+  await Promise.all([
+    loadProjectsMaster(),
+    loadRolesMaster()
+  ]);
+  loadUsers();
 });
   </script>
 </body>

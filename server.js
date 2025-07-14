@@ -569,6 +569,18 @@ app.post("/api/restore-task", async (req, res) => {
   }
 });
 
+app.get("/api/roles", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT DISTINCT name FROM roles");
+    const roles = result.rows.map(r => r.name);
+    res.json(roles);
+  } catch (err) {
+    console.error("Error getting roles:", err);
+    res.status(500).json({ error: "Failed to get roles" });
+  }
+});
+
+
 app.post("/api/update-user", async (req, res) => {
   const { username, email, role, project } = req.body;
 
