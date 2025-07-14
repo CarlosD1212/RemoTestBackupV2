@@ -4,28 +4,252 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manage Projects</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
-      padding: 2rem;
-      margin: 0;
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --warning-color: #e6a544;
+      --warning-hover: #d68910;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --purple-color: #9b59b6;
+      --purple-hover: #8e44ad;
+      --dark-color: #2c3e50;
+      --dark-hover: #1a252f;
+      --light-bg: #f8f9fa;
+      --white: #ffffff;
+      --border-color: #dfe6e9;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --text-light: #7f8c8d;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
     }
-    h1 {text-align:center;color:#2c3e50;margin-bottom:40px;font-weight:600;}
-    .card {max-width:800px;margin:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:30px;}
-    label{display:block;font-weight:600;margin-top:20px}
-    select, input[type="text"]{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-top:6px}
-    .levels{display:flex;gap:12px;margin-top:8px}
-    .levels label{font-weight:500}
-    .toggle{display:flex;align-items:center;gap:10px;margin-top:16px}
-    button{margin-top:28px;padding:12px 20px;border:none;border-radius:6px;background:#3498db;color:#fff;font-weight:bold;cursor:pointer;transition:.3s ease;background:#3498db}
-    button:hover{background:#2980b9}
-    .hidden{display:none}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
+      font-weight: 600;
+      font-size: 2.2rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.5rem auto 0;
+      border-radius: 3px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
+      margin: 0 auto;
+      max-width: 800px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 20px;
+      color: var(--text-medium);
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      outline: none;
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .levels {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .levels label {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-medium);
+    }
+
+    .levels input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .toggle input[type="checkbox"] {
+      width: 40px;
+      height: 20px;
+      appearance: none;
+      background: #ddd;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .toggle input[type="checkbox"]:checked {
+      background: var(--success-color);
+    }
+
+    .toggle input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--white);
+      top: 2px;
+      left: 2px;
+      transition: var(--transition);
+    }
+
+    .toggle input[type="checkbox"]:checked::before {
+      left: 22px;
+    }
+
+    /* Botones sin fondo */
+    .btn {
+      padding: 8px 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      text-decoration: none;
+      border-radius: 0;
+      box-shadow: none !important;
+      margin-top: 28px;
+    }
+
+    .btn:hover {
+      transform: none;
+      text-decoration: underline;
+    }
+
+    .btn-primary {
+      color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      color: var(--primary-hover);
+    }
+
+    .btn i {
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Status messages */
+    #status-message {
+      margin-bottom: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .alert {
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid transparent;
+    }
+
+    .alert-success {
+      background: rgba(46, 204, 113, 0.1);
+      color: #27ae60;
+      border-left-color: var(--success-color);
+    }
+
+    .alert-error {
+      background: rgba(231, 76, 60, 0.1);
+      color: var(--danger-hover);
+      border-left-color: var(--danger-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      .levels {
+        gap: 12px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Manage Projects</h1>
+  <h1><i class="fas fa-project-diagram"></i> Manage Projects</h1>
+
+  <!-- Status Message -->
+  <div id="status-message" style="display: none;"></div>
+
   <div class="card">
     <label for="projectSelect">Select Project</label>
     <select id="projectSelect" onchange="populateEditor()">
@@ -39,8 +263,8 @@
       <label>Allowed Levels</label>
       <div class="levels">
         <label><input type="checkbox" value="-1" class="levelChk"/> -1</label>
-        <label><input type="checkbox" value="0"  class="levelChk"/> 0</label>
-        <label><input type="checkbox" value="1"  class="levelChk"/> 1</label>
+        <label><input type="checkbox" value="0" class="levelChk"/> 0</label>
+        <label><input type="checkbox" value="1" class="levelChk"/> 1</label>
         <label><input type="checkbox" value="10" class="levelChk"/> 10</label>
       </div>
 
@@ -49,34 +273,62 @@
         <label for="pauseSwitch">Enable Pause</label>
       </div>
 
-      <button onclick="saveProject()"><i class="fas fa-save"></i> Save Changes</button>
+      <button class="btn btn-primary" onclick="saveProject()"><i class="fas fa-save"></i> Save Changes</button>
     </div>
   </div>
 
 <script>
-const API_BASE="https://remotestbackupv2-production.up.railway.app";
-let projects=[]; // cache
+const API_BASE = "https://remotestbackupv2-production.up.railway.app";
+let projects = []; // cache
 
-// 1️⃣  Cargar lista de proyectos al inicio
-async function loadProjects(){
-  try{
-    const res=await fetch(`${API_BASE}/api/projects`);
-    projects=await res.json(); // [{name,levels,pause}]
-    const sel=document.getElementById('projectSelect');
-    projects.forEach(p=>{
-      const opt=document.createElement('option');
-      opt.value=p.name; // usaremos nombre como id clave
-      opt.textContent=p.name;
-      sel.appendChild(opt);
-    });
-  }catch(err){alert('Error loading projects');console.error(err);}
+function showStatus(message, type = 'success') {
+  const statusEl = document.getElementById('status-message');
+  statusEl.innerHTML = `
+    <div class="alert alert-${type}">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+      ${message}
+    </div>
+  `;
+  statusEl.style.display = 'block';
+  
+  setTimeout(() => {
+    statusEl.style.opacity = '0';
+    setTimeout(() => statusEl.style.display = 'none', 300);
+  }, 3000);
 }
 
-// 2️⃣  Rellenar el editor cuando se seleccione un proyecto
+// 1️⃣ Cargar lista de proyectos al inicio
+async function loadProjects() {
+  try {
+    const res = await fetch(`${API_BASE}/api/projects`);
+    if (!res.ok) throw new Error('Failed to load projects');
+    
+    projects = await res.json(); // [{name,levels,pause}]
+    const sel = document.getElementById('projectSelect');
+    
+    // Clear existing options except the first one
+    sel.innerHTML = '<option value="">-- Choose Project --</option>';
+    
+    projects.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name; // usaremos nombre como id clave
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+    
+    showStatus('Projects loaded successfully');
+  } catch (err) {
+    console.error(err);
+    showStatus('Error loading projects. Please try again.', 'error');
+  }
+}
+
+// 2️⃣ Rellenar el editor cuando se seleccione un proyecto
 function populateEditor() {
   const sel = document.getElementById('projectSelect');
   const name = sel.value;
   const editor = document.getElementById('editor');
+  
   if (!name) {
     editor.classList.add('hidden');
     return;
@@ -84,7 +336,7 @@ function populateEditor() {
 
   const proj = projects.find(p => p.name === name);
   if (!proj) {
-    alert('Project not found');
+    showStatus('Project not found', 'error');
     return;
   }
 
@@ -107,31 +359,40 @@ function populateEditor() {
   editor.classList.remove('hidden');
 }
 
-// 3️⃣  Guardar cambios
-async function saveProject(){
-  const original=document.getElementById('projectSelect').value;
-  const newName=document.getElementById('projectName').value.trim();
-  const levels=Array.from(document.querySelectorAll('.levelChk:checked')).map(cb=>cb.value);
-  const pause=document.getElementById('pauseSwitch').checked?'enabled':'disabled';
-  if(!newName||levels.length===0){return alert('Name and at least one level are required');}
-  try{
-    const res=await fetch(`${API_BASE}/api/update-project`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({originalName:original,newName,levels,pause})
+// 3️⃣ Guardar cambios
+async function saveProject() {
+  const original = document.getElementById('projectSelect').value;
+  const newName = document.getElementById('projectName').value.trim();
+  const levels = Array.from(document.querySelectorAll('.levelChk:checked')).map(cb => cb.value);
+  const pause = document.getElementById('pauseSwitch').checked ? 'enabled' : 'disabled';
+  
+  if (!newName || levels.length === 0) {
+    showStatus('Name and at least one level are required', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/update-project`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ originalName: original, newName, levels, pause })
     });
-    const json=await res.json();
-    if(json.status==='success'){
-      alert('Project updated');
-      location.reload();
-    }else{
-      alert('Error: '+json.message);
+    
+    const json = await res.json();
+    if (json.status === 'success') {
+      showStatus('Project updated successfully');
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showStatus('Error: ' + json.message, 'error');
     }
-  }catch(err){alert('Server error');console.error(err);}  
+  } catch (err) {
+    console.error(err);
+    showStatus('Server error. Please try again.', 'error');
+  }  
 }
 
 // inicializar
-loadProjects();
+document.addEventListener('DOMContentLoaded', loadProjects);
 </script>
 </body>
 </html>
