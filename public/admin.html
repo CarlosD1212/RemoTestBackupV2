@@ -278,25 +278,45 @@
       to { transform: rotate(360deg); }
     }
 
-    #version-label {
-  position: absolute;
-  top: 20px;
-  left: 20px; /* <-- ahora está a la izquierda */
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text-light);
-  background: rgba(0,0,0,0.05);
-  padding: 6px 12px;
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  z-index: 999;
-}
+
+  #version-label {
+    position: fixed;
+    top: 15px;
+    left: 20px;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 4px;
+    z-index: 1000;
+  }
+
+  #version-label::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--primary-color);
+    margin-top: 4px;
+    border-radius: 2px;
+  }
+
+  #version-label i {
+    font-size: 1rem;
+    color: var(--primary-color);
+  }
+
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-  <div id="version-label">TaskApp Production v1.</div>
+  <div id="version-label">
+  <i class="fas fa-tasks"></i>
+  <span>TaskApp v1.0</span>
+</div>
   
   <h1>Admin Control Panel</h1>
  

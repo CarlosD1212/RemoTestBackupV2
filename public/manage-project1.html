@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Edit Projects</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --success-color: #2ecc71;
+      --success-hover: #27ae60;
+      --danger-color: #e74c3c;
+      --danger-hover: #c0392b;
+      --light-bg: #f8f9fa;
+      --white: #ffffff;
+      --border-color: #dfe6e9;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--text-dark);
+      margin-bottom: 2rem;
+      font-weight: 600;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: var(--primary-color);
+      margin: 0.5rem auto 0;
+      border-radius: 3px;
+    }
+
+    .back-btn {
+      margin-bottom: 2rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: var(--white);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-right: 4px;
+    }
+
+    .badge-primary {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
+
+    .badge-success {
+      background-color: var(--success-color);
+      color: var(--white);
+    }
+
+    .badge-warning {
+      background-color: #f39c12;
+      color: var(--white);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: var(--white);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-medium);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-medium);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+
+    .form-control:disabled {
+      background-color: #f0f0f0;
+      color: #666;
+    }
+
+    .level-options {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .level-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+      padding: 10px 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      color: var(--white);
+    }
+
+    .btn-success:hover {
+      background-color: var(--success-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <h1>Edit Projects</h1>
+
+  <button onclick="window.history.back()" class="btn btn-primary back-btn">
+    <i class="fas fa-arrow-left"></i> Back to Admin Panel
+  </button>
+
+  <div class="table-container">
+    <table id="projectsTable">
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Levels</th>
+          <th>Pause Button</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Edit Project Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Project</h3>
+        <button class="close-modal" onclick="hideModal()">&times;</button>
+      </div>
+      <form id="editProjectForm">
+        <input type="hidden" id="originalProjectName">
+        
+        <div class="form-group">
+          <label for="projectName">Project Name</label>
+          <input type="text" id="projectName" class="form-control" disabled>
+        </div>
+        
+        <div class="form-group">
+          <label>Assign Levels</label>
+          <div class="level-options">
+            <div class="level-checkbox">
+              <input type="checkbox" id="level-1" value="-1">
+              <label for="level-1">-1</label>
+            </div>
+            <div class="level-checkbox">
+              <input type="checkbox" id="level0" value="0">
+              <label for="level0">0</label>
+            </div>
+            <div class="level-checkbox">
+              <input type="checkbox" id="level1" value="1">
+              <label for="level1">1</label>
+            </div>
+            <div class="level-checkbox">
+              <input type="checkbox" id="level10" value="10">
+              <label for="level10">10</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pauseStatus">Pause Button Status</label>
+          <select id="pauseStatus" class="form-control">
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" onclick="hideModal()">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
+    let projects = [];
+
+    // Load projects when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProjects();
+      setupFormSubmit();
+    });
+
+    // Load projects from API
+    async function loadProjects() {
+      try {
+        const response = await fetch(`${BASE_URL}/api/projects`);
+        if (!response.ok) throw new Error('Failed to load projects');
+        
+        projects = await response.json();
+        renderProjectsTable();
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        alert('Error loading projects. Please try again.');
+      }
+    }
+
+    // Render projects table
+    function renderProjectsTable() {
+      const tbody = document.querySelector('#projectsTable tbody');
+      tbody.innerHTML = '';
+
+      if (projects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 20px;">
+              No projects found in the database.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      projects.forEach(project => {
+        const levelsBadges = project.levels.map(level => {
+          let badgeClass = 'badge-primary';
+          if (level === '-1') badgeClass = 'badge-warning';
+          if (level === '0') badgeClass = 'badge-success';
+          return `<span class="badge ${badgeClass}">${level}</span>`;
+        }).join(' ');
+
+        const pauseStatus = project.pause === 'enabled' ? 
+          '<span class="badge badge-success">Enabled</span>' : 
+          '<span class="badge badge-warning">Disabled</span>';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${project.name}</td>
+          <td>${levelsBadges}</td>
+          <td>${pauseStatus}</td>
+          <td>
+            <button onclick="openEditModal('${project.name}')" class="btn btn-sm btn-primary">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Open edit modal with project data
+    function openEditModal(projectName) {
+      const project = projects.find(p => p.name === projectName);
+      if (!project) return;
+
+      // Set form values
+      document.getElementById('originalProjectName').value = project.name;
+      document.getElementById('projectName').value = project.name;
+      document.getElementById('pauseStatus').value = project.pause || 'disabled';
+      
+      // Set level checkboxes
+      document.querySelectorAll('.level-options input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = project.levels.includes(checkbox.value);
+      });
+      
+      // Show modal
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    // Hide modal
+    function hideModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Setup form submission
+    function setupFormSubmit() {
+      document.getElementById('editProjectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = e.submitter;
+        const originalBtnHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const originalName = document.getElementById('originalProjectName').value;
+        const levels = [];
+        document.querySelectorAll('.level-options input[type="checkbox"]:checked').forEach(cb => {
+          levels.push(cb.value);
+        });
+        const pauseStatus = document.getElementById('pauseStatus').value;
+
+        try {
+          const response = await fetch(`${BASE_URL}/api/projects`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              originalName,
+              name: originalName, // Name can't be changed in this version
+              levels,
+              pause: pauseStatus
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.status === 'success') {
+            alert('Project updated successfully!');
+            hideModal();
+            loadProjects();
+          } else {
+            throw new Error(result.message || 'Failed to update project');
+          }
+        } catch (error) {
+          console.error('Error updating project:', error);
+          alert(`Error: ${error.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalBtnHTML;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

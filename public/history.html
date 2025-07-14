@@ -325,9 +325,43 @@
 .btn-light:hover {
   color: var(--text-medium);
 }
+
+  #version-label {
+    position: fixed;
+    top: 15px;
+    left: 20px;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 4px;
+    z-index: 1000;
+  }
+
+  #version-label::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--primary-color);
+    margin-top: 4px;
+    border-radius: 2px;
+  }
+
+  #version-label i {
+    font-size: 1rem;
+    color: var(--primary-color);
+  }
   </style>
 </head>
 <body>
+  <div id="version-label">
+  <i class="fas fa-tasks"></i>
+  <span>TaskApp v1.0</span>
+</div>
+
   <h1><i class="fas fa-history"></i> Task History</h1>
 
   <!-- Status Message -->
