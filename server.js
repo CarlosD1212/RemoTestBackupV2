@@ -523,7 +523,7 @@ function cleanPgArray(value) {
 
 app.get("/api/history", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM task_history ORDER BY finished_at DESC");
+    const result = await pool.query("SELECT * FROM history ORDER BY finished_at DESC");
     res.json({ status: "success", tasks: result.rows });
   } catch (err) {
     console.error("Error loading history:", err);
@@ -598,15 +598,16 @@ app.post("/api/delete-user", async (req, res) => {
 
 app.get("/api/projects", async (req, res) => {
   try {
-    const result = await pool.query("SELECT name, levels, pause FROM projects");
-    res.json(result.rows.map(p => ({
-      name: p.name,
-      levels: Array.isArray(p.levels) ? p.levels.map(String) : [],
-      pause: p.pause || "disabled"
-    })));
+    const result = await pool.query("SELECT * FROM projects");
+    const projects = result.rows.map(row => ({
+      name: row.name,
+      levels: row.levels || [],
+      pause: row.pause || "disabled"
+    }));
+    res.json(projects);
   } catch (err) {
-    console.error("❌ Error /api/projects:", err);
-    res.status(500).json({ status: "error", message: "Error loading projects" });
+    console.error("Error loading projects:", err);
+    res.status(500).json({ status: "error", message: "Failed to load projects" });
   }
 });
 

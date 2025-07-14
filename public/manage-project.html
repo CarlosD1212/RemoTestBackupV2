@@ -7,9 +7,9 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
+      background: #0f1113;
+      color: #ecf0f1;
       padding: 2rem;
-      color: #2c3e50;
       max-width: 900px;
       margin: auto;
     }
@@ -17,41 +17,55 @@
     h1 {
       text-align: center;
       margin-bottom: 30px;
-      color: #34495e;
+      color: #a9cce3;
     }
 
     select, input[type="text"] {
       width: 100%;
       padding: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
+      background: #1c1f22;
+      color: #ecf0f1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #bdc3c7;
     }
 
     .project-card {
-      background: white;
+      background: #1e2226;
       padding: 20px;
-      margin-top: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      margin-top: 10px;
     }
 
     .level-options {
       display: flex;
       gap: 10px;
-      margin-top: 6px;
-      flex-wrap: wrap;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .actions {
+      text-align: right;
+      margin-top: 20px;
     }
 
     .save-btn {
       background: #3498db;
+      border: none;
       color: white;
       padding: 10px 16px;
       font-weight: bold;
-      border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 20px;
+      transition: background 0.3s ease;
     }
 
     .save-btn:hover {
@@ -60,121 +74,117 @@
 
     .message {
       text-align: center;
+      margin-top: 10px;
       font-weight: bold;
-      margin-top: 15px;
     }
   </style>
 </head>
 <body>
+  <h1>Manage Projects</h1>
 
-<h1>Manage Projects</h1>
-
-<label for="projectSelector">Select Project:</label>
-<select id="projectSelector">
-  <option value="">-- Choose a Project --</option>
-</select>
-
-<div id="editor" class="project-card" style="display: none;">
-  <label>
-    <input type="checkbox" id="keepName" checked />
-    Do not change project name
-  </label>
-
-  <label for="newProjectName">New Project Name (optional):</label>
-  <input type="text" id="newProjectName" disabled />
-
-  <label>Levels:</label>
-  <div class="level-options" id="levelOptions"></div>
-
-  <label>Pause Button:</label>
-  <select id="pauseSelect">
-    <option value="disabled">Disabled</option>
-    <option value="enabled">Enabled</option>
+  <label for="project-select">Select Project:</label>
+  <select id="project-select">
+    <option value="">-- Choose a Project --</option>
   </select>
 
-  <button class="save-btn" onclick="saveChanges()">Save Changes</button>
-</div>
+  <div id="editor-container"></div>
+  <div id="message" class="message"></div>
 
-<div class="message" id="message"></div>
+  <script>
+    const BASE_URL = "https://remo-task-manager-production.up.railway.app";
+    let allProjects = [];
 
-<script>
-  const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
-  const LEVELS = ["-1", "0", "1", "10"];
-  let allProjects = [];
+    async function loadProjects() {
+      const projectSelector = document.getElementById("project-select");
+      const editorContainer = document.getElementById("editor-container");
 
-  const projectSelector = document.getElementById("projectSelector");
-  const editor = document.getElementById("editor");
-  const newNameInput = document.getElementById("newProjectName");
-  const keepNameCheckbox = document.getElementById("keepName");
-  const levelContainer = document.getElementById("levelOptions");
-  const pauseSelect = document.getElementById("pauseSelect");
-  const messageDiv = document.getElementById("message");
+      try {
+        const res = await fetch(`${BASE_URL}/api/projects`);
+        if (!res.ok) throw new Error("API error");
+        allProjects = await res.json();
+      } catch (e) {
+        console.warn("Using fallback");
+        allProjects = [
+          { name: "Test Project", levels: ["0", "1"], pause: "enabled" },
+          { name: "Otro Proyecto", levels: ["-1", "10"], pause: "disabled" }
+        ];
+      }
 
-  keepNameCheckbox.addEventListener("change", () => {
-    newNameInput.disabled = keepNameCheckbox.checked;
-  });
+      projectSelector.innerHTML = `<option value="">-- Choose a Project --</option>`;
+      allProjects.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.name;
+        option.textContent = p.name;
+        projectSelector.appendChild(option);
+      });
 
-  async function loadProjects() {
-    const res = await fetch(`${BASE_URL}/api/projects`);
-    allProjects = await res.json();
+      projectSelector.onchange = () => {
+        const selected = allProjects.find(p => p.name === projectSelector.value);
+        if (!selected) {
+          editorContainer.innerHTML = "";
+          return;
+        }
 
-    allProjects.forEach(p => {
-      const option = document.createElement("option");
-      option.value = p.name;
-      option.textContent = p.name;
-      projectSelector.appendChild(option);
-    });
-  }
+        editorContainer.innerHTML = `
+          <div class="project-card">
+            <label>Project Name</label>
+            <input type="text" class="project-name" value="${selected.name}" />
+            <label><input type="checkbox" id="no-rename"> Don't change project name</label>
 
-  projectSelector.addEventListener("change", () => {
-    const selected = allProjects.find(p => p.name === projectSelector.value);
-    if (!selected) return;
+            <label>Levels</label>
+            <div class="level-options">
+              ${["-1", "0", "1", "10"].map(level => `
+                <label>
+                  <input type="checkbox" value="${level}" ${selected.levels?.includes(level) ? "checked" : ""}/> ${level}
+                </label>
+              `).join('')}
+            </div>
 
-    newNameInput.value = "";
-    keepNameCheckbox.checked = true;
-    newNameInput.disabled = true;
+            <label>Pause Button</label>
+            <select class="pause-option">
+              <option value="disabled" ${selected.pause === "disabled" ? "selected" : ""}>Disabled</option>
+              <option value="enabled" ${selected.pause === "enabled" ? "selected" : ""}>Enabled</option>
+            </select>
 
-    pauseSelect.value = selected.pause;
-    levelContainer.innerHTML = "";
-    LEVELS.forEach(level => {
-      const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" value="${level}" ${selected.levels.includes(level) ? 'checked' : ''}/> ${level}`;
-      levelContainer.appendChild(label);
-    });
+            <div class="actions">
+              <button class="save-btn">Save Changes</button>
+            </div>
+          </div>
+        `;
 
-    editor.style.display = "block";
-    messageDiv.textContent = "";
-  });
+        editorContainer.querySelector(".save-btn").onclick = async () => {
+          const newName = editorContainer.querySelector(".project-name").value.trim();
+          const pause = editorContainer.querySelector(".pause-option").value;
+          const levels = Array.from(editorContainer.querySelectorAll(".level-options input:checked")).map(cb => cb.value);
 
-  async function saveChanges() {
-    const originalName = projectSelector.value;
-    const newName = keepNameCheckbox.checked ? originalName : newNameInput.value.trim();
-    const pause = pauseSelect.value;
-    const levels = Array.from(levelContainer.querySelectorAll("input:checked")).map(cb => cb.value);
+          const body = {
+            originalName: selected.name,
+            newName: document.getElementById("no-rename").checked ? selected.name : newName,
+            levels,
+            pause
+          };
 
-    if (!originalName) {
-      alert("Select a project first.");
-      return;
+          const res = await fetch(`${BASE_URL}/api/update-project`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+
+          const result = await res.json();
+          const msg = document.getElementById("message");
+          if (result.status === "success") {
+            msg.textContent = "✅ Project updated successfully.";
+            msg.style.color = "lightgreen";
+            loadProjects(); // refrescar por si cambió el nombre
+          } else {
+            msg.textContent = "❌ Error: " + result.message;
+            msg.style.color = "red";
+          }
+        };
+      };
     }
 
-    const res = await fetch(`${BASE_URL}/api/update-project`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ originalName, newName, pause, levels })
-    });
-
-    const json = await res.json();
-    if (json.status === "success") {
-      messageDiv.textContent = "✅ Project updated successfully.";
-      messageDiv.style.color = "green";
-      await loadProjects();
-    } else {
-      messageDiv.textContent = "❌ " + (json.message || "Update failed.");
-      messageDiv.style.color = "red";
-    }
-  }
-
-  loadProjects();
-</script>
+    loadProjects();
+  </script>
 </body>
 </html>
