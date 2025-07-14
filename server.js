@@ -106,21 +106,6 @@ function cleanPgArray(value) {
 }
 
 
-
-
-
-
-
-app.get("/api/projects", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT name, levels, pause FROM projects");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ Error /api/projects:", err);
-    res.status(500).json({ status: "error", message: "Error loading projects" });
-  }
-});
-
 app.post("/api/update-project", async (req, res) => {
   const { originalName, newName, levels, pause } = req.body;
 
