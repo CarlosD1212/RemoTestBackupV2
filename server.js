@@ -571,12 +571,12 @@ app.post("/api/restore-task", async (req, res) => {
 
 app.get("/api/roles", async (req, res) => {
   try {
-    const result = await pool.query("SELECT DISTINCT name FROM roles");
+    const result = await pool.query("SELECT name FROM roles ORDER BY name");
     const roles = result.rows.map(r => r.name);
     res.json(roles);
   } catch (err) {
-    console.error("Error getting roles:", err);
-    res.status(500).json({ error: "Failed to get roles" });
+    console.error("Error fetching roles:", err);
+    res.status(500).json({ error: "Failed to fetch roles" });
   }
 });
 

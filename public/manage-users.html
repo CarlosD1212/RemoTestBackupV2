@@ -758,14 +758,14 @@ function populateModalSelects() {
 
   if (roleSelect) {
     roleSelect.innerHTML = '<option value="" disabled>Select roles to add</option>';
-    availableRoles.sort().forEach(role => {
-      if (!selectedRoles.includes(role)) {
-        const opt = document.createElement("option");
-        opt.value = role;
-        opt.textContent = role;
-        roleSelect.appendChild(opt);
-      }
-    });
+availableRoles.sort().forEach(role => {
+  if (!selectedRoles.includes(role)) {
+    const opt = document.createElement("option");
+    opt.value = role;
+    opt.textContent = role;
+    roleSelect.appendChild(opt);
+  }
+});
   }
 
   if (projectSelect) {
@@ -784,7 +784,7 @@ function populateModalSelects() {
 async function loadRolesMaster() {
   try {
     const res = await fetch(`${BASE_URL}/api/roles`);
-    const list = await res.json(); // ["admin", "1", "10", ...]
+    const list = await res.json();
     availableRoles = list;
   } catch (err) {
     console.error("Error loading master roles:", err);
