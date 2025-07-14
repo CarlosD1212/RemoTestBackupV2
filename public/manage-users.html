@@ -781,15 +781,7 @@ availableRoles.sort().forEach(role => {
   }
 }
 
-async function loadRolesMaster() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/roles`);
-    const list = await res.json();
-    availableRoles = list;
-  } catch (err) {
-    console.error("Error loading master roles:", err);
-  }
-}
+
 
 
     function openEdit(username) {
@@ -1090,6 +1082,17 @@ async function loadRolesMaster() {
         if (loadingRow) loadingRow.style.display = "none";
       }
     }
+
+    async function loadRolesMaster() {
+    try {
+    const res = await fetch(`${BASE_URL}/api/roles`);
+    const list = await res.json();
+    console.log("✅ Roles cargados desde API:", list);
+    availableRoles = list;
+  } catch (err) {
+    console.error("Error loading master roles:", err);
+  }
+}
 
     // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
