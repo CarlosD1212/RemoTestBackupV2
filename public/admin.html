@@ -66,7 +66,6 @@
 
     .action-buttons {
       display: flex;
-      flex-wrap: wrap;
       gap: 0.75rem;
       margin-bottom: 2rem;
       justify-content: flex-end;
@@ -278,37 +277,57 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    #version-label {
+  position: absolute;
+  top: 20px;
+  left: 20px; /* <-- ahora está a la izquierda */
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-light);
+  background: rgba(0,0,0,0.05);
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 999;
+}
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <h1>Admin Control Panel</h1>
 
+  <div id="version-label">TaskApp Production v1.</div>
+  
+  <h1>Admin Control Panel</h1>
+ 
   <div class="action-buttons">
-    <button onclick="goToApp()" class="btn btn-primary">
-      <i class="fas fa-tasks"></i> Task App
-    </button>
-    <button onclick="goToManageUsers()" class="btn btn-success">
-      <i class="fas fa-users-cog"></i> Manage Users
-    </button>
-    <button onclick="window.location.href='manage-tasks.html'" class="btn btn-warning">
-      <i class="fas fa-plus-circle"></i> New Function
-    </button>
-    <button onclick="window.location.href='historial.html'" class="btn btn-purple">
-      <i class="fas fa-chart-line"></i> Individual Metrics
-    </button>
-    <button onclick="window.location.href='bulk-register.html'" class="btn btn-purple">
-      <i class="fas fa-users"></i> Bulk Register
-    </button>
-    <button onclick="window.location.href='bulk-delete-tasks.html'" class="btn btn-danger">
-      <i class="fas fa-trash-alt"></i> Bulk Delete Tasks
-    </button>
-    <button onclick="window.location.href='history.html'" class="btn btn-dark">
-      <i class="fas fa-history"></i> Task History
-    </button>
-    <button onclick="window.location.href='manage-project.html'" class="btn btn-purple">
+  <button onclick="goToApp()" class="btn btn-primary">
+  <i class="fas fa-tasks"></i> Task App
+  </button>
+  
+  <button onclick="goToManageUsers()" class="btn btn-success">
+  <i class="fas fa-users-cog"></i> Manage Users
+  </button>
+  
+  <button onclick="window.location.href='manage-project.html'" class="btn btn-purple">
   <i class="fas fa-cogs"></i> Manage Projects
-</button>
+  </button>
+ 
+  <button onclick="window.location.href='historial.html'" class="btn btn-purple">
+  <i class="fas fa-chart-line"></i> Individual Metrics
+  </button>
+ 
+  <button onclick="window.location.href='bulk-register.html'" class="btn btn-purple">
+  <i class="fas fa-users"></i> Bulk Register
+  </button>
+ 
+  <button onclick="window.location.href='bulk-delete-tasks.html'" class="btn btn-danger">
+  <i class="fas fa-trash-alt"></i> Bulk Delete Tasks
+  </button>
+  
+  <button onclick="window.location.href='history.html'" class="btn btn-dark">
+  <i class="fas fa-history"></i> Task History
+  </button>
   </div>
 
   <div class="form-grid">

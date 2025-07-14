@@ -184,22 +184,7 @@
       margin-top: 8px;
     }
 
-    .optional-review {
-      margin-top: 6px;
-      padding: 4px 10px;
-      background: #ecf0f1;
-      border: 1px solid #bdc3c7;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: var(--transition);
-    }
-
-    .optional-review.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-hover);
-    }
+ 
 
     .project-badge-inline {
       display: inline-block;
@@ -318,13 +303,82 @@
   border: 2px dashed #f1c40f;
   background: #fffde7;
 }
+
+.optional-review {
+  /* forma y espaciado */
+  padding: 6px 12px;
+  margin: 5px 4px 0;
+  border: none;
+  border-radius: 6px;
+
+  /* tipografía y transición */
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease,
+              box-shadow 0.3s ease, transform 0.1s ease;
+}
+
+/* efecto de presión al hacer clic */
+.optional-review:active {
+  transform: scale(0.95);
+}
+
+/* estado base (sin seleccionar) */
+.optional-review.good {               /* verde claro */
+  background-color: #d5f5e3;
+  color: #2ecc71;
+}
+.optional-review.bad {                /* rojo claro */
+  background-color: #f9e0e0;
+  color: #e74c3c;
+}
+
+/* estado seleccionado (activo) */
+.optional-review.good.active {
+  background-color: #27ae60 !important;  /* verde oscuro */
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(39,174,96,0.6);
+}
+.optional-review.bad.active {
+  background-color: #c0392b !important;  /* rojo oscuro */
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(192,57,43,0.6);
+}
+
+/* contenedor para alinearlos en fila */
+.optional-review-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  height: 40px;
+}
+
+/* deja un pequeño margen debajo del select */
+.review-select {
+  margin-bottom: 4px;
+}
+#version-label {
+  position: absolute;
+  top: 20px;
+  left: 20px; /* <-- ahora está a la izquierda */
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-light);
+  background: rgba(0,0,0,0.05);
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 999;
+}
   </style>
 
 
 </head>
 <body>
 
-  
+  <div id="version-label">TaskApp Production v1.</div>
   <div class="header-buttons">
     <button id="adminPanelBtn" class="admin-btn" onclick="goToAdmin()" style="display: none;">
       <i class="fas fa-cogs"></i> Admin Panel
@@ -376,6 +430,8 @@
   </div>
 
   <script>
+
+    
      const BASE_URL = "https://remotestbackupv2-production.up.railway.app";
     const CLAIM_URL = BASE_URL + "/api/claim";
     const FINISH_URL = BASE_URL + "/api/mark-finished";
@@ -384,10 +440,12 @@
     const taskContainer = document.getElementById("task-container");
     const modal = document.getElementById("modal");
     const modalMessage = document.getElementById("modal-message");
-
+    
     let currentPage = 1;
     const TASKS_PER_PAGE = 36;
     let allTasks = [];
+    
+    let selectedDataType = "";
 
     function showModal(message) {
       modalMessage.textContent = message;
@@ -660,22 +718,45 @@ if (isMine && (myClaimedTask === task.Subtask || isPausedMine)) {
     <option value="Poor positioning">Poor positioning</option>
   `;
 
-  const optionalContainer = document.createElement("div");
-  optionalContainer.className = "optional-review-buttons";
-  ["Good data!", "Bad data!"].forEach(label => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.className = "optional-review";
-    btn.dataset.value = label;
-    if (!isMine) btn.disabled = true;
-    optionalContainer.appendChild(btn);
-  });
+const optionalContainer = document.createElement("div");
+optionalContainer.className = "optional-review-buttons";
 
+["Good data!", "Bad data!"].forEach(label => {
+  const btn = document.createElement("button");
+  btn.textContent = label;
+  btn.className = "optional-review";
+  btn.dataset.value = label;
+
+  // Agrega clase visual good o bad
+  btn.classList.add(label === "Good data!" ? "good" : "bad");
+
+  if (!isMine) btn.disabled = true;
+  optionalContainer.appendChild(btn);
+});
+
+const goodBtn = optionalContainer.querySelector('button[data-value="Good data!"]');
+const badBtn = optionalContainer.querySelector('button[data-value="Bad data!"]');
+
+goodBtn.onclick = () => {
+  selectedDataType = "Good Data";
+  console.log("Good Data selected");
+  goodBtn.classList.add("active");
+  badBtn.classList.remove("active");
+};
+
+badBtn.onclick = () => {
+  selectedDataType = "Bad Data";
+  console.log("Bad Data selected");
+  badBtn.classList.add("active");
+  goodBtn.classList.remove("active");
+};
   const finishBtn = document.createElement("button");
   finishBtn.className = "finish-btn";
   finishBtn.textContent = "Finish";
   finishBtn.disabled = true;
   select.onchange = () => finishBtn.disabled = !select.value;
+
+  
 
   finishBtn.onclick = async () => {
     if (!currentUser.email || currentUser.email.trim() === "") {
@@ -696,7 +777,8 @@ if (isMine && (myClaimedTask === task.Subtask || isPausedMine)) {
       claimed_at: localStorage.getItem("claimedAt"),
       finished_at: new Date().toISOString(),
       username: currentUser.username,
-      data_type: ""
+      
+      data_type: selectedDataType  // 👈 aquí va
     };
 
     try {
