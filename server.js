@@ -432,7 +432,8 @@ app.post("/api/mark-finished", async (req, res) => {
     claimed_at,
     finished_at,
     level,
-    data_type
+    data_type,
+    username
   } = req.body;
 
   try {
@@ -445,12 +446,13 @@ app.post("/api/mark-finished", async (req, res) => {
     const project = task.project || "unknown";
 
     // 1. Guardar en historial
-    await pool.query(
-      `INSERT INTO history (subtask, level, review_option, email, claim_time, finished_at, project, data_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [subtask, batch,  level, review_option, email, claimed_at, finished_at, project, data_type|| null]
-    );
-
+await pool.query(
+  `INSERT INTO history 
+    (subtask, batch, level, review_option, email, claimed_at, finished_at, project, data_type)
+   VALUES 
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+  [subtask, batch, level, review_option, email, claimed_at, finished_at, project, data_type, username]
+);
     // 2. Marcar la tarea original como finalizada
     await pool.query("UPDATE tasks SET status = 'finished' WHERE subtask = $1", [subtask]);
 
