@@ -448,9 +448,9 @@ app.post("/api/mark-finished", async (req, res) => {
     // 1. Guardar en historial
 await pool.query(
   `INSERT INTO history 
-    (subtask, batch, level, review_option, email, claimed_at, finished_at, project, data_type)
+    (subtask, batch, level, review_option, email, claimed_at, finished_at, project, data_type, username)
    VALUES 
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
   [subtask, batch, level, review_option, email, claimed_at, finished_at, project, data_type, username]
 );
     // 2. Marcar la tarea original como finalizada
