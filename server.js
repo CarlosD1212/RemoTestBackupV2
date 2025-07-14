@@ -113,38 +113,11 @@ function cleanPgArray(value) {
 
 app.get("/api/projects", async (req, res) => {
   try {
-    const result = await pool.query("SELECT name FROM projects");
-    res.json(result.rows.map(r => r.name));
+    const result = await pool.query("SELECT name, levels, pause FROM projects");
+    res.json(result.rows);
   } catch (err) {
     console.error("❌ Error /api/projects:", err);
     res.status(500).json({ status: "error", message: "Error loading projects" });
-  }
-});
-
-app.post("/api/projects", async (req, res) => {
-  const { name, levels, pause } = req.body;
-
-  if (!name || !Array.isArray(levels) || levels.length === 0) {
-    return res.status(400).json({ status: "error", message: "Project name and levels are required." });
-  }
-
-  try {
-    // Verifica si ya existe el proyecto
-    const check = await pool.query("SELECT * FROM projects WHERE name = $1", [name]);
-    if (check.rows.length > 0) {
-      return res.json({ status: "duplicate", message: "Project already exists." });
-    }
-
-    // Inserta el nuevo proyecto con niveles y estado de pausa
-    await pool.query(
-      "INSERT INTO projects (name, levels, pause) VALUES ($1, $2, $3)",
-      [name, levels, pause || "disabled"]
-    );
-
-    return res.json({ status: "success", message: "Project created." });
-  } catch (err) {
-    console.error("Error saving project:", err);
-    return res.status(500).json({ status: "error", message: "Server error." });
   }
 });
 
