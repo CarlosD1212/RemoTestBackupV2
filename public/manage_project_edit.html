@@ -298,23 +298,26 @@ function showStatus(message, type = 'success') {
 }
 
 // 1️⃣ Cargar lista de proyectos al inicio
-async function loadProjects() {
-  try {
-    const res = await fetch(`${API_BASE}/api/projects`);
-    if (!res.ok) throw new Error('Failed to load projects');
-    
-    projects = await res.json(); // [{name,levels,pause}]
-    const sel = document.getElementById('projectSelect');
-    
-    // Clear existing options except the first one
-    sel.innerHTML = '<option value="">-- Choose Project --</option>';
-    
-    projects.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.name; // usaremos nombre como id clave
-      opt.textContent = p.name;
-      sel.appendChild(opt);
-    });
+    async function loadProjects() {
+      try {
+        const res = await fetch(`${API_BASE}/api/projects`);
+        projects = await res.json();
+
+        const sel = document.getElementById("projectSelect");
+        sel.innerHTML = '<option value="">-- Choose Project --</option>';
+
+        projects.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.name;
+          opt.textContent = p.name;
+          sel.appendChild(opt);
+        });
+
+        console.log("✅ Proyectos cargados:", projects.map(p => p.name));
+      } catch (err) {
+        console.error("Error loading projects", err);
+      }
+    }
     
     showStatus('Projects loaded successfully');
   } catch (err) {
