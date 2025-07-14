@@ -426,6 +426,7 @@ function getNextLevel(currentLevel, allowedLevels) {
 app.post("/api/mark-finished", async (req, res) => {
   const {
     subtask,
+    batch,              // ← AÑADE ESTA LÍNEA
     review_option,
     email,
     claimed_at,
