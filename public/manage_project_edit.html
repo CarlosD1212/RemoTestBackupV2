@@ -73,17 +73,37 @@ async function loadProjects(){
 }
 
 // 2️⃣  Rellenar el editor cuando se seleccione un proyecto
-function populateEditor(){
-  const sel=document.getElementById('projectSelect');
-  const name=sel.value;
-  const editor=document.getElementById('editor');
-  if(!name){editor.classList.add('hidden');return;}
-  const proj=projects.find(p=>p.name===name);
-  if(!proj){alert('Project not found');return;}
-  document.getElementById('projectName').value=proj.name;
-  const allowed=(Array.isArray(proj.levels)?proj.levels:proj.levels?.replace(/[{}]/g,'').split(',')).map(s=>s.trim());
-  document.querySelectorAll('.levelChk').forEach(cb=>cb.checked=allowed.includes(cb.value));
-  document.getElementById('pauseSwitch').checked=proj.pause==='enabled';
+function populateEditor() {
+  const sel = document.getElementById('projectSelect');
+  const name = sel.value;
+  const editor = document.getElementById('editor');
+  if (!name) {
+    editor.classList.add('hidden');
+    return;
+  }
+
+  const proj = projects.find(p => p.name === name);
+  if (!proj) {
+    alert('Project not found');
+    return;
+  }
+
+  // Parse levels (asegura que siempre sea array)
+  let allowed = [];
+  if (Array.isArray(proj.levels)) {
+    allowed = proj.levels;
+  } else if (typeof proj.levels === 'string') {
+    allowed = proj.levels.replace(/[{}"]/g, '').split(',').map(s => s.trim());
+  }
+
+  document.getElementById('projectName').value = proj.name;
+
+  document.querySelectorAll('.levelChk').forEach(cb => {
+    cb.checked = allowed.includes(cb.value);
+  });
+
+  document.getElementById('pauseSwitch').checked = proj.pause === 'enabled';
+
   editor.classList.remove('hidden');
 }
 
