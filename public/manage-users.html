@@ -1056,12 +1056,10 @@ function populateModalSelects() {
           cleanArrayValue(u.project).forEach(p => projectSet.add(p));
         });
         
-        availableRoles = [...roleSet];
-        availableProjects = Array.from(new Set([
-  ...availableProjects,   // los que vinieron de loadProjectsMaster()
-  ...projectSet           // los que encontramos en los usuarios
+availableProjects = Array.from(new Set([
+  ...availableProjects,
+  ...projectSet
 ]));
-
         populateFilters();
         renderUsers();
       } catch (error) {
