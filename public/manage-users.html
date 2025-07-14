@@ -752,31 +752,34 @@ async function loadProjectsMaster() {
     }
 
     /* --- Modal selects --- */
-    function populateModalSelects() {
-      const roleSelect = document.getElementById("edit-role-select");
-      const projectSelect = document.getElementById("edit-project-select");
+function populateModalSelects() {
+  const roleSelect = document.getElementById("edit-role-select");
+  const projectSelect = document.getElementById("edit-project-select");
 
-      roleSelect.innerHTML = '<option value="" disabled>Select roles to add</option>';
-      projectSelect.innerHTML = '<option value="" disabled>Select projects to add</option>';
+  if (roleSelect) {
+    roleSelect.innerHTML = '<option value="" disabled>Select roles to add</option>';
+    availableRoles.sort().forEach(role => {
+      if (!selectedRoles.includes(role)) {
+        const opt = document.createElement("option");
+        opt.value = role;
+        opt.textContent = role;
+        roleSelect.appendChild(opt);
+      }
+    });
+  }
 
-      availableRoles.sort().forEach(role => {
-        if (!selectedRoles.includes(role)) {
-          const opt = document.createElement("option");
-          opt.value = role;
-          opt.textContent = role;
-          roleSelect.appendChild(opt);
-        }
-      });
-
-      availableProjects.sort().forEach(proj => {
-        if (!selectedProjects.includes(proj)) {
-          const opt = document.createElement("option");
-          opt.value = proj;
-          opt.textContent = proj;
-          projectSelect.appendChild(opt);
-        }
-      });
-    }
+  if (projectSelect) {
+    projectSelect.innerHTML = '<option value="" disabled>Select projects to add</option>';
+    availableProjects.sort().forEach(proj => {
+      if (!selectedProjects.includes(proj)) {
+        const opt = document.createElement("option");
+        opt.value = proj;
+        opt.textContent = proj;
+        projectSelect.appendChild(opt);
+      }
+    });
+  }
+}
 
     function openEdit(username) {
       const user = users.find(u => u.username === username);

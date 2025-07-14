@@ -94,6 +94,16 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+async function loadRolesMaster() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/roles`);
+    const list = await res.json(); // ["admin", "0", "1", ...]
+    availableRoles = list;
+  } catch (err) {
+    console.error("Error loading master roles:", err);
+  }
+}
+
 // ✅ Esta función debe estar disponible antes de ser usada (puedes moverla arriba si prefieres)
 function cleanPgArray(value) {
   if (!value) return [];
