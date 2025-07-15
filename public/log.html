@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Logs</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background: #f4f6f8;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin Change Log</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Admin</th>
+        <th>Section</th>
+        <th>Action</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody id="logTable">
+      <tr><td colspan="5">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const BASE_URL = window.location.origin;
+
+    fetch(`${BASE_URL}/api/admin-logs`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById("logTable");
+        tbody.innerHTML = "";
+        data.logs.forEach(log => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${new Date(log.timestamp).toLocaleString()}</td>
+            <td>${log.admin_username}</td>
+            <td>${log.section}</td>
+            <td>${log.action}</td>
+            <td><pre>${log.details || '-'}</pre></td>
+          `;
+          tbody.appendChild(row);
+        });
+      })
+      .catch(err => {
+        document.getElementById("logTable").innerHTML =
+          "<tr><td colspan='5'>Error loading logs</td></tr>";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

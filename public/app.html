@@ -638,7 +638,9 @@ const isOtherBlocked =
   card.setAttribute("data-status", task.Status?.toLowerCase() || "");
   card.setAttribute("data-batch", task.Batch?.toLowerCase() || "");
 
-if (isClaimedByOther || isOtherBlocked) {
+if (isPausedMine) {
+  card.classList.remove("disabled");
+} else if (isClaimedByOther || isOtherBlocked) {
   card.classList.add("disabled");
 }
  else {
@@ -680,49 +682,51 @@ if (isPausedMine) {
   const claimBtn = document.createElement("button");
   claimBtn.className = "claim-btn";
 
-if (isMine && (myClaimedTask === task.Subtask || isPausedMine)) {
+if (isMine && (myClaimed === task.Subtask || isPausedMine)) {
   claimBtn.textContent = "Open Task";
   claimBtn.classList.add("open-task");
+  claimBtn.disabled = false;
   claimBtn.onclick = () =>
     window.open(`https://www.remotasks.com/en/tasks?forceClaim=1&subtaskId=${task.Subtask}`, "_blank");
-} else {
-    claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
-    claimBtn.disabled = isClaimedByOther || isOtherBlocked;
+} else if (!isPausedMine) {
+  claimBtn.textContent = task.ClaimedBy ? "Claimed" : "Claim";
+  claimBtn.disabled = isClaimedByOther || isOtherBlocked;
 
-    claimBtn.onclick = async () => {
-      const already = localStorage.getItem("lastClaimedTask");
-      if (already && already !== task.Subtask) {
-        alert("You already claimed another task.");
-        return;
-      }
+  claimBtn.onclick = async () => {
+    const already = localStorage.getItem("lastClaimedTask");
+    if (already && already !== task.Subtask) {
+      alert("You already claimed another task.");
+      return;
+    }
 
-      localStorage.setItem("lastClaimedTask", task.Subtask);
-      localStorage.setItem("claimedAt", new Date().toISOString());
-      showModal("Wait, reserved your task...");
+    localStorage.setItem("lastClaimedTask", task.Subtask);
+    localStorage.setItem("claimedAt", new Date().toISOString());
+    showModal("Wait, reserved your task...");
 
-      const res = await fetch(CLAIM_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
-      });
+    const res = await fetch(CLAIM_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtask: task.Subtask, username: currentUser.username })
+    });
 
-      const result = await res.json();
-      if (result.status === "success") {
-        modalMessage.textContent = "Claim your task in Open Task";
-        setTimeout(() => {
-          hideModal();
-          loadTasks();
-        }, 1200);
-      } else {
-        alert("Claim failed.");
-        localStorage.removeItem("lastClaimedTask");
+    const result = await res.json();
+    if (result.status === "success") {
+      modalMessage.textContent = "Claim your task in Open Task";
+      setTimeout(() => {
         hideModal();
         loadTasks();
-      }
-    };
+      }, 1200);
+    } else {
+      alert("Claim failed.");
+      localStorage.removeItem("lastClaimedTask");
+      hideModal();
+      loadTasks();
+    }
+  };
 
-    populateProjectFilter();
-  }
+  populateProjectFilter();
+}
+
 
   const select = document.createElement("select");
   select.className = "review-select";
@@ -813,7 +817,7 @@ badBtn.onclick = () => {
         socket.emit("taskFinished", { subtask: task.Subtask });
         localStorage.removeItem("lastClaimedTask");
         localStorage.removeItem("claimedAt");
-        localStorage.removeItem("pausedTask");
+        
         window.location.reload();
       } else {
         alert("Error finishing task: " + result.message);

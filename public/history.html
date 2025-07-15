@@ -434,43 +434,53 @@
     let currentPage = 1;
     let historyData = [];
 
-    async function loadHistory() {
-      const loadingRow = document.getElementById("loading-state");
-      const tbody = document.querySelector("#historyTable tbody");
-      
-      loadingRow.style.display = "table-row";
-      tbody.innerHTML = "";
-      
-      try {
-        const res = await fetch(`${BASE_URL}/api/history`);
-        if (!res.ok) throw new Error('Failed to load history');
-        
-        const result = await res.json();
-        historyData = result.tasks || [];
-        
-        populateFilters();
-        renderTable();
-        showStatusMessage('Task history loaded successfully!');
-      } catch (error) {
-        console.error('Error loading history:', error);
-        showStatusMessage('Failed to load task history. Please try again.', 'error');
-        
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="9" class="empty-state">
-              <i class="fas fa-exclamation-triangle"></i>
-              <h3>Error loading task history</h3>
-              <p>${error.message}</p>
-              <button class="btn btn-primary" onclick="loadHistory()">
-                <i class="fas fa-sync-alt"></i> Retry
-              </button>
-            </td>
-          </tr>
-        `;
-      } finally {
-        loadingRow.style.display = "none";
-      }
-    }
+async function loadHistory() {
+  const loadingRow = document.getElementById("loading-state");
+  const tbody = document.querySelector("#historyTable tbody");
+
+  loadingRow.style.display = "table-row";
+  tbody.innerHTML = "";
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/history`);
+    if (!res.ok) throw new Error('Failed to load history');
+
+    const result = await res.json();
+    historyData = result.tasks || [];
+
+    populateFilters(); // 🟢 Primero pobla los filtros
+
+    // 🔄 Luego resetea los valores
+    document.getElementById("projectFilter").value   = "";
+    document.getElementById("reviewFilter").value    = "";
+    document.getElementById("dataTypeFilter").value  = "";
+    document.getElementById("emailFilter").value     = "";
+    currentPage = 1;
+
+    renderTable(); // 🟢 Luego renderiza según filtros vacíos
+    showStatusMessage('Task history loaded successfully!');
+  } catch (error) {
+    console.error('Error loading history:', error);
+    showStatusMessage('Failed to load task history. Please try again.', 'error');
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Error loading task history</h3>
+          <p>${error.message}</p>
+          <button class="btn btn-primary" onclick="loadHistory()">
+            <i class="fas fa-sync-alt"></i> Retry
+          </button>
+        </td>
+      </tr>
+    `;
+  } finally {
+    loadingRow.style.display = "none";
+  }
+}
+
+
 
     function populateFilters() {
       const projectSet = new Set();
@@ -582,7 +592,19 @@
 
     function exportCSV() {
       let csv = "Subtask,Batch,Level,Review,Email,Claimed At,Finished At,Project,Data Type\n";
-      historyData.forEach(row => {
+      const project   = document.getElementById("projectFilter").value;
+const review    = document.getElementById("reviewFilter").value;
+const dataType  = document.getElementById("dataTypeFilter").value;
+const email     = document.getElementById("emailFilter").value.trim().toLowerCase();
+
+const filtered = historyData.filter(d =>
+  (!project  || d.project === project) &&
+  (!review   || d.review_option === review) &&
+  (!dataType || (d.data_type || '-') === dataType) &&
+  (!email    || (d.email || '').toLowerCase().includes(email))
+);
+
+filtered.forEach(row => {
         csv += [
           `"${row.subtask}"`,
           row.batch || "-",
