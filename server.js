@@ -690,3 +690,14 @@ await pool.query(
   }
 });
 
+app.get("/api/admin-logs", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM admin_logs ORDER BY timestamp DESC LIMIT 200"
+    );
+    res.json({ logs: result.rows });
+  } catch (error) {
+    console.error("Error fetching admin logs:", error);
+    res.status(500).json({ error: "Failed to fetch logs" });
+  }
+});
